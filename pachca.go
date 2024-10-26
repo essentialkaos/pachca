@@ -1809,12 +1809,12 @@ func (w *Webhook) IsNew() bool {
 
 // IsUpdate returns true if there is a webhook event for updated message
 func (w *Webhook) IsUpdate() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_NEW
+	return w != nil && w.Event == WEBHOOK_EVENT_UPDATE
 }
 
 // IsDelete returns true if there is a webhook event for deleted message
 func (w *Webhook) IsDelete() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_NEW
+	return w != nil && w.Event == WEBHOOK_EVENT_DELETE
 }
 
 // Command returns slash command name from the beginning of the message

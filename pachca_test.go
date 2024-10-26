@@ -398,3 +398,30 @@ func (s *PachcaSuite) TestURLHelpers(c *C) {
 	c.Assert(message.URL(), Equals, "https://app.pachca.com/chats/15?message=145")
 	c.Assert(thread.URL(), Equals, "https://app.pachca.com/chats?thread_message_id=145&sidebar_message=238")
 }
+
+func (s *PachcaSuite) TestWebhookHelpers(c *C) {
+	message := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Content: "/find-user j.doe"}
+	reaction := &Webhook{Type: WEBHOOK_TYPE_REACTION}
+	button := &Webhook{Type: WEBHOOK_TYPE_BUTTON}
+	new := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_NEW}
+	update := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_UPDATE}
+	delete := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_DELETE}
+
+	var nilWebhook *Webhook
+
+	c.Assert(nilWebhook.IsMessage(), Equals, false)
+	c.Assert(nilWebhook.IsReaction(), Equals, false)
+	c.Assert(nilWebhook.IsButton(), Equals, false)
+	c.Assert(nilWebhook.IsNew(), Equals, false)
+	c.Assert(nilWebhook.IsUpdate(), Equals, false)
+	c.Assert(nilWebhook.IsDelete(), Equals, false)
+	c.Assert(nilWebhook.Command(), Equals, "")
+
+	c.Assert(message.IsMessage(), Equals, true)
+	c.Assert(reaction.IsReaction(), Equals, true)
+	c.Assert(button.IsButton(), Equals, true)
+	c.Assert(new.IsNew(), Equals, true)
+	c.Assert(update.IsUpdate(), Equals, true)
+	c.Assert(delete.IsDelete(), Equals, true)
+	c.Assert(message.Command(), Equals, "find-user")
+}
