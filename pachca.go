@@ -1840,7 +1840,7 @@ func (f ChatFilter) ToQuery() req.Query {
 		query["last_message_at_before"] = formatDate(f.LastMessageBefore)
 	}
 
-	if !f.LastMessageBefore.IsZero() {
+	if !f.LastMessageAfter.IsZero() {
 		query["last_message_at_after"] = formatDate(f.LastMessageAfter)
 	}
 

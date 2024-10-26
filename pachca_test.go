@@ -9,6 +9,7 @@ package pachca
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/essentialkaos/check"
 )
@@ -424,4 +425,55 @@ func (s *PachcaSuite) TestWebhookHelpers(c *C) {
 	c.Assert(update.IsUpdate(), Equals, true)
 	c.Assert(delete.IsDelete(), Equals, true)
 	c.Assert(message.Command(), Equals, "find-user")
+}
+
+func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
+	cf := ChatFilter{
+		Public:            true,
+		LastMessageAfter:  time.Now(),
+		LastMessageBefore: time.Now().AddDate(0, 0, 1),
+	}
+
+	q := cf.ToQuery()
+
+	c.Assert(q["availability"], Equals, "public")
+	c.Assert(q["last_message_at_before"], Not(Equals), "")
+	c.Assert(q["last_message_at_after"], Not(Equals), "")
+}
+
+func (s *PachcaSuite) TestAux(c *C) {
+	cc := &Client{BatchSize: 1}
+	c.Assert(cc.getBatchSize(), Equals, 5)
+
+	err := extractS3Error("TEST")
+	c.Assert(err.Error(), Equals, "Unknown error")
+	err = extractS3Error(`<Error><Code>MalformedPOSTRequest</Code><Message>The body of your POST request is not well-formed multipart/form-data.</Message><Resource>/</Resource><RequestId>26dbc55e-ab66-4d23-9334-6b684e25ebf8</RequestId></Error>`)
+	c.Assert(err.Error(), Equals, "The body of your POST request is not well-formed multipart/form-data.")
+
+	c.Assert(guessFileType("text.txt"), Equals, FILE_TYPE_FILE)
+	c.Assert(guessFileType("TEXT.PNG"), Equals, FILE_TYPE_IMAGE)
+}
+
+func (s *PachcaSuite) TestJSONDateDecoder(c *C) {
+	d := &Date{}
+
+	c.Assert(d.UnmarshalJSON([]byte(`ABCD`)), NotNil)
+
+	c.Assert(d.UnmarshalJSON([]byte(`null`)), IsNil)
+	c.Assert(d.IsZero(), Equals, true)
+
+	c.Assert(d.UnmarshalJSON([]byte(`"2024-08-08T09:11:50.368Z"`)), IsNil)
+	c.Assert(d.IsZero(), Equals, false)
+}
+
+func (s *PachcaSuite) TestAPIErrorToString(c *C) {
+	err := APIError{
+		Key:        "system",
+		Value:      "",
+		Message:    "Ошибка выполнения запроса",
+		Code:       "unhandled",
+		StatusCode: 400,
+	}
+
+	c.Assert(err.Error(), Equals, "(unhandled) Ошибка выполнения запроса [system:]")
 }
