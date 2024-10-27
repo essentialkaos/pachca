@@ -14,6 +14,7 @@ import (
 	"mime/multipart"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -396,6 +397,7 @@ var (
 	ErrNilUserRequest    = errors.New("User requests is nil")
 	ErrNilChatRequest    = errors.New("Chat requests is nil")
 	ErrNilMessageRequest = errors.New("Message requests is nil")
+	ErrNilProperty       = errors.New("Property requests is nil")
 	ErrEmptyToken        = errors.New("Token is empty")
 	ErrEmptyTag          = errors.New("Group tag is empty")
 	ErrEmptyMessage      = errors.New("Message text is empty")
@@ -1565,7 +1567,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Get returns value of custom property with given name
+// Get returns custom property with given name
 func (p Properties) Get(name string) *Property {
 	for _, pp := range p {
 		if pp.Name == name {
@@ -1576,47 +1578,95 @@ func (p Properties) Get(name string) *Property {
 	return nil
 }
 
-// GetD returns value of custom property with given name as string
-func (p Properties) GetS(name string) string {
-	pp := p.Get(name)
+// GetAny returns first found property with one of given names
+func (p Properties) GetAny(name ...string) *Property {
+	for _, pp := range p {
+		if slices.Contains(name, pp.Name) {
+			return pp
+		}
+	}
 
-	if pp == nil || pp.Value == "" {
+	return nil
+}
+
+// Names returns slice with properties names
+func (p Properties) Names() []string {
+	var result []string
+
+	for _, pp := range p {
+		result = append(result, pp.Name)
+	}
+
+	return result
+}
+
+// IsText returns true if property has text type
+func (p *Property) IsText() bool {
+	return p != nil && p.Type == PROP_TYPE_TEXT
+}
+
+// IsLink returns true if property has URL type
+func (p *Property) IsLink() bool {
+	return p != nil && p.Type == PROP_TYPE_LINK
+}
+
+// IsDate returns true if property has date type
+func (p *Property) IsDate() bool {
+	return p != nil && p.Type == PROP_TYPE_DATE
+}
+
+// IsNumber returns true if property has number type
+func (p *Property) IsNumber() bool {
+	return p != nil && p.Type == PROP_TYPE_NUMBER
+}
+
+// String returns property value
+func (p *Property) String() string {
+	if p == nil {
 		return ""
 	}
 
-	return pp.Value
+	return p.Value
 }
 
-// GetD returns value of custom property with given name as date
-func (p Properties) GetD(name string) (time.Time, error) {
-	pp := p.Get(name)
-
+// ToDate tries to convert property value to date
+func (p *Property) ToDate() (time.Time, error) {
 	switch {
-	case pp == nil:
-		return time.Time{}, fmt.Errorf("There is not property with name %q", name)
-	case pp.Value == "":
+	case p == nil:
+		return time.Time{}, ErrNilProperty
+	case p.Value == "":
 		return time.Time{}, nil
-	case pp.Type != PROP_TYPE_DATE:
-		return time.Time{}, fmt.Errorf("Invalid property type for GetD (%s)", pp.Type)
+	case p.Type != PROP_TYPE_DATE:
+		return time.Time{}, fmt.Errorf("Invalid property type for date (%s)", p.Type)
 	}
 
-	return parseDate(pp.Value)
+	return parseDate(p.Value)
 }
 
-// GetD returns value of custom property with given name as int
-func (p Properties) GetI(name string) (int, error) {
-	pp := p.Get(name)
+// Date returns property value as date
+func (p *Property) Date() time.Time {
+	d, _ := p.ToDate()
+	return d
+}
 
+// ToInt tries to convert property value to int
+func (p *Property) ToInt() (int, error) {
 	switch {
-	case pp == nil:
-		return 0, fmt.Errorf("There is not property with name %q", name)
-	case pp.Value == "":
+	case p == nil:
+		return 0, ErrNilProperty
+	case p.Value == "":
 		return 0, nil
-	case pp.Type != PROP_TYPE_NUMBER:
-		return 0, fmt.Errorf("Invalid property type for GetI (%s)", pp.Type)
+	case p.Type != PROP_TYPE_NUMBER:
+		return 0, fmt.Errorf("Invalid property type for date (%s)", p.Type)
 	}
 
-	return strconv.Atoi(pp.Value)
+	return strconv.Atoi(p.Value)
+}
+
+// Int returns property value as int
+func (p *Property) Int() int {
+	i, _ := p.ToInt()
+	return i
 }
 
 // FullName returns user full name
