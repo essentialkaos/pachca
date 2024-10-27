@@ -304,7 +304,7 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 		{ID: 1, Type: PROP_TYPE_DATE, Name: "test1", Value: "2024-08-08T09:11:50.368Z"},
 		{ID: 2, Type: PROP_TYPE_LINK, Name: "test2", Value: "https://domain.com"},
 		{ID: 3, Type: PROP_TYPE_NUMBER, Name: "test3", Value: "314"},
-		{ID: 4, Type: PROP_TYPE_TEXT, Name: "test4", Value: "Test1"},
+		{ID: 4, Type: PROP_TYPE_TEXT, Name: "test4", Value: "Test"},
 		{ID: 5, Type: PROP_TYPE_NUMBER, Name: "test5", Value: ""},
 		{ID: 6, Type: PROP_TYPE_DATE, Name: "test6", Value: ""},
 	}
@@ -312,30 +312,42 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 	c.Assert(p.Get("test"), IsNil)
 	c.Assert(p.Get("test1"), NotNil)
 
-	c.Assert(p.GetS("test2"), Equals, "https://domain.com")
-	c.Assert(p.GetS("test4"), Equals, "Test1")
-	c.Assert(p.GetS("test100"), Equals, "")
+	c.Assert(p.GetAny("abcd", "test100", "test"), IsNil)
+	c.Assert(p.GetAny("abcd", "test4", "test").Name, Equals, "test4")
 
-	i, err := p.GetI("test3")
+	c.Assert(p.Names(), DeepEquals, []string{"test1", "test2", "test3", "test4", "test5", "test6"})
+
+	c.Assert(p.Get("test4").IsText(), Equals, true)
+	c.Assert(p.Get("test2").IsLink(), Equals, true)
+	c.Assert(p.Get("test1").IsDate(), Equals, true)
+	c.Assert(p.Get("test3").IsNumber(), Equals, true)
+
+	c.Assert(p.Get("test2").String(), Equals, "https://domain.com")
+	c.Assert(p.Get("test4").String(), Equals, "Test")
+	c.Assert(p.Get("test100").String(), Equals, "")
+
+	c.Assert(p.Get("test1").Date().IsZero(), Equals, false)
+	c.Assert(p.Get("test2").Date().IsZero(), Equals, true)
+
+	c.Assert(p.Get("test3").Int(), Equals, 314)
+	c.Assert(p.Get("test2").Int(), Equals, 0)
+
+	_, err := p.Get("test6").ToDate()
 	c.Assert(err, IsNil)
-	c.Assert(i, Equals, 314)
-	i, err = p.GetI("test5")
-	c.Assert(err, IsNil)
-	c.Assert(i, Equals, 0)
-	_, err = p.GetI("test4")
-	c.Assert(err, NotNil)
-	_, err = p.GetI("test100")
+	_, err = p.Get("test2").ToDate()
 	c.Assert(err, NotNil)
 
-	d, err := p.GetD("test1")
+	_, err = p.Get("test5").ToInt()
 	c.Assert(err, IsNil)
-	c.Assert(d.IsZero(), Equals, false)
-	d, err = p.GetD("test6")
-	c.Assert(err, IsNil)
-	_, err = p.GetD("test4")
+	_, err = p.Get("test2").ToInt()
 	c.Assert(err, NotNil)
-	_, err = p.GetD("test100")
-	c.Assert(err, NotNil)
+
+	var pp *Property
+
+	_, err = pp.ToDate()
+	c.Assert(err, Equals, ErrNilProperty)
+	_, err = pp.ToInt()
+	c.Assert(err, Equals, ErrNilProperty)
 }
 
 func (s *PachcaSuite) TestUsersHelpers(c *C) {
