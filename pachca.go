@@ -1714,7 +1714,7 @@ func (u Users) Invited() Users {
 	var result Users
 
 	for _, uu := range u {
-		if uu.InviteStatus == INVITE_SENT {
+		if !uu.IsBot && uu.InviteStatus == INVITE_SENT {
 			result = append(result, uu)
 		}
 	}
