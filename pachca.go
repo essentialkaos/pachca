@@ -1671,12 +1671,8 @@ func (p *Property) Int() int {
 
 // FullName returns user full name
 func (u *User) FullName() string {
-	if u == nil {
-		return ""
-	}
-
 	switch {
-	case u == nil:
+	case u == nil, u.FirstName == "" && u.LastName == "":
 		return ""
 	case u.FirstName == "" && u.LastName != "":
 		return u.LastName
