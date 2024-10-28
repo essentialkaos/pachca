@@ -1675,6 +1675,15 @@ func (u *User) FullName() string {
 		return ""
 	}
 
+	switch {
+	case u == nil:
+		return ""
+	case u.FirstName == "" && u.LastName != "":
+		return u.LastName
+	case u.FirstName != "" && u.LastName == "":
+		return u.FirstName
+	}
+
 	return u.FirstName + " " + u.LastName
 }
 
