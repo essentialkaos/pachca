@@ -1683,12 +1683,30 @@ func (u *User) FullName() string {
 	return u.FirstName + " " + u.LastName
 }
 
+// IsActive returns true if user is active
+func (u *User) IsActive() bool {
+	if u == nil {
+		return false
+	}
+
+	return !u.IsSuspended && u.InviteStatus == INVITE_CONFIRMED
+}
+
+// IsInvited returns true if user is invited
+func (u *User) IsInvited() bool {
+	if u == nil {
+		return false
+	}
+
+	return !u.IsSuspended && u.InviteStatus == INVITE_SENT
+}
+
 // Active returns slice with active users
 func (u Users) Active() Users {
 	var result Users
 
 	for _, uu := range u {
-		if !uu.IsSuspended && uu.InviteStatus == INVITE_CONFIRMED {
+		if uu.IsActive() {
 			result = append(result, uu)
 		}
 	}
@@ -1714,7 +1732,7 @@ func (u Users) Invited() Users {
 	var result Users
 
 	for _, uu := range u {
-		if !uu.IsBot && uu.InviteStatus == INVITE_SENT {
+		if uu.IsInvited() {
 			result = append(result, uu)
 		}
 	}
