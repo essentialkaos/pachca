@@ -118,7 +118,7 @@ type Chats []*Chat
 // Chat contains info about channel
 type Chat struct {
 	Members       []ID   `json:"member_ids"`
-	GroupTagIDs   []ID   `json:"group_tag_ids"`
+	Groups        []ID   `json:"group_tag_ids"`
 	ID            ID     `json:"id"`
 	OwnerID       ID     `json:"owner_id"`
 	Name          string `json:"name"`
