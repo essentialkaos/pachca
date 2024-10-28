@@ -1671,8 +1671,13 @@ func (p *Property) Int() int {
 
 // FullName returns user full name
 func (u *User) FullName() string {
-	if u == nil {
+	switch {
+	case u == nil, u.FirstName == "" && u.LastName == "":
 		return ""
+	case u.FirstName == "" && u.LastName != "":
+		return u.LastName
+	case u.FirstName != "" && u.LastName == "":
+		return u.FirstName
 	}
 
 	return u.FirstName + " " + u.LastName
@@ -1709,7 +1714,7 @@ func (u Users) Invited() Users {
 	var result Users
 
 	for _, uu := range u {
-		if uu.InviteStatus == INVITE_SENT {
+		if !uu.IsBot && uu.InviteStatus == INVITE_SENT {
 			result = append(result, uu)
 		}
 	}

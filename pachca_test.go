@@ -355,6 +355,10 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(u.FullName(), Equals, "")
 	u = &User{ID: 1234, FirstName: "John", LastName: "Doe", Nickname: "j.doe"}
 	c.Assert(u.FullName(), Equals, "John Doe")
+	u = &User{ID: 1234, LastName: "Doe", Nickname: "j.doe"}
+	c.Assert(u.FullName(), Equals, "Doe")
+	u = &User{ID: 1234, FirstName: "John", Nickname: "j.doe"}
+	c.Assert(u.FullName(), Equals, "John")
 
 	uu := Users{
 		{ID: 1, IsSuspended: true, InviteStatus: INVITE_SENT, IsBot: false, Role: ROLE_USER},
