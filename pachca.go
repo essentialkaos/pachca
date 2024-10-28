@@ -1688,7 +1688,7 @@ func (u Users) Active() Users {
 	var result Users
 
 	for _, uu := range u {
-		if !uu.IsSuspended {
+		if !uu.IsSuspended && uu.InviteStatus == INVITE_CONFIRMED {
 			result = append(result, uu)
 		}
 	}
