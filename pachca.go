@@ -1691,6 +1691,19 @@ func (u Users) Active() Users {
 	return result
 }
 
+// Suspended returns slice with inactive users
+func (u Users) Suspended() Users {
+	var result Users
+
+	for _, uu := range u {
+		if uu.IsSuspended {
+			result = append(result, uu)
+		}
+	}
+
+	return result
+}
+
 // Invited returns all invited users
 func (u Users) Invited() Users {
 	var result Users
