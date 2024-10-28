@@ -365,6 +365,7 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	}
 
 	c.Assert(uu.Active(), HasLen, 4)
+	c.Assert(uu.Suspended(), HasLen, 1)
 
 	c.Assert(uu.Invited(), HasLen, 1)
 	c.Assert(uu.Invited()[0].ID, Equals, ID(1))
