@@ -373,7 +373,7 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 		{ID: 3, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_ADMIN},
 		{ID: 4, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_MULTI_GUEST},
 		{ID: 5, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: true, Role: ROLE_REGULAR},
-		{ID: 6, IsSuspended: true, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR},
+		{ID: 6, IsSuspended: true, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR, Nickname: "j.doe", Email: "test@example.com"},
 	}
 
 	c.Assert(uu.Active(), HasLen, 4)
@@ -389,6 +389,10 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(uu.Regular()[0].IsRegular(), Equals, true)
 	c.Assert(uu.Guests()[0].ID, Equals, ID(4))
 	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
+
+	c.Assert(uu.Find("test"), IsNil)
+	c.Assert(uu.Find("j.doe"), NotNil)
+	c.Assert(uu.Find("test@example.com"), NotNil)
 }
 
 func (s *PachcaSuite) TestChatsHelpers(c *C) {

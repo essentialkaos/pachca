@@ -1714,6 +1714,17 @@ func (u *User) IsRegular() bool {
 	return u != nil && u.Role == ROLE_REGULAR
 }
 
+// Find tries to find user with given mail or nickname
+func (u Users) Find(nicknameOrEmail string) *User {
+	for _, uu := range u {
+		if uu.Nickname == nicknameOrEmail || uu.Email == nicknameOrEmail {
+			return uu
+		}
+	}
+
+	return nil
+}
+
 // Active returns slice with active users
 func (u Users) Active() Users {
 	var result Users
@@ -1771,7 +1782,7 @@ func (u Users) Admins() Users {
 	var result Users
 
 	for _, uu := range u {
-		if uu.Role == ROLE_ADMIN {
+		if uu.IsAdmin() {
 			result = append(result, uu)
 		}
 	}
@@ -1784,7 +1795,7 @@ func (u Users) Regular() Users {
 	var result Users
 
 	for _, uu := range u {
-		if uu.Role == ROLE_REGULAR {
+		if uu.IsRegular() {
 			result = append(result, uu)
 		}
 	}
@@ -1797,7 +1808,7 @@ func (u Users) Guests() Users {
 	var result Users
 
 	for _, uu := range u {
-		if uu.Role == ROLE_MULTI_GUEST {
+		if uu.IsGuest() {
 			result = append(result, uu)
 		}
 	}
