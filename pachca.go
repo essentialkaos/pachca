@@ -1691,47 +1691,27 @@ func (u *User) HasAvatar() bool {
 
 // IsActive returns true if user is active
 func (u *User) IsActive() bool {
-	if u == nil {
-		return false
-	}
-
-	return !u.IsSuspended && u.InviteStatus == INVITE_CONFIRMED
+	return u != nil && !u.IsSuspended && u.InviteStatus == INVITE_CONFIRMED
 }
 
 // IsInvited returns true if user is invited
 func (u *User) IsInvited() bool {
-	if u == nil {
-		return false
-	}
-
-	return !u.IsSuspended && u.InviteStatus == INVITE_SENT
+	return u != nil && !u.IsSuspended && u.InviteStatus == INVITE_SENT
 }
 
 // IsGuest returns true if user is guest or multi-guest
 func (u *User) IsGuest() bool {
-	if u == nil {
-		return false
-	}
-
-	return u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_GUEST
+	return u != nil && u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_GUEST
 }
 
 // IsAdmin returns true if user is admin
 func (u *User) IsAdmin() bool {
-	if u == nil {
-		return false
-	}
-
-	return u.Role == ROLE_ADMIN
+	return u != nil && u.Role == ROLE_ADMIN
 }
 
 // IsRegular returns true if user just regular user
 func (u *User) IsRegular() bool {
-	if u == nil {
-		return false
-	}
-
-	return u.Role == ROLE_REGULAR
+	return u != nil && u.Role == ROLE_REGULAR
 }
 
 // Active returns slice with active users
