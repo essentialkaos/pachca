@@ -417,8 +417,11 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 		{ID: 5, Name: "", IsPublic: false, IsChannel: false},
 	}
 
-	c.Assert(cc.Get("test"), IsNil)
-	c.Assert(cc.Get("test1"), NotNil)
+	c.Assert(cc.Get(1), NotNil)
+	c.Assert(cc.Get(100), IsNil)
+
+	c.Assert(cc.Find("test"), IsNil)
+	c.Assert(cc.Find("test1"), NotNil)
 
 	c.Assert(cc.Public()[0].ID, Equals, uint64(3))
 	c.Assert(cc.Channels()[0].ID, Equals, uint64(4))

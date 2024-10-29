@@ -1762,7 +1762,7 @@ func (u Users) InChat(chat *Chat) Users {
 	return result
 }
 
-// Find tries to find user with given mail or nickname
+// Find returns user with given nickname or email
 func (u Users) Find(nicknameOrEmail string) *User {
 	for _, uu := range u {
 		if uu.Nickname == nicknameOrEmail || uu.Email == nicknameOrEmail {
@@ -1864,8 +1864,19 @@ func (u Users) Guests() Users {
 	return result
 }
 
-// Get returns chat with given name
-func (c Chats) Get(name string) *Chat {
+// Get returns chat with given ID
+func (c Chats) Get(id uint64) *Chat {
+	for _, cc := range c {
+		if cc.ID == id {
+			return cc
+		}
+	}
+
+	return nil
+}
+
+// Find returns chat with given name
+func (c Chats) Find(name string) *Chat {
 	for _, cc := range c {
 		if cc.Name == name {
 			return cc
