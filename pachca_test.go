@@ -395,6 +395,10 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(uu.Find("test@example.com"), NotNil)
 	c.Assert(uu.Get(100), IsNil)
 	c.Assert(uu.Get(6).ID, Equals, uint64(6))
+
+	chat := &Chat{ID: 1, Name: "test1", Members: []uint64{1, 2, 3, 100, 101, 102}}
+	c.Assert(uu.InChat(nil), IsNil)
+	c.Assert(uu.InChat(chat), HasLen, 3)
 }
 
 func (s *PachcaSuite) TestChatsHelpers(c *C) {
@@ -414,6 +418,22 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 
 	c.Assert(cc.Communal()[0].ID, Equals, uint64(1))
 	c.Assert(cc.Personal()[0].ID, Equals, uint64(5))
+}
+
+func (s *PachcaSuite) TestTagsHelpers(c *C) {
+	tt := Tags{
+		{ID: 1, Name: "Test1", UsersCount: 1},
+		{ID: 2, Name: "Test2", UsersCount: 10},
+		{ID: 3, Name: "Test3", UsersCount: 5},
+	}
+
+	c.Assert(tt.Get(1), NotNil)
+	c.Assert(tt.Get(10), IsNil)
+
+	chat := &Chat{ID: 1, Name: "test1", GroupTags: []uint64{1, 2, 3, 100, 101, 102}}
+
+	c.Assert(tt.InChat(nil), IsNil)
+	c.Assert(tt.InChat(chat), HasLen, 3)
 }
 
 func (s *PachcaSuite) TestURLHelpers(c *C) {

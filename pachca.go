@@ -116,7 +116,7 @@ type Chats []*Chat
 // Chat contains info about channel
 type Chat struct {
 	Members       []uint64 `json:"member_ids"`
-	Groups        []uint64 `json:"group_tag_ids"`
+	GroupTags     []uint64 `json:"group_tag_ids"`
 	ID            uint64   `json:"id"`
 	OwnerID       uint64   `json:"owner_id"`
 	Name          string   `json:"name"`
@@ -1722,6 +1722,25 @@ func (u Users) Get(id uint64) *User {
 	return nil
 }
 
+// InChat only returns users that are present in the given chat
+func (u Users) InChat(chat *Chat) Users {
+	if chat == nil {
+		return nil
+	}
+
+	var result Users
+
+	for _, id := range chat.Members {
+		user := u.Get(id)
+
+		if user != nil {
+			result = append(result, user)
+		}
+	}
+
+	return result
+}
+
 // Find tries to find user with given mail or nickname
 func (u Users) Find(nicknameOrEmail string) *User {
 	for _, uu := range u {
@@ -1881,6 +1900,36 @@ func (c Chats) Communal() Chats {
 	for _, cc := range c {
 		if cc.Name != "" {
 			result = append(result, cc)
+		}
+	}
+
+	return result
+}
+
+// Get returns tag with given ID
+func (t Tags) Get(id uint64) *Tag {
+	for _, tt := range t {
+		if tt.ID == id {
+			return tt
+		}
+	}
+
+	return nil
+}
+
+// InChat only returns tags that are present in the given chat
+func (t Tags) InChat(chat *Chat) Tags {
+	if chat == nil {
+		return nil
+	}
+
+	var result Tags
+
+	for _, id := range chat.GroupTags {
+		tag := t.Get(id)
+
+		if tag != nil {
+			result = append(result, tag)
 		}
 	}
 
