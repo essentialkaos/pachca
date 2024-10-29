@@ -50,8 +50,9 @@ const (
 
 const (
 	ROLE_ADMIN       UserRole = "admin"
-	ROLE_USER        UserRole = "user"
+	ROLE_REGULAR     UserRole = "user"
 	ROLE_MULTI_GUEST UserRole = "multi_guest"
+	ROLE_GUEST       UserRole = "guest"
 )
 
 const (
@@ -1701,6 +1702,33 @@ func (u *User) IsInvited() bool {
 	return !u.IsSuspended && u.InviteStatus == INVITE_SENT
 }
 
+// IsGuest returns true if user is guest or multi-guest
+func (u *User) IsGuest() bool {
+	if u == nil {
+		return false
+	}
+
+	return u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_GUEST
+}
+
+// IsAdmin returns true if user is admin
+func (u *User) IsAdmin() bool {
+	if u == nil {
+		return false
+	}
+
+	return u.Role == ROLE_ADMIN
+}
+
+// IsRegular returns true if user just regular user
+func (u *User) IsRegular() bool {
+	if u == nil {
+		return false
+	}
+
+	return u.Role == ROLE_REGULAR
+}
+
 // Active returns slice with active users
 func (u Users) Active() Users {
 	var result Users
@@ -1771,7 +1799,7 @@ func (u Users) Regular() Users {
 	var result Users
 
 	for _, uu := range u {
-		if uu.Role == ROLE_USER {
+		if uu.Role == ROLE_REGULAR {
 			result = append(result, uu)
 		}
 	}
