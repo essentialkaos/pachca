@@ -87,9 +87,6 @@ type Date struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ID is default ID type
-type ID uint
-
 // EntityType is type of entity type
 type EntityType string
 
@@ -118,16 +115,16 @@ type Chats []*Chat
 
 // Chat contains info about channel
 type Chat struct {
-	Members       []ID   `json:"member_ids"`
-	Groups        []ID   `json:"group_tag_ids"`
-	ID            ID     `json:"id"`
-	OwnerID       ID     `json:"owner_id"`
-	Name          string `json:"name"`
-	MeetRoomURL   string `json:"meet_room_url"`
-	CreatedAt     Date   `json:"created_at"`
-	LastMessageAt Date   `json:"last_message_at"`
-	IsPublic      bool   `json:"public"`
-	IsChannel     bool   `json:"channel"`
+	Members       []uint64 `json:"member_ids"`
+	Groups        []uint64 `json:"group_tag_ids"`
+	ID            uint64   `json:"id"`
+	OwnerID       uint64   `json:"owner_id"`
+	Name          string   `json:"name"`
+	MeetRoomURL   string   `json:"meet_room_url"`
+	CreatedAt     Date     `json:"created_at"`
+	LastMessageAt Date     `json:"last_message_at"`
+	IsPublic      bool     `json:"public"`
+	IsChannel     bool     `json:"channel"`
 }
 
 // Users is a slice of users
@@ -135,7 +132,7 @@ type Users []*User
 
 // User contains info about user
 type User struct {
-	ID           ID           `json:"id"`
+	ID           uint64       `json:"id"`
 	CreatedAt    Date         `json:"created_at"`
 	ImageURL     string       `json:"image_url"`
 	Email        string       `json:"email"`
@@ -167,7 +164,7 @@ type Properties []*Property
 
 // Property is custom property
 type Property struct {
-	ID    ID           `json:"id"`
+	ID    uint64       `json:"id"`
 	Type  PropertyType `json:"data_type"`
 	Name  string       `json:"name"`
 	Value string       `json:"value"`
@@ -175,7 +172,7 @@ type Property struct {
 
 // Tag contains info about tag
 type Tag struct {
-	ID         ID     `json:"id"`
+	ID         uint64 `json:"id"`
 	Name       string `json:"name"`
 	UsersCount int    `json:"users_count"`
 }
@@ -185,7 +182,7 @@ type Tags []*Tag
 
 // Reaction contains reaction info
 type Reaction struct {
-	UserID    ID     `json:"user_id"`
+	UserID    uint64 `json:"user_id"`
 	CreatedAt Date   `json:"created_at"`
 	Emoji     string `json:"code"`
 }
@@ -195,20 +192,20 @@ type Reactions []*Reaction
 
 // Thread contains info about thread
 type Thread struct {
-	ID            ID   `json:"id"`
-	ChatID        ID   `json:"chat_id"`
-	MessageID     ID   `json:"message_id"`
-	MessageChatID ID   `json:"message_chat_id"`
-	UpdatedAt     Date `json:"updated_at"`
+	ID            uint64 `json:"id"`
+	ChatID        uint64 `json:"chat_id"`
+	MessageID     uint64 `json:"message_id"`
+	MessageChatID uint64 `json:"message_chat_id"`
+	UpdatedAt     Date   `json:"updated_at"`
 }
 
 // Message contains info about message
 type Message struct {
-	ID              ID          `json:"id"`
-	EntityID        ID          `json:"entity_id"`
-	ChatID          ID          `json:"chat_id"`
-	ParentMessageID ID          `json:"parent_message_id"`
-	UsedID          ID          `json:"user_id"`
+	ID              uint64      `json:"id"`
+	EntityID        uint64      `json:"entity_id"`
+	ChatID          uint64      `json:"chat_id"`
+	ParentMessageID uint64      `json:"parent_message_id"`
+	UsedID          uint64      `json:"user_id"`
 	EntityType      EntityType  `json:"entity_type"`
 	Content         string      `json:"content"`
 	CreatedAt       Date        `json:"created_at"`
@@ -220,18 +217,18 @@ type Message struct {
 
 // Forwarding contains info about message forwarding
 type Forwarding struct {
-	OriginalMessageID          ID   `json:"original_message_id"`
-	OriginalChatID             ID   `json:"original_chat_id"`
-	AuthorID                   ID   `json:"author_id"`
-	OriginalThreadID           ID   `json:"original_thread_id"`
-	OriginalThreadMessageID    ID   `json:"original_thread_message_id"`
-	OriginalThreadParentChatID ID   `json:"original_thread_parent_chat_id"`
-	OriginalCreatedAt          Date `json:"original_created_at"`
+	OriginalMessageID          uint64 `json:"original_message_id"`
+	OriginalChatID             uint64 `json:"original_chat_id"`
+	AuthorID                   uint64 `json:"author_id"`
+	OriginalThreadID           uint64 `json:"original_thread_id"`
+	OriginalThreadMessageID    uint64 `json:"original_thread_message_id"`
+	OriginalThreadParentChatID uint64 `json:"original_thread_parent_chat_id"`
+	OriginalCreatedAt          Date   `json:"original_created_at"`
 }
 
 // File contains info about message attachment
 type File struct {
-	ID   ID       `json:"id,omitempty"`
+	ID   uint64   `json:"id,omitempty"`
 	Key  string   `json:"key"`
 	Name string   `json:"name"`
 	Type FileType `json:"file_type"`
@@ -281,25 +278,25 @@ type APIError struct {
 // WebhookMessage is message webhook payload
 type Webhook struct {
 	Type            WebhookType  `json:"type"`
-	ID              ID           `json:"id"`                // message
+	ID              uint64       `json:"id"`                // message
 	Event           WebhookEvent `json:"event"`             // message, reaction
 	EntityType      EntityType   `json:"entity_type"`       // message
-	EntityID        ID           `json:"entity_id"`         // message
+	EntityID        uint64       `json:"entity_id"`         // message
 	Content         string       `json:"content"`           // message
 	Emoji           string       `json:"code"`              // reaction
 	Data            string       `json:"data"`              // button
-	UserID          ID           `json:"user_id"`           // message, reaction
+	UserID          uint64       `json:"user_id"`           // message, reaction
 	CreatedAt       Date         `json:"created_at"`        // message, reaction, button
-	ChatID          ID           `json:"chat_id"`           // message
-	MessageID       ID           `json:"message_id"`        // reaction, button
-	ParentMessageID ID           `json:"parent_message_id"` // message
+	ChatID          uint64       `json:"chat_id"`           // message
+	MessageID       uint64       `json:"message_id"`        // reaction, button
+	ParentMessageID uint64       `json:"parent_message_id"` // message
 	Thread          *Thread      `json:"thread"`            // message
 }
 
 // WebhookThread contains info about message thread
 type WebhookThread struct {
-	MessageID     ID `json:"message_id"`
-	MessageChatID ID `json:"message_chat_id"`
+	MessageID     uint64 `json:"message_id"`
+	MessageChatID uint64 `json:"message_chat_id"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -340,17 +337,17 @@ type UserRequest struct {
 
 // ChatRequest is a struct with information needed to create or modify a chat
 type ChatRequest struct {
-	Name        string `json:"name"`
-	MemberIDs   []ID   `json:"member_ids,omitempty"`
-	GroupTagIDs []ID   `json:"group_tag_ids,omitempty"`
-	IsChannel   bool   `json:"channel,omitempty"`
-	IsPublic    bool   `json:"public,omitempty"`
+	Name      string   `json:"name"`
+	Members   []uint64 `json:"member_ids,omitempty"`
+	Groups    []uint64 `json:"group_tag_ids,omitempty"`
+	IsChannel bool     `json:"channel,omitempty"`
+	IsPublic  bool     `json:"public,omitempty"`
 }
 
 // MessageRequest is a struct with information needed to create or modify a message
 type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
-	EntityID           ID         `json:"entity_id"`
+	EntityID           uint64     `json:"entity_id"`
 	Content            string     `json:"content"`
 	Files              Files      `json:"files"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
@@ -512,7 +509,7 @@ func (c *Client) GetProperties() (Properties, error) {
 // GetReactions returns slice with reactions added to given message
 //
 // https://crm.pachca.com/dev/reactions/list/
-func (c *Client) GetReactions(messageID ID) (Reactions, error) {
+func (c *Client) GetReactions(messageID uint64) (Reactions, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -553,7 +550,7 @@ func (c *Client) GetReactions(messageID ID) (Reactions, error) {
 // AddReaction adds given emoji reaction to the message
 //
 // https://crm.pachca.com/dev/reactions/new/
-func (c *Client) AddReaction(messageID ID, emoji string) error {
+func (c *Client) AddReaction(messageID uint64, emoji string) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -578,7 +575,7 @@ func (c *Client) AddReaction(messageID ID, emoji string) error {
 // DeleteReaction removes given emoji reaction from the message
 //
 // https://crm.pachca.com/dev/reactions/delete/
-func (c *Client) DeleteReaction(messageID ID, emoji string) error {
+func (c *Client) DeleteReaction(messageID uint64, emoji string) error {
 	switch {
 	case c == nil:
 		return ErrNilClient
@@ -605,7 +602,7 @@ func (c *Client) DeleteReaction(messageID ID, emoji string) error {
 // GetUser returns info about user
 //
 // https://crm.pachca.com/dev/users/get/
-func (c *Client) GetUser(userID ID) (*User, error) {
+func (c *Client) GetUser(userID uint64) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -703,7 +700,7 @@ func (c *Client) AddUser(user *UserRequest) (*User, error) {
 // EditUser modifies an existing user
 //
 // https://crm.pachca.com/dev/users/update/
-func (c *Client) EditUser(userID ID, user *UserRequest) (*User, error) {
+func (c *Client) EditUser(userID uint64, user *UserRequest) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -735,7 +732,7 @@ func (c *Client) EditUser(userID ID, user *UserRequest) (*User, error) {
 // DeleteUser deletes an existing user
 //
 // https://crm.pachca.com/dev/users/delete/
-func (c *Client) DeleteUser(userID ID) error {
+func (c *Client) DeleteUser(userID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -792,7 +789,7 @@ func (c *Client) GetTags() (Tags, error) {
 // GetTag returns info about group tag with given ID
 //
 // https://crm.pachca.com/dev/group_tags/get/
-func (c *Client) GetTag(groupTagID ID) (*Tag, error) {
+func (c *Client) GetTag(groupTagID uint64) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -819,7 +816,7 @@ func (c *Client) GetTag(groupTagID ID) (*Tag, error) {
 // GetTagUsers returns slice with users with given tag
 //
 // https://crm.pachca.com/dev/group_tags/users/
-func (c *Client) GetTagUsers(groupTagID ID) (Users, error) {
+func (c *Client) GetTagUsers(groupTagID uint64) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -890,7 +887,7 @@ func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 // EditTag changes name of given group tag
 //
 // https://crm.pachca.com/dev/group_tags/update/
-func (c *Client) EditTag(groupTagID ID, groupTagName string) (*Tag, error) {
+func (c *Client) EditTag(groupTagID uint64, groupTagName string) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -925,7 +922,7 @@ func (c *Client) EditTag(groupTagID ID, groupTagName string) (*Tag, error) {
 // DeleteTag removes group tag
 //
 // https://crm.pachca.com/dev/group_tags/delete/
-func (c *Client) DeleteTag(groupTagID ID) error {
+func (c *Client) DeleteTag(groupTagID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -991,7 +988,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 // GetChats returns info about specific channel
 //
 // https://crm.pachca.com/dev/chats/get/
-func (c *Client) GetChat(chatID ID) (*Chat, error) {
+func (c *Client) GetChat(chatID uint64) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1047,7 +1044,7 @@ func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 // EditChat modifies chat
 //
 // https://crm.pachca.com/dev/chats/new/
-func (c *Client) EditChat(chatID ID, chat *ChatRequest) (*Chat, error) {
+func (c *Client) EditChat(chatID uint64, chat *ChatRequest) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1079,7 +1076,7 @@ func (c *Client) EditChat(chatID ID, chat *ChatRequest) (*Chat, error) {
 // AddChatUsers adds users with given IDs to the chat
 //
 // https://crm.pachca.com/dev/members/users/new/
-func (c *Client) AddChatUsers(chatID ID, membersIDs []ID, silent bool) error {
+func (c *Client) AddChatUsers(chatID uint64, membersIDs []uint64, silent bool) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1096,7 +1093,7 @@ func (c *Client) AddChatUsers(chatID ID, membersIDs []ID, silent bool) error {
 	}
 
 	payload := &struct {
-		IDs []ID `json:"member_ids"`
+		IDs []uint64 `json:"member_ids"`
 	}{
 		IDs: membersIDs,
 	}
@@ -1116,7 +1113,7 @@ func (c *Client) AddChatUsers(chatID ID, membersIDs []ID, silent bool) error {
 // AddChatTags adds group tags to the chat
 //
 // https://crm.pachca.com/dev/members/tags/new/
-func (c *Client) AddChatTags(chatID ID, tagIDs []ID) error {
+func (c *Client) AddChatTags(chatID uint64, tagIDs []uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1127,7 +1124,7 @@ func (c *Client) AddChatTags(chatID ID, tagIDs []ID) error {
 	}
 
 	payload := &struct {
-		IDs []ID `json:"group_tag_ids"`
+		IDs []uint64 `json:"group_tag_ids"`
 	}{
 		IDs: tagIDs,
 	}
@@ -1147,7 +1144,7 @@ func (c *Client) AddChatTags(chatID ID, tagIDs []ID) error {
 // ExcludeChatUser excludes the user from the chat
 //
 // https://crm.pachca.com/dev/members/users/delete/
-func (c *Client) ExcludeChatUser(chatID, userID ID) error {
+func (c *Client) ExcludeChatUser(chatID, userID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1175,7 +1172,7 @@ func (c *Client) ExcludeChatUser(chatID, userID ID) error {
 // ExcludeChatTag excludes the group tag from the chat
 //
 // https://crm.pachca.com/dev/members/tags/delete/
-func (c *Client) ExcludeChatTag(chatID, tagID ID) error {
+func (c *Client) ExcludeChatTag(chatID, tagID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1205,7 +1202,7 @@ func (c *Client) ExcludeChatTag(chatID, tagID ID) error {
 // GetMessage returns info about message
 //
 // https://crm.pachca.com/dev/messages/get/
-func (c *Client) GetMessage(messageID ID) (*Message, error) {
+func (c *Client) GetMessage(messageID uint64) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1261,7 +1258,7 @@ func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 // EditMessage modifies message
 //
 // https://crm.pachca.com/dev/messages/update/
-func (c *Client) EditMessage(messageID ID, message *MessageRequest) (*Message, error) {
+func (c *Client) EditMessage(messageID uint64, message *MessageRequest) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1293,7 +1290,7 @@ func (c *Client) EditMessage(messageID ID, message *MessageRequest) (*Message, e
 // DeleteMessage deletes message with given ID
 //
 // https://crm.pachca.com/dev/messages/delete/
-func (c *Client) DeleteMessage(messageID ID) error {
+func (c *Client) DeleteMessage(messageID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1313,7 +1310,7 @@ func (c *Client) DeleteMessage(messageID ID) error {
 // PinMessage pins message to chat
 //
 // https://crm.pachca.com/dev/messages/pin/new/
-func (c *Client) PinMessage(messageID ID) error {
+func (c *Client) PinMessage(messageID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1333,7 +1330,7 @@ func (c *Client) PinMessage(messageID ID) error {
 // UnpinMessage unpins message from chat
 //
 // https://crm.pachca.com/dev/messages/pin/new/
-func (c *Client) UnpinMessage(messageID ID) error {
+func (c *Client) UnpinMessage(messageID uint64) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
@@ -1354,7 +1351,7 @@ func (c *Client) UnpinMessage(messageID ID) error {
 }
 
 // SendMessageToUser helper to send message to user with given ID
-func (c *Client) SendMessageToUser(userID ID, text string) (*Message, error) {
+func (c *Client) SendMessageToUser(userID uint64, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1372,7 +1369,7 @@ func (c *Client) SendMessageToUser(userID ID, text string) (*Message, error) {
 }
 
 // SendMessageToChat helper to send message to chat with given ID
-func (c *Client) SendMessageToChat(chatID ID, text string) (*Message, error) {
+func (c *Client) SendMessageToChat(chatID uint64, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1390,7 +1387,7 @@ func (c *Client) SendMessageToChat(chatID ID, text string) (*Message, error) {
 }
 
 // SendMessageToThread helper to send message to thread with given ID
-func (c *Client) SendMessageToThread(threadID ID, text string) (*Message, error) {
+func (c *Client) SendMessageToThread(threadID uint64, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1408,7 +1405,7 @@ func (c *Client) SendMessageToThread(threadID ID, text string) (*Message, error)
 }
 
 // ChangeMessageText helper to change message text
-func (c *Client) ChangeMessageText(messageID ID, text string) (*Message, error) {
+func (c *Client) ChangeMessageText(messageID uint64, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1438,7 +1435,7 @@ func (c *Client) ChangeMessageText(messageID ID, text string) (*Message, error) 
 // GetThread returns info about thread
 //
 // https://crm.pachca.com/dev/threads/get/
-func (c *Client) GetThread(threadID ID) (*Thread, error) {
+func (c *Client) GetThread(threadID uint64) (*Thread, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1462,7 +1459,7 @@ func (c *Client) GetThread(threadID ID) (*Thread, error) {
 // NewThread creates a new tread
 //
 // https://crm.pachca.com/dev/threads/new/
-func (c *Client) NewThread(messageID ID) (*Thread, error) {
+func (c *Client) NewThread(messageID uint64) (*Thread, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1487,7 +1484,7 @@ func (c *Client) NewThread(messageID ID) (*Thread, error) {
 }
 
 // AddThreadMessage helper to create thread and add new message to it
-func (c *Client) AddThreadMessage(messageID ID, message *MessageRequest) (*Message, error) {
+func (c *Client) AddThreadMessage(messageID uint64, message *MessageRequest) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1715,7 +1712,7 @@ func (u *User) IsRegular() bool {
 }
 
 // Get returns user with given ID or nil
-func (u Users) Get(id ID) *User {
+func (u Users) Get(id uint64) *User {
 	for _, uu := range u {
 		if uu.ID == id {
 			return uu
