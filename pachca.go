@@ -1565,6 +1565,16 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Has returns true if properties contains property with given name
+func (p Properties) Has(name string) bool {
+	return len(p) > 0 && p.Get(name) != nil
+}
+
+// HasAny returns true if properties contains property with one of given names
+func (p Properties) HasAny(name ...string) bool {
+	return len(p) > 0 && p.GetAny(name...) != nil
+}
+
 // Get returns custom property with given name
 func (p Properties) Get(name string) *Property {
 	for _, pp := range p {

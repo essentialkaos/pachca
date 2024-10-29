@@ -310,10 +310,14 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 	}
 
 	c.Assert(p.Get("test"), IsNil)
+	c.Assert(p.Has("test"), Equals, false)
 	c.Assert(p.Get("test1"), NotNil)
+	c.Assert(p.Has("test1"), Equals, true)
 
 	c.Assert(p.GetAny("abcd", "test100", "test"), IsNil)
+	c.Assert(p.HasAny("abcd", "test100", "test"), Equals, false)
 	c.Assert(p.GetAny("abcd", "test4", "test").Name, Equals, "test4")
+	c.Assert(p.HasAny("abcd", "test4", "test"), Equals, true)
 
 	c.Assert(p.Names(), DeepEquals, []string{"test1", "test2", "test3", "test4", "test5", "test6"})
 
