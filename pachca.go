@@ -1565,18 +1565,29 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Get returns custom property with given ID
+func (p Properties) Get(id uint64) *Property {
+	for _, pp := range p {
+		if pp.ID == id {
+			return pp
+		}
+	}
+
+	return nil
+}
+
 // Has returns true if properties contains property with given name
 func (p Properties) Has(name string) bool {
-	return len(p) > 0 && p.Get(name) != nil
+	return len(p) > 0 && p.Find(name) != nil
 }
 
 // HasAny returns true if properties contains property with one of given names
 func (p Properties) HasAny(name ...string) bool {
-	return len(p) > 0 && p.GetAny(name...) != nil
+	return len(p) > 0 && p.FindAny(name...) != nil
 }
 
-// Get returns custom property with given name
-func (p Properties) Get(name string) *Property {
+// Find returns custom property with given name
+func (p Properties) Find(name string) *Property {
 	for _, pp := range p {
 		if pp.Name == name {
 			return pp
@@ -1586,8 +1597,8 @@ func (p Properties) Get(name string) *Property {
 	return nil
 }
 
-// GetAny returns first found property with one of given names
-func (p Properties) GetAny(name ...string) *Property {
+// FindAny returns first found property with one of given names
+func (p Properties) FindAny(name ...string) *Property {
 	for _, pp := range p {
 		if slices.Contains(name, pp.Name) {
 			return pp

@@ -309,41 +309,44 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 		{ID: 6, Type: PROP_TYPE_DATE, Name: "test6", Value: ""},
 	}
 
-	c.Assert(p.Get("test"), IsNil)
+	c.Assert(p.Get(1), NotNil)
+	c.Assert(p.Get(10), IsNil)
+
+	c.Assert(p.Find("test"), IsNil)
 	c.Assert(p.Has("test"), Equals, false)
-	c.Assert(p.Get("test1"), NotNil)
+	c.Assert(p.Find("test1"), NotNil)
 	c.Assert(p.Has("test1"), Equals, true)
 
-	c.Assert(p.GetAny("abcd", "test100", "test"), IsNil)
+	c.Assert(p.FindAny("abcd", "test100", "test"), IsNil)
 	c.Assert(p.HasAny("abcd", "test100", "test"), Equals, false)
-	c.Assert(p.GetAny("abcd", "test4", "test").Name, Equals, "test4")
+	c.Assert(p.FindAny("abcd", "test4", "test").Name, Equals, "test4")
 	c.Assert(p.HasAny("abcd", "test4", "test"), Equals, true)
 
 	c.Assert(p.Names(), DeepEquals, []string{"test1", "test2", "test3", "test4", "test5", "test6"})
 
-	c.Assert(p.Get("test4").IsText(), Equals, true)
-	c.Assert(p.Get("test2").IsLink(), Equals, true)
-	c.Assert(p.Get("test1").IsDate(), Equals, true)
-	c.Assert(p.Get("test3").IsNumber(), Equals, true)
+	c.Assert(p.Find("test4").IsText(), Equals, true)
+	c.Assert(p.Find("test2").IsLink(), Equals, true)
+	c.Assert(p.Find("test1").IsDate(), Equals, true)
+	c.Assert(p.Find("test3").IsNumber(), Equals, true)
 
-	c.Assert(p.Get("test2").String(), Equals, "https://domain.com")
-	c.Assert(p.Get("test4").String(), Equals, "Test")
-	c.Assert(p.Get("test100").String(), Equals, "")
+	c.Assert(p.Find("test2").String(), Equals, "https://domain.com")
+	c.Assert(p.Find("test4").String(), Equals, "Test")
+	c.Assert(p.Find("test100").String(), Equals, "")
 
-	c.Assert(p.Get("test1").Date().IsZero(), Equals, false)
-	c.Assert(p.Get("test2").Date().IsZero(), Equals, true)
+	c.Assert(p.Find("test1").Date().IsZero(), Equals, false)
+	c.Assert(p.Find("test2").Date().IsZero(), Equals, true)
 
-	c.Assert(p.Get("test3").Int(), Equals, 314)
-	c.Assert(p.Get("test2").Int(), Equals, 0)
+	c.Assert(p.Find("test3").Int(), Equals, 314)
+	c.Assert(p.Find("test2").Int(), Equals, 0)
 
-	_, err := p.Get("test6").ToDate()
+	_, err := p.Find("test6").ToDate()
 	c.Assert(err, IsNil)
-	_, err = p.Get("test2").ToDate()
+	_, err = p.Find("test2").ToDate()
 	c.Assert(err, NotNil)
 
-	_, err = p.Get("test5").ToInt()
+	_, err = p.Find("test5").ToInt()
 	c.Assert(err, IsNil)
-	_, err = p.Get("test2").ToInt()
+	_, err = p.Find("test2").ToInt()
 	c.Assert(err, NotNil)
 
 	var pp *Property
