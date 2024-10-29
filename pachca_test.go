@@ -403,6 +403,7 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 		{ID: 2, Name: "test2", IsPublic: false, IsChannel: false},
 		{ID: 3, Name: "test3", IsPublic: true, IsChannel: false},
 		{ID: 4, Name: "test4", IsPublic: false, IsChannel: true},
+		{ID: 5, Name: "", IsPublic: false, IsChannel: false},
 	}
 
 	c.Assert(cc.Get("test"), IsNil)
@@ -410,6 +411,9 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 
 	c.Assert(cc.Public()[0].ID, Equals, uint64(3))
 	c.Assert(cc.Channels()[0].ID, Equals, uint64(4))
+
+	c.Assert(cc.Communal()[0].ID, Equals, uint64(1))
+	c.Assert(cc.Personal()[0].ID, Equals, uint64(5))
 }
 
 func (s *PachcaSuite) TestURLHelpers(c *C) {

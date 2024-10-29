@@ -1861,6 +1861,32 @@ func (c Chats) Channels() Chats {
 	return result
 }
 
+// Personal returns p2p chats
+func (c Chats) Personal() Chats {
+	var result Chats
+
+	for _, cc := range c {
+		if cc.Name == "" {
+			result = append(result, cc)
+		}
+	}
+
+	return result
+}
+
+// Communal returns communal chats (non-p2p)
+func (c Chats) Communal() Chats {
+	var result Chats
+
+	for _, cc := range c {
+		if cc.Name != "" {
+			result = append(result, cc)
+		}
+	}
+
+	return result
+}
+
 // URL returns chat URL
 func (c *Chat) URL() string {
 	if c == nil {
