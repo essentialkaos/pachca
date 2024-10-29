@@ -1684,6 +1684,11 @@ func (u *User) FullName() string {
 	return u.FirstName + " " + u.LastName
 }
 
+// HasAvatar returns true if user has custom avatar
+func (u *User) HasAvatar() bool {
+	return u != nil && u.ImageURL != ""
+}
+
 // IsActive returns true if user is active
 func (u *User) IsActive() bool {
 	if u == nil {
