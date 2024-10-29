@@ -393,6 +393,8 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(uu.Find("test"), IsNil)
 	c.Assert(uu.Find("j.doe"), NotNil)
 	c.Assert(uu.Find("test@example.com"), NotNil)
+	c.Assert(uu.Get(100), IsNil)
+	c.Assert(uu.Get(6).ID, Equals, ID(6))
 }
 
 func (s *PachcaSuite) TestChatsHelpers(c *C) {

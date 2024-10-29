@@ -1714,6 +1714,17 @@ func (u *User) IsRegular() bool {
 	return u != nil && u.Role == ROLE_REGULAR
 }
 
+// Get returns user with given ID or nil
+func (u Users) Get(id ID) *User {
+	for _, uu := range u {
+		if uu.ID == id {
+			return uu
+		}
+	}
+
+	return nil
+}
+
 // Find tries to find user with given mail or nickname
 func (u Users) Find(nicknameOrEmail string) *User {
 	for _, uu := range u {
