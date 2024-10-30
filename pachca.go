@@ -1949,6 +1949,17 @@ func (t Tags) Get(id uint64) *Tag {
 	return nil
 }
 
+// Names returns names of all tags
+func (t Tags) Names() []string {
+	var result []string
+
+	for _, tt := range t {
+		result = append(result, tt.Name)
+	}
+
+	return result
+}
+
 // InChat only returns tags that are present in the given chat
 func (t Tags) InChat(chat *Chat) Tags {
 	if chat == nil {

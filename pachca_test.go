@@ -444,6 +444,8 @@ func (s *PachcaSuite) TestTagsHelpers(c *C) {
 
 	c.Assert(tt.InChat(nil), IsNil)
 	c.Assert(tt.InChat(chat), HasLen, 3)
+
+	c.Assert(tt.Names(), DeepEquals, []string{"Test1", "Test2", "Test3"})
 }
 
 func (s *PachcaSuite) TestURLHelpers(c *C) {
