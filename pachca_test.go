@@ -114,8 +114,8 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.EditChat(1, &ChatRequest{Name: "Test"})
 	c.Assert(err, Equals, ErrNilClient)
 
-	c.Assert(cc.AddChatUsers(1, []ID{1, 2, 3}, true), Equals, ErrNilClient)
-	c.Assert(cc.AddChatTags(1, []ID{1, 2, 3}), Equals, ErrNilClient)
+	c.Assert(cc.AddChatUsers(1, []uint64{1, 2, 3}, true), Equals, ErrNilClient)
+	c.Assert(cc.AddChatTags(1, []uint64{1, 2, 3}), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatUser(1, 1), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatTag(1, 1), Equals, ErrNilClient)
 
@@ -229,10 +229,10 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.EditChat(1, nil)
 	c.Assert(err, Equals, ErrNilChatRequest)
 
-	c.Assert(cc.AddChatUsers(0, []ID{1, 2, 3}, true), Equals, ErrInvalidChatID)
+	c.Assert(cc.AddChatUsers(0, []uint64{1, 2, 3}, true), Equals, ErrInvalidChatID)
 	c.Assert(cc.AddChatUsers(1, nil, true), Equals, ErrEmptyUsersIDS)
 
-	c.Assert(cc.AddChatTags(0, []ID{1, 2, 3}), Equals, ErrInvalidChatID)
+	c.Assert(cc.AddChatTags(0, []uint64{1, 2, 3}), Equals, ErrInvalidChatID)
 	c.Assert(cc.AddChatTags(1, nil), Equals, ErrEmptyTagsIDS)
 
 	c.Assert(cc.ExcludeChatUser(0, 1), Equals, ErrInvalidChatID)
@@ -309,37 +309,44 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 		{ID: 6, Type: PROP_TYPE_DATE, Name: "test6", Value: ""},
 	}
 
-	c.Assert(p.Get("test"), IsNil)
-	c.Assert(p.Get("test1"), NotNil)
+	c.Assert(p.Get(1), NotNil)
+	c.Assert(p.Get(10), IsNil)
 
-	c.Assert(p.GetAny("abcd", "test100", "test"), IsNil)
-	c.Assert(p.GetAny("abcd", "test4", "test").Name, Equals, "test4")
+	c.Assert(p.Find("test"), IsNil)
+	c.Assert(p.Has("test"), Equals, false)
+	c.Assert(p.Find("test1"), NotNil)
+	c.Assert(p.Has("test1"), Equals, true)
+
+	c.Assert(p.FindAny("abcd", "test100", "test"), IsNil)
+	c.Assert(p.HasAny("abcd", "test100", "test"), Equals, false)
+	c.Assert(p.FindAny("abcd", "test4", "test").Name, Equals, "test4")
+	c.Assert(p.HasAny("abcd", "test4", "test"), Equals, true)
 
 	c.Assert(p.Names(), DeepEquals, []string{"test1", "test2", "test3", "test4", "test5", "test6"})
 
-	c.Assert(p.Get("test4").IsText(), Equals, true)
-	c.Assert(p.Get("test2").IsLink(), Equals, true)
-	c.Assert(p.Get("test1").IsDate(), Equals, true)
-	c.Assert(p.Get("test3").IsNumber(), Equals, true)
+	c.Assert(p.Find("test4").IsText(), Equals, true)
+	c.Assert(p.Find("test2").IsLink(), Equals, true)
+	c.Assert(p.Find("test1").IsDate(), Equals, true)
+	c.Assert(p.Find("test3").IsNumber(), Equals, true)
 
-	c.Assert(p.Get("test2").String(), Equals, "https://domain.com")
-	c.Assert(p.Get("test4").String(), Equals, "Test")
-	c.Assert(p.Get("test100").String(), Equals, "")
+	c.Assert(p.Find("test2").String(), Equals, "https://domain.com")
+	c.Assert(p.Find("test4").String(), Equals, "Test")
+	c.Assert(p.Find("test100").String(), Equals, "")
 
-	c.Assert(p.Get("test1").Date().IsZero(), Equals, false)
-	c.Assert(p.Get("test2").Date().IsZero(), Equals, true)
+	c.Assert(p.Find("test1").Date().IsZero(), Equals, false)
+	c.Assert(p.Find("test2").Date().IsZero(), Equals, true)
 
-	c.Assert(p.Get("test3").Int(), Equals, 314)
-	c.Assert(p.Get("test2").Int(), Equals, 0)
+	c.Assert(p.Find("test3").Int(), Equals, 314)
+	c.Assert(p.Find("test2").Int(), Equals, 0)
 
-	_, err := p.Get("test6").ToDate()
+	_, err := p.Find("test6").ToDate()
 	c.Assert(err, IsNil)
-	_, err = p.Get("test2").ToDate()
+	_, err = p.Find("test2").ToDate()
 	c.Assert(err, NotNil)
 
-	_, err = p.Get("test5").ToInt()
+	_, err = p.Find("test5").ToInt()
 	c.Assert(err, IsNil)
-	_, err = p.Get("test2").ToInt()
+	_, err = p.Find("test2").ToInt()
 	c.Assert(err, NotNil)
 
 	var pp *Property
@@ -353,31 +360,52 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	var u *User
 	c.Assert(u.FullName(), Equals, "")
-	u = &User{ID: 1234, FirstName: "John", LastName: "Doe", Nickname: "j.doe"}
+
+	u = &User{ID: 1234, FirstName: "John", LastName: "Doe", Nickname: "j.doe", ImageURL: "http//domain.com/image.png"}
 	c.Assert(u.FullName(), Equals, "John Doe")
+	c.Assert(u.HasAvatar(), Equals, true)
 	u = &User{ID: 1234, LastName: "Doe", Nickname: "j.doe"}
 	c.Assert(u.FullName(), Equals, "Doe")
 	u = &User{ID: 1234, FirstName: "John", Nickname: "j.doe"}
 	c.Assert(u.FullName(), Equals, "John")
 
+	u = &User{ID: 1234, IsSuspended: false, InviteStatus: INVITE_SENT}
+	c.Assert(u.IsInvited(), Equals, true)
+	u = &User{ID: 1234, IsSuspended: false, InviteStatus: INVITE_CONFIRMED}
+	c.Assert(u.IsActive(), Equals, true)
+
 	uu := Users{
-		{ID: 1, IsSuspended: true, InviteStatus: INVITE_SENT, IsBot: false, Role: ROLE_USER},
-		{ID: 2, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_USER},
+		{ID: 1, IsSuspended: false, InviteStatus: INVITE_SENT, IsBot: false, Role: ROLE_REGULAR},
+		{ID: 2, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR},
 		{ID: 3, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_ADMIN},
 		{ID: 4, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_MULTI_GUEST},
-		{ID: 5, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: true, Role: ROLE_USER},
+		{ID: 5, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: true, Role: ROLE_REGULAR},
+		{ID: 6, IsSuspended: true, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR, Nickname: "j.doe", Email: "test@example.com"},
 	}
 
 	c.Assert(uu.Active(), HasLen, 4)
 	c.Assert(uu.Suspended(), HasLen, 1)
 
 	c.Assert(uu.Invited(), HasLen, 1)
-	c.Assert(uu.Invited()[0].ID, Equals, ID(1))
-	c.Assert(uu.Bots()[0].ID, Equals, ID(5))
-	c.Assert(uu.Admins()[0].ID, Equals, ID(3))
-	c.Assert(uu.Regular(), HasLen, 3)
-	c.Assert(uu.Regular()[0].ID, Equals, ID(1))
-	c.Assert(uu.Guests()[0].ID, Equals, ID(4))
+	c.Assert(uu.Invited()[0].ID, Equals, uint64(1))
+	c.Assert(uu.Bots()[0].ID, Equals, uint64(5))
+	c.Assert(uu.Admins()[0].ID, Equals, uint64(3))
+	c.Assert(uu.Admins()[0].IsAdmin(), Equals, true)
+	c.Assert(uu.Regular(), HasLen, 4)
+	c.Assert(uu.Regular()[0].ID, Equals, uint64(1))
+	c.Assert(uu.Regular()[0].IsRegular(), Equals, true)
+	c.Assert(uu.Guests()[0].ID, Equals, uint64(4))
+	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
+
+	c.Assert(uu.Find("test"), IsNil)
+	c.Assert(uu.Find("j.doe"), NotNil)
+	c.Assert(uu.Find("test@example.com"), NotNil)
+	c.Assert(uu.Get(100), IsNil)
+	c.Assert(uu.Get(6).ID, Equals, uint64(6))
+
+	chat := &Chat{ID: 1, Name: "test1", Members: []uint64{1, 2, 3, 100, 101, 102}}
+	c.Assert(uu.InChat(nil), IsNil)
+	c.Assert(uu.InChat(chat), HasLen, 3)
 }
 
 func (s *PachcaSuite) TestChatsHelpers(c *C) {
@@ -386,13 +414,36 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 		{ID: 2, Name: "test2", IsPublic: false, IsChannel: false},
 		{ID: 3, Name: "test3", IsPublic: true, IsChannel: false},
 		{ID: 4, Name: "test4", IsPublic: false, IsChannel: true},
+		{ID: 5, Name: "", IsPublic: false, IsChannel: false},
 	}
 
-	c.Assert(cc.Get("test"), IsNil)
-	c.Assert(cc.Get("test1"), NotNil)
+	c.Assert(cc.Get(1), NotNil)
+	c.Assert(cc.Get(100), IsNil)
 
-	c.Assert(cc.Public()[0].ID, Equals, ID(3))
-	c.Assert(cc.Channels()[0].ID, Equals, ID(4))
+	c.Assert(cc.Find("test"), IsNil)
+	c.Assert(cc.Find("test1"), NotNil)
+
+	c.Assert(cc.Public()[0].ID, Equals, uint64(3))
+	c.Assert(cc.Channels()[0].ID, Equals, uint64(4))
+
+	c.Assert(cc.Communal()[0].ID, Equals, uint64(1))
+	c.Assert(cc.Personal()[0].ID, Equals, uint64(5))
+}
+
+func (s *PachcaSuite) TestTagsHelpers(c *C) {
+	tt := Tags{
+		{ID: 1, Name: "Test1", UsersCount: 1},
+		{ID: 2, Name: "Test2", UsersCount: 10},
+		{ID: 3, Name: "Test3", UsersCount: 5},
+	}
+
+	c.Assert(tt.Get(1), NotNil)
+	c.Assert(tt.Get(10), IsNil)
+
+	chat := &Chat{ID: 1, Name: "test1", GroupTags: []uint64{1, 2, 3, 100, 101, 102}}
+
+	c.Assert(tt.InChat(nil), IsNil)
+	c.Assert(tt.InChat(chat), HasLen, 3)
 }
 
 func (s *PachcaSuite) TestURLHelpers(c *C) {
