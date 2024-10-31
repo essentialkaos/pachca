@@ -1588,8 +1588,10 @@ func (p Properties) HasAny(name ...string) bool {
 
 // Find returns custom property with given name
 func (p Properties) Find(name string) *Property {
+	name = strings.ToLower(name)
+
 	for _, pp := range p {
-		if pp.Name == name {
+		if strings.ToLower(pp.Name) == name {
 			return pp
 		}
 	}
@@ -1764,8 +1766,11 @@ func (u Users) InChat(chat *Chat) Users {
 
 // Find returns user with given nickname or email
 func (u Users) Find(nicknameOrEmail string) *User {
+	nicknameOrEmail = strings.ToLower(nicknameOrEmail)
+
 	for _, uu := range u {
-		if uu.Nickname == nicknameOrEmail || uu.Email == nicknameOrEmail {
+		if strings.ToLower(uu.Nickname) == nicknameOrEmail ||
+			strings.ToLower(uu.Email) == nicknameOrEmail {
 			return uu
 		}
 	}
@@ -1877,8 +1882,10 @@ func (c Chats) Get(id uint64) *Chat {
 
 // Find returns chat with given name
 func (c Chats) Find(name string) *Chat {
+	name = strings.ToLower(name)
+
 	for _, cc := range c {
-		if cc.Name == name {
+		if strings.ToLower(cc.Name) == name {
 			return cc
 		}
 	}
@@ -1942,6 +1949,19 @@ func (c Chats) Communal() Chats {
 func (t Tags) Get(id uint64) *Tag {
 	for _, tt := range t {
 		if tt.ID == id {
+			return tt
+		}
+	}
+
+	return nil
+}
+
+// Find returns tag with given name
+func (t Tags) Find(name string) *Tag {
+	name = strings.ToLower(name)
+
+	for _, tt := range t {
+		if strings.ToLower(tt.Name) == name {
 			return tt
 		}
 	}
