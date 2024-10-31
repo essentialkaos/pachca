@@ -558,5 +558,5 @@ func (s *PachcaSuite) TestAPIErrorToString(c *C) {
 		StatusCode: 400,
 	}
 
-	c.Assert(err.Error(), Equals, "(unhandled) Ошибка выполнения запроса [system:]")
+	c.Assert(err.Error(), Equals, "(unhandled) Ошибка выполнения запроса [system:-]")
 }
