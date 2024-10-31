@@ -336,8 +336,8 @@ type UserRequest struct {
 
 // PropertyRequest is a struct with property info
 type PropertyRequest struct {
-	ID    uint64
-	Value string
+	ID    uint64 `json:"id"`
+	Value string `json:"value"`
 }
 
 // PropertyRequests is a slice with properties requests
