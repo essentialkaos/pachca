@@ -387,7 +387,10 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 
 // Error returns error text
 func (e APIError) Error() string {
-	return fmt.Sprintf("(%s) %s [%s:%s]", e.Code, e.Message, e.Key, e.Value)
+	return fmt.Sprintf(
+		"(%s) %s [%s:%s]",
+		e.Code, e.Message, e.Key, strutil.Q(e.Value, "-"),
+	)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
