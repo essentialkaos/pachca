@@ -163,6 +163,15 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(err, Equals, ErrNilClient)
 }
 
+func (s *PachcaSuite) TestNewPropertyRequest(c *C) {
+	c.Assert(NewPropertyRequest(1, "test").Value, Equals, "test")
+	c.Assert(NewPropertyRequest(1, 100).Value, Equals, "100")
+	c.Assert(NewPropertyRequest(1, float32(100.12)).Value, Equals, "100")
+	c.Assert(NewPropertyRequest(1, float64(100.12)).Value, Equals, "100")
+	c.Assert(NewPropertyRequest(1, time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC)).Value, Equals, "2020-01-01T12:00:00Z")
+	c.Assert(NewPropertyRequest(1, true).Value, Equals, "true")
+}
+
 func (s *PachcaSuite) TestErrors(c *C) {
 	cc, err := NewClient("YQlf-6Vce7jM1RMZZUs_iWKYPt24PeR4c7k_RwzqjI5")
 	c.Assert(cc, NotNil)

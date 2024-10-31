@@ -320,19 +320,28 @@ type ChatFilter struct {
 
 // UserRequest is a struct with information needed to create or modify a user
 type UserRequest struct {
-	Email           string     `json:"email"`
-	FirstName       string     `json:"first_name,omitempty"`
-	LastName        string     `json:"last_name,omitempty"`
-	Nickname        string     `json:"nickname,omitempty"`
-	Role            UserRole   `json:"role,omitempty"`
-	PhoneNumber     string     `json:"phone_number,omitempty"`
-	Title           string     `json:"title,omitempty"`
-	Department      string     `json:"department,omitempty"`
-	Properties      Properties `json:"custom_properties,omitempty"`
-	Tags            []string   `json:"list_tags,omitempty"`
-	IsSuspended     bool       `json:"suspended,omitempty"`
-	SkipEmailNotify bool       `json:"skip_email_notify,omitempty"`
+	Email           string           `json:"email"`
+	FirstName       string           `json:"first_name,omitempty"`
+	LastName        string           `json:"last_name,omitempty"`
+	Nickname        string           `json:"nickname,omitempty"`
+	Role            UserRole         `json:"role,omitempty"`
+	PhoneNumber     string           `json:"phone_number,omitempty"`
+	Title           string           `json:"title,omitempty"`
+	Department      string           `json:"department,omitempty"`
+	Properties      PropertyRequests `json:"custom_properties,omitempty"`
+	Tags            []string         `json:"list_tags,omitempty"`
+	IsSuspended     bool             `json:"suspended,omitempty"`
+	SkipEmailNotify bool             `json:"skip_email_notify,omitempty"`
 }
+
+// PropertyRequest is a struct with property info
+type PropertyRequest struct {
+	ID    uint64
+	Value string
+}
+
+// PropertyRequests is a slice with properties requests
+type PropertyRequests []*PropertyRequest
 
 // ChatRequest is a struct with information needed to create or modify a chat
 type ChatRequest struct {
@@ -441,6 +450,30 @@ func NewClient(token string) (*Client, error) {
 		token:  token,
 		engine: &req.Engine{},
 	}, nil
+}
+
+// NewPropertyRequest creates new custom property
+func NewPropertyRequest(id uint64, value any) *PropertyRequest {
+	var v string
+
+	switch t := value.(type) {
+	case time.Time:
+		v = formatDate(t.UTC())
+
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		v = fmt.Sprintf("%d", value)
+
+	case float32:
+		v = fmt.Sprintf("%d", int64(t))
+
+	case float64:
+		v = fmt.Sprintf("%d", int64(t))
+
+	default:
+		v = fmt.Sprintf("%v", value)
+	}
+
+	return &PropertyRequest{ID: id, Value: v}
 }
 
 // ValidateToken validates API access token
