@@ -163,6 +163,15 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(err, Equals, ErrNilClient)
 }
 
+func (s *PachcaSuite) TestNewPropertyRequest(c *C) {
+	c.Assert(NewPropertyRequest(1, "test").Value, Equals, "test")
+	c.Assert(NewPropertyRequest(1, 100).Value, Equals, "100")
+	c.Assert(NewPropertyRequest(1, float32(100.12)).Value, Equals, "100")
+	c.Assert(NewPropertyRequest(1, float64(100.12)).Value, Equals, "100")
+	c.Assert(NewPropertyRequest(1, time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC)).Value, Equals, "2020-01-01T12:00:00Z")
+	c.Assert(NewPropertyRequest(1, true).Value, Equals, "true")
+}
+
 func (s *PachcaSuite) TestErrors(c *C) {
 	cc, err := NewClient("YQlf-6Vce7jM1RMZZUs_iWKYPt24PeR4c7k_RwzqjI5")
 	c.Assert(cc, NotNil)
@@ -346,7 +355,7 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 
 	_, err = p.Find("test5").ToInt()
 	c.Assert(err, IsNil)
-	_, err = p.Find("test2").ToInt()
+	_, err = p.Find("TEST2").ToInt()
 	c.Assert(err, NotNil)
 
 	var pp *Property
@@ -399,7 +408,7 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 
 	c.Assert(uu.Find("test"), IsNil)
 	c.Assert(uu.Find("j.doe"), NotNil)
-	c.Assert(uu.Find("test@example.com"), NotNil)
+	c.Assert(uu.Find("TEST@EXAMPLE.COM"), NotNil)
 	c.Assert(uu.Get(100), IsNil)
 	c.Assert(uu.Get(6).ID, Equals, uint64(6))
 
@@ -421,7 +430,7 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 	c.Assert(cc.Get(100), IsNil)
 
 	c.Assert(cc.Find("test"), IsNil)
-	c.Assert(cc.Find("test1"), NotNil)
+	c.Assert(cc.Find("TEST1"), NotNil)
 
 	c.Assert(cc.Public()[0].ID, Equals, uint64(3))
 	c.Assert(cc.Channels()[0].ID, Equals, uint64(4))
@@ -440,10 +449,16 @@ func (s *PachcaSuite) TestTagsHelpers(c *C) {
 	c.Assert(tt.Get(1), NotNil)
 	c.Assert(tt.Get(10), IsNil)
 
+	c.Assert(tt.Find("test"), IsNil)
+	c.Assert(tt.Find("test1"), NotNil)
+	c.Assert(tt.Find("test1").ID, Equals, uint64(1))
+
 	chat := &Chat{ID: 1, Name: "test1", GroupTags: []uint64{1, 2, 3, 100, 101, 102}}
 
 	c.Assert(tt.InChat(nil), IsNil)
 	c.Assert(tt.InChat(chat), HasLen, 3)
+
+	c.Assert(tt.Names(), DeepEquals, []string{"Test1", "Test2", "Test3"})
 }
 
 func (s *PachcaSuite) TestURLHelpers(c *C) {
