@@ -14,7 +14,6 @@ import (
 	"mime/multipart"
 	"os"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -1601,9 +1600,11 @@ func (p Properties) Find(name string) *Property {
 
 // FindAny returns first found property with one of given names
 func (p Properties) FindAny(name ...string) *Property {
-	for _, pp := range p {
-		if slices.Contains(name, pp.Name) {
-			return pp
+	for _, n := range name {
+		p := p.Find(n)
+
+		if p != nil {
+			return p
 		}
 	}
 
