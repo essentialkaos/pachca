@@ -1658,6 +1658,11 @@ func (p Properties) Names() []string {
 	return result
 }
 
+// IsSet returns true if property has a value
+func (p *Property) IsSet() bool {
+	return p != nil && p.Value != ""
+}
+
 // IsText returns true if property has text type
 func (p *Property) IsText() bool {
 	return p != nil && p.Type == PROP_TYPE_TEXT
