@@ -1541,6 +1541,11 @@ func (c *Client) AddThreadMessage(messageID uint64, message *MessageRequest) (*M
 	return c.AddMessage(message)
 }
 
+// AddThreadMessageText helper to create thread and add new message with given text to it
+func (c *Client) AddThreadMessageText(messageID uint64, text string) (*Message, error) {
+	return c.AddThreadMessage(messageID, &MessageRequest{Content: text})
+}
+
 // FILES //////////////////////////////////////////////////////////////////////////// //
 
 // UploadFile uploads new file and returns key of it
