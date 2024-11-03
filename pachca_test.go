@@ -401,12 +401,16 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 
 	c.Assert(uu.Invited(), HasLen, 1)
 	c.Assert(uu.Invited()[0].ID, Equals, uint64(1))
+	c.Assert(uu.Bots(), HasLen, 1)
 	c.Assert(uu.Bots()[0].ID, Equals, uint64(5))
+	c.Assert(uu.People(), HasLen, 5)
+	c.Assert(uu.Admins(), HasLen, 1)
 	c.Assert(uu.Admins()[0].ID, Equals, uint64(3))
 	c.Assert(uu.Admins()[0].IsAdmin(), Equals, true)
 	c.Assert(uu.Regular(), HasLen, 4)
 	c.Assert(uu.Regular()[0].ID, Equals, uint64(1))
 	c.Assert(uu.Regular()[0].IsRegular(), Equals, true)
+	c.Assert(uu.Guests(), HasLen, 1)
 	c.Assert(uu.Guests()[0].ID, Equals, uint64(4))
 	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
 

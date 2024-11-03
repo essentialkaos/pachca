@@ -1877,6 +1877,19 @@ func (u Users) Bots() Users {
 	return result
 }
 
+// People returns slice with non-bot users
+func (u Users) People() Users {
+	var result Users
+
+	for _, uu := range u {
+		if !uu.IsBot {
+			result = append(result, uu)
+		}
+	}
+
+	return result
+}
+
 // Admins returns slice with admins
 func (u Users) Admins() Users {
 	var result Users
