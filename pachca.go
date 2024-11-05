@@ -415,7 +415,7 @@ var (
 	ErrEmptyUsersIDS     = errors.New("Users IDs are empty")
 	ErrEmptyTagsIDS      = errors.New("Tags IDs are empty")
 	ErrEmptyFilePath     = errors.New("Path to file is empty")
-	ErrInvalidToken      = errors.New("Token is has wrong format")
+	ErrInvalidToken      = errors.New("Token has wrong format")
 	ErrInvalidMessageID  = errors.New("Message ID must be greater than 0")
 	ErrInvalidChatID     = errors.New("Chat ID must be greater than 0")
 	ErrInvalidUserID     = errors.New("User ID must be greater than 0")
@@ -1134,7 +1134,7 @@ func (c *Client) AddChatUsers(chatID uint64, membersIDs []uint64, silent bool) e
 	}
 
 	err := c.sendRequest(
-		req.PUT, getURL("/chats/%d/members", chatID),
+		req.POST, getURL("/chats/%d/members", chatID),
 		query, payload, nil,
 	)
 
