@@ -1134,7 +1134,7 @@ func (c *Client) AddChatUsers(chatID uint64, membersIDs []uint64, silent bool) e
 	}
 
 	err := c.sendRequest(
-		req.PUT, getURL("/chats/%d/members", chatID),
+		req.POST, getURL("/chats/%d/members", chatID),
 		query, payload, nil,
 	)
 
