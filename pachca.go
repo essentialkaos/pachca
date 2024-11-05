@@ -415,7 +415,7 @@ var (
 	ErrEmptyUsersIDS     = errors.New("Users IDs are empty")
 	ErrEmptyTagsIDS      = errors.New("Tags IDs are empty")
 	ErrEmptyFilePath     = errors.New("Path to file is empty")
-	ErrInvalidToken      = errors.New("Token is has wrong format")
+	ErrInvalidToken      = errors.New("Token has wrong format")
 	ErrInvalidMessageID  = errors.New("Message ID must be greater than 0")
 	ErrInvalidChatID     = errors.New("Chat ID must be greater than 0")
 	ErrInvalidUserID     = errors.New("User ID must be greater than 0")
