@@ -320,7 +320,7 @@ type ChatFilter struct {
 
 // UserRequest is a struct with information needed to create or modify a user
 type UserRequest struct {
-	Email           string           `json:"email"`
+	Email           string           `json:"email,omitempty"`
 	FirstName       string           `json:"first_name,omitempty"`
 	LastName        string           `json:"last_name,omitempty"`
 	Nickname        string           `json:"nickname,omitempty"`
@@ -345,7 +345,7 @@ type PropertyRequests []*PropertyRequest
 
 // ChatRequest is a struct with information needed to create or modify a chat
 type ChatRequest struct {
-	Name      string   `json:"name"`
+	Name      string   `json:"name,omitempty"`
 	Members   []uint64 `json:"member_ids,omitempty"`
 	Groups    []uint64 `json:"group_tag_ids,omitempty"`
 	IsChannel bool     `json:"channel,omitempty"`
@@ -355,9 +355,9 @@ type ChatRequest struct {
 // MessageRequest is a struct with information needed to create or modify a message
 type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
-	EntityID           uint64     `json:"entity_id"`
-	Content            string     `json:"content"`
-	Files              Files      `json:"files"`
+	EntityID           uint64     `json:"entity_id,omitempty"`
+	Content            string     `json:"content,omitempty"`
+	Files              Files      `json:"files,omitempty"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
 	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
