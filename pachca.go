@@ -1232,6 +1232,52 @@ func (c *Client) ExcludeChatTag(chatID, tagID uint64) error {
 	return nil
 }
 
+// ArchiveChat sends chat to archive
+//
+// https://crm.pachca.com/dev/chats/archive/
+func (c *Client) ArchiveChat(chatID uint64) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case chatID == 0:
+		return ErrInvalidChatID
+	}
+
+	err := c.sendRequest(
+		req.PUT, getURL("/chats/%d/archive", chatID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("Can't archive chat %d: %w", chatID, err)
+	}
+
+	return nil
+}
+
+// UnarchiveChat restores chat from archive
+//
+// https://crm.pachca.com/dev/chats/unarchive/
+func (c *Client) UnarchiveChat(chatID uint64) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case chatID == 0:
+		return ErrInvalidChatID
+	}
+
+	err := c.sendRequest(
+		req.PUT, getURL("/chats/%d/unarchive", chatID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("Can't unarchive chat %d: %w", chatID, err)
+	}
+
+	return nil
+}
+
 // MESSAGES ///////////////////////////////////////////////////////////////////////// //
 
 // GetMessage returns info about message
