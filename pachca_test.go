@@ -114,8 +114,8 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.EditChat(1, &ChatRequest{Name: "Test"})
 	c.Assert(err, Equals, ErrNilClient)
 
-	c.Assert(cc.AddChatUsers(1, []uint64{1, 2, 3}, true), Equals, ErrNilClient)
-	c.Assert(cc.AddChatTags(1, []uint64{1, 2, 3}), Equals, ErrNilClient)
+	c.Assert(cc.AddChatUsers(1, []uint{1, 2, 3}, true), Equals, ErrNilClient)
+	c.Assert(cc.AddChatTags(1, []uint{1, 2, 3}), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatUser(1, 1), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatTag(1, 1), Equals, ErrNilClient)
 
@@ -238,10 +238,10 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.EditChat(1, nil)
 	c.Assert(err, Equals, ErrNilChatRequest)
 
-	c.Assert(cc.AddChatUsers(0, []uint64{1, 2, 3}, true), Equals, ErrInvalidChatID)
+	c.Assert(cc.AddChatUsers(0, []uint{1, 2, 3}, true), Equals, ErrInvalidChatID)
 	c.Assert(cc.AddChatUsers(1, nil, true), Equals, ErrEmptyUsersIDS)
 
-	c.Assert(cc.AddChatTags(0, []uint64{1, 2, 3}), Equals, ErrInvalidChatID)
+	c.Assert(cc.AddChatTags(0, []uint{1, 2, 3}), Equals, ErrInvalidChatID)
 	c.Assert(cc.AddChatTags(1, nil), Equals, ErrEmptyTagsIDS)
 
 	c.Assert(cc.ExcludeChatUser(0, 1), Equals, ErrInvalidChatID)
@@ -400,27 +400,27 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(uu.Suspended(), HasLen, 1)
 
 	c.Assert(uu.Invited(), HasLen, 1)
-	c.Assert(uu.Invited()[0].ID, Equals, uint64(1))
+	c.Assert(uu.Invited()[0].ID, Equals, uint(1))
 	c.Assert(uu.Bots(), HasLen, 1)
-	c.Assert(uu.Bots()[0].ID, Equals, uint64(5))
+	c.Assert(uu.Bots()[0].ID, Equals, uint(5))
 	c.Assert(uu.People(), HasLen, 5)
 	c.Assert(uu.Admins(), HasLen, 1)
-	c.Assert(uu.Admins()[0].ID, Equals, uint64(3))
+	c.Assert(uu.Admins()[0].ID, Equals, uint(3))
 	c.Assert(uu.Admins()[0].IsAdmin(), Equals, true)
 	c.Assert(uu.Regular(), HasLen, 4)
-	c.Assert(uu.Regular()[0].ID, Equals, uint64(1))
+	c.Assert(uu.Regular()[0].ID, Equals, uint(1))
 	c.Assert(uu.Regular()[0].IsRegular(), Equals, true)
 	c.Assert(uu.Guests(), HasLen, 1)
-	c.Assert(uu.Guests()[0].ID, Equals, uint64(4))
+	c.Assert(uu.Guests()[0].ID, Equals, uint(4))
 	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
 
 	c.Assert(uu.Find("test"), IsNil)
 	c.Assert(uu.Find("j.doe"), NotNil)
 	c.Assert(uu.Find("TEST@EXAMPLE.COM"), NotNil)
 	c.Assert(uu.Get(100), IsNil)
-	c.Assert(uu.Get(6).ID, Equals, uint64(6))
+	c.Assert(uu.Get(6).ID, Equals, uint(6))
 
-	chat := &Chat{ID: 1, Name: "test1", Members: []uint64{1, 2, 3, 100, 101, 102}}
+	chat := &Chat{ID: 1, Name: "test1", Members: []uint{1, 2, 3, 100, 101, 102}}
 	c.Assert(uu.InChat(nil), IsNil)
 	c.Assert(uu.InChat(chat), HasLen, 3)
 }
@@ -440,11 +440,11 @@ func (s *PachcaSuite) TestChatsHelpers(c *C) {
 	c.Assert(cc.Find("test"), IsNil)
 	c.Assert(cc.Find("TEST1"), NotNil)
 
-	c.Assert(cc.Public()[0].ID, Equals, uint64(3))
-	c.Assert(cc.Channels()[0].ID, Equals, uint64(4))
+	c.Assert(cc.Public()[0].ID, Equals, uint(3))
+	c.Assert(cc.Channels()[0].ID, Equals, uint(4))
 
-	c.Assert(cc.Communal()[0].ID, Equals, uint64(1))
-	c.Assert(cc.Personal()[0].ID, Equals, uint64(5))
+	c.Assert(cc.Communal()[0].ID, Equals, uint(1))
+	c.Assert(cc.Personal()[0].ID, Equals, uint(5))
 }
 
 func (s *PachcaSuite) TestTagsHelpers(c *C) {
@@ -459,9 +459,9 @@ func (s *PachcaSuite) TestTagsHelpers(c *C) {
 
 	c.Assert(tt.Find("test"), IsNil)
 	c.Assert(tt.Find("test1"), NotNil)
-	c.Assert(tt.Find("test1").ID, Equals, uint64(1))
+	c.Assert(tt.Find("test1").ID, Equals, uint(1))
 
-	chat := &Chat{ID: 1, Name: "test1", GroupTags: []uint64{1, 2, 3, 100, 101, 102}}
+	chat := &Chat{ID: 1, Name: "test1", GroupTags: []uint{1, 2, 3, 100, 101, 102}}
 
 	c.Assert(tt.InChat(nil), IsNil)
 	c.Assert(tt.InChat(chat), HasLen, 3)
