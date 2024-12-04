@@ -1628,11 +1628,11 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		},
 	)
 
-	defer resp.Body.Close()
-
 	if err != nil {
 		return nil, fmt.Errorf("Can't upload file %q data: %w", file, err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf(
