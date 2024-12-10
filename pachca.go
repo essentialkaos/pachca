@@ -2219,11 +2219,11 @@ func (c *Client) getBatchSize() int {
 // sendRequest sends request to Pachca API
 func (c *Client) sendRequest(method, url string, query req.Query, payload any, response any) error {
 	r := req.Request{
-		Method:     method,
-		URL:        url,
-		Query:      query,
-		Accept:     req.CONTENT_TYPE_JSON,
-		BearerAuth: c.token,
+		Method: method,
+		URL:    url,
+		Query:  query,
+		Accept: req.CONTENT_TYPE_JSON,
+		Auth:   req.AuthBearer{c.token},
 	}
 
 	if payload != nil {
