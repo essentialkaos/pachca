@@ -1298,10 +1298,51 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	err := c.sendRequest(req.GET, getURL("/messages/%d", messageID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch thread info: %w", err)
+		return nil, fmt.Errorf("Can't fetch message info: %w", err)
 	}
 
 	return resp.Data, nil
+}
+
+// GetMessageReads returns a slice with IDs of users who have read the message
+//
+// https://crm.pachca.com/dev/read_members/list/
+func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case messageID == 0:
+		return nil, ErrInvalidMessageID
+	}
+
+	var result []uint
+
+	resp := &struct {
+		Data []uint `json:"data"`
+	}{}
+
+	query := req.Query{"per": 300}
+
+	for i := 1; i < 1000; i++ {
+		query["page"] = i
+
+		err := c.sendRequest(
+			req.GET, getURL("/messages/%d/read_member_ids", messageID),
+			query, nil, resp,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't fetch message reads info: %w", err)
+		}
+
+		if len(resp.Data) == 0 {
+			break
+		}
+
+		result = append(result, resp.Data...)
+	}
+
+	return result, nil
 }
 
 // AddMessage creates new message to user or chat

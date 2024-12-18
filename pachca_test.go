@@ -124,6 +124,9 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.GetMessage(1)
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.GetMessageReads(1)
+	c.Assert(err, Equals, ErrNilClient)
+
 	_, err = cc.AddMessage(&MessageRequest{EntityID: 1})
 	c.Assert(err, Equals, ErrNilClient)
 
@@ -253,6 +256,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	// MESSAGES
 
 	_, err = cc.GetMessage(0)
+	c.Assert(err, Equals, ErrInvalidMessageID)
+
+	_, err = cc.GetMessageReads(0)
 	c.Assert(err, Equals, ErrInvalidMessageID)
 
 	_, err = cc.AddMessage(nil)
