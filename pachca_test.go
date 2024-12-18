@@ -117,6 +117,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(cc.AddChatUsers(1, []uint{1, 2, 3}, true), Equals, ErrNilClient)
 	c.Assert(cc.AddChatTags(1, []uint{1, 2, 3}), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatUser(1, 1), Equals, ErrNilClient)
+	c.Assert(cc.SetChatUserRole(1, 1, CHAT_ROLE_ADMIN), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatTag(1, 1), Equals, ErrNilClient)
 
 	// MESSAGES
@@ -249,6 +250,10 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	c.Assert(cc.ExcludeChatUser(0, 1), Equals, ErrInvalidChatID)
 	c.Assert(cc.ExcludeChatUser(1, 0), Equals, ErrInvalidUserID)
+
+	c.Assert(cc.SetChatUserRole(0, 1, CHAT_ROLE_ADMIN), Equals, ErrInvalidChatID)
+	c.Assert(cc.SetChatUserRole(1, 0, CHAT_ROLE_ADMIN), Equals, ErrInvalidUserID)
+	c.Assert(cc.SetChatUserRole(1, 1, ChatRole("test")).Error(), Equals, `Invalid chat role "test" (must be admin, editor or member)`)
 
 	c.Assert(cc.ExcludeChatTag(0, 1), Equals, ErrInvalidChatID)
 	c.Assert(cc.ExcludeChatTag(1, 0), Equals, ErrInvalidTagID)

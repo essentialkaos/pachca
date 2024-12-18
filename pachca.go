@@ -55,6 +55,12 @@ const (
 )
 
 const (
+	CHAT_ROLE_ADMIN  ChatRole = "admin"
+	CHAT_ROLE_EDITOR ChatRole = "editor"
+	CHAT_ROLE_MEMBER ChatRole = "member"
+)
+
+const (
 	FILE_TYPE_FILE  FileType = "file"
 	FILE_TYPE_IMAGE FileType = "image"
 )
@@ -94,6 +100,9 @@ type PropertyType string
 
 // UserRole is type of user role
 type UserRole string
+
+// ChatRole is type of user in chat
+type ChatRole string
 
 // InviteStatus is type of invite status
 type InviteStatus string
@@ -1171,6 +1180,44 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 
 	if err != nil {
 		return fmt.Errorf("Can't add group tags to chat %d: %w", chatID, err)
+	}
+
+	return nil
+}
+
+// SetChatUserRole sets user role in given chat
+//
+// https://crm.pachca.com/dev/members/users/update/
+func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case chatID == 0:
+		return ErrInvalidChatID
+	case userID == 0:
+		return ErrInvalidUserID
+	}
+
+	switch role {
+	case CHAT_ROLE_ADMIN, CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER:
+		// okay
+	default:
+		return fmt.Errorf(
+			"Invalid chat role %q (must be %s, %s or %s)",
+			role, CHAT_ROLE_ADMIN, CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER,
+		)
+	}
+
+	err := c.sendRequest(
+		req.PUT, getURL("/chats/%d/members/%d", chatID, userID),
+		req.Query{"role": role}, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf(
+			"Can't set role to %q for user with ID %d in chat %d: %w",
+			role, userID, chatID, err,
+		)
 	}
 
 	return nil
