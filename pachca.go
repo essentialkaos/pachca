@@ -55,6 +55,12 @@ const (
 )
 
 const (
+	CHAT_ROLE_ADMIN  ChatRole = "admin"
+	CHAT_ROLE_EDITOR ChatRole = "editor"
+	CHAT_ROLE_MEMBER ChatRole = "member"
+)
+
+const (
 	FILE_TYPE_FILE  FileType = "file"
 	FILE_TYPE_IMAGE FileType = "image"
 )
@@ -94,6 +100,9 @@ type PropertyType string
 
 // UserRole is type of user role
 type UserRole string
+
+// ChatRole is type of user in chat
+type ChatRole string
 
 // InviteStatus is type of invite status
 type InviteStatus string
@@ -1176,6 +1185,44 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 	return nil
 }
 
+// SetChatUserRole sets user role in given chat
+//
+// https://crm.pachca.com/dev/members/users/update/
+func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case chatID == 0:
+		return ErrInvalidChatID
+	case userID == 0:
+		return ErrInvalidUserID
+	}
+
+	switch role {
+	case CHAT_ROLE_ADMIN, CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER:
+		// okay
+	default:
+		return fmt.Errorf(
+			"Invalid chat role %q (must be %s, %s or %s)",
+			role, CHAT_ROLE_ADMIN, CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER,
+		)
+	}
+
+	err := c.sendRequest(
+		req.PUT, getURL("/chats/%d/members/%d", chatID, userID),
+		req.Query{"role": role}, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf(
+			"Can't set role to %q for user with ID %d in chat %d: %w",
+			role, userID, chatID, err,
+		)
+	}
+
+	return nil
+}
+
 // ExcludeChatUser excludes the user from the chat
 //
 // https://crm.pachca.com/dev/members/users/delete/
@@ -1298,10 +1345,51 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	err := c.sendRequest(req.GET, getURL("/messages/%d", messageID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch thread info: %w", err)
+		return nil, fmt.Errorf("Can't fetch message info: %w", err)
 	}
 
 	return resp.Data, nil
+}
+
+// GetMessageReads returns a slice with IDs of users who have read the message
+//
+// https://crm.pachca.com/dev/read_members/list/
+func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case messageID == 0:
+		return nil, ErrInvalidMessageID
+	}
+
+	var result []uint
+
+	resp := &struct {
+		Data []uint `json:"data"`
+	}{}
+
+	query := req.Query{"per": 300}
+
+	for i := 1; i < 1000; i++ {
+		query["page"] = i
+
+		err := c.sendRequest(
+			req.GET, getURL("/messages/%d/read_member_ids", messageID),
+			query, nil, resp,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't fetch message reads info: %w", err)
+		}
+
+		if len(resp.Data) == 0 {
+			break
+		}
+
+		result = append(result, resp.Data...)
+	}
+
+	return result, nil
 }
 
 // AddMessage creates new message to user or chat
