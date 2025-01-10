@@ -239,7 +239,7 @@ type File struct {
 	ID   uint     `json:"id,omitempty"`
 	Key  string   `json:"key"`
 	Name string   `json:"name"`
-	Type FileType `json:"file_type"`
+	Type FileType `json:"file_type,omitempty"`
 	URL  string   `json:"url,omitempty"`
 	Size uint     `json:"size,omitempty"`
 }
@@ -307,6 +307,19 @@ type WebhookThread struct {
 	MessageChatID uint `json:"message_chat_id"`
 }
 
+// WebhookLink contains payload for link unfurl
+type WebhookLink struct {
+	ChatID    uint          `json:"chat_id"`
+	MessageID uint          `json:"message_id"`
+	Links     []*UnfurlLink `json:"links"`
+}
+
+// UnfurlLink contains info about link in message to unfurl
+type UnfurlLink struct {
+	URL    string `json:"url"`
+	Domain string `json:"domain"`
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // uploadInfo contains info about uploaded file
@@ -372,6 +385,17 @@ type MessageRequest struct {
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
 }
 
+// LinkPreview contains link preview data
+type LinkPreview struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	ImageURL    string `json:"image_url,omitempty"`
+	Image       *File  `json:"image,omitempty"`
+}
+
+// LinkPreviews is map (url → preview data) with link previews
+type LinkPreviews map[string]*LinkPreview
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // UnmarshalJSON parses JSON date
@@ -432,6 +456,7 @@ var (
 	ErrInvalidTagID      = errors.New("Group tag ID must be greater than 0")
 	ErrInvalidEntityID   = errors.New("Entity ID must be greater than 0")
 	ErrBlankEmoji        = errors.New("Non-blank emoji is required")
+	ErrEmptyPreviews     = errors.New("Previews map has no data")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -1597,6 +1622,38 @@ func (c *Client) ChangeMessageText(messageID uint, text string) (*Message, error
 	}
 
 	return c.EditMessage(messageID, msgReq)
+}
+
+// AddLinkPreview adds link previews to message with given ID
+//
+// https://crm.pachca.com/dev/messages/link_previews/
+func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	case len(previews) == 0:
+		return ErrEmptyPreviews
+	}
+
+	payload := &struct {
+		Previews LinkPreviews `json:"link_previews"`
+	}{
+		Previews: previews,
+	}
+
+	err := c.sendRequest(
+		req.POST,
+		getURL("/messages/%d/link_previews", messageID),
+		nil, payload, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("Can't add previews to message %d: %w", messageID, err)
+	}
+
+	return nil
 }
 
 // THREADS ////////////////////////////////////////////////////////////////////////// //

@@ -150,6 +150,8 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.ChangeMessageText(1, "Test")
 	c.Assert(err, Equals, ErrNilClient)
 
+	c.Assert(cc.AddLinkPreview(1, nil), Equals, ErrNilClient)
+
 	// THREADS
 
 	_, err = cc.GetThread(1)
@@ -299,6 +301,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidMessageID)
 	_, err = cc.ChangeMessageText(1, "")
 	c.Assert(err, Equals, ErrEmptyMessage)
+
+	c.Assert(cc.AddLinkPreview(0, nil), Equals, ErrInvalidMessageID)
+	c.Assert(cc.AddLinkPreview(1, nil), Equals, ErrEmptyPreviews)
 
 	// THREADS
 
