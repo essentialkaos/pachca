@@ -2120,6 +2120,19 @@ func (u Users) Guests() Users {
 	return result
 }
 
+// WithoutGuests returns slice with users without guests
+func (u Users) WithoutGuests() Users {
+	var result Users
+
+	for _, uu := range u {
+		if !uu.IsGuest() {
+			result = append(result, uu)
+		}
+	}
+
+	return result
+}
+
 // Get returns chat with given ID
 func (c Chats) Get(id uint) *Chat {
 	for _, cc := range c {
