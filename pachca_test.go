@@ -429,6 +429,7 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(uu.Guests(), HasLen, 1)
 	c.Assert(uu.Guests()[0].ID, Equals, uint(4))
 	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
+	c.Assert(uu.WithoutGuests(), HasLen, 5)
 
 	c.Assert(uu.Find("test"), IsNil)
 	c.Assert(uu.Find("j.doe"), NotNil)
