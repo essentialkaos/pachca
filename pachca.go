@@ -1757,8 +1757,6 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		return nil, fmt.Errorf("Can't create upload for file %q: %w", file, err)
 	}
 
-	fmt.Printf("%#v\n", upload)
-
 	info, err := createMultipartData(file, upload, c.MaxFileSize)
 
 	if err != nil {
