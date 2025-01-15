@@ -241,7 +241,7 @@ type File struct {
 	Name string   `json:"name"`
 	Type FileType `json:"file_type,omitempty"`
 	URL  string   `json:"url,omitempty"`
-	Size uint     `json:"size,omitempty"`
+	Size uint     `json:"size"`
 }
 
 // Files is a slice of attachments
@@ -378,7 +378,7 @@ type ChatRequest struct {
 type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
 	EntityID           uint       `json:"entity_id,omitempty"`
-	Content            string     `json:"content,omitempty"`
+	Content            string     `json:"content"`
 	Files              Files      `json:"files,omitempty"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
 	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
@@ -1787,8 +1787,8 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf(
-			"Can't upload file %q data (status: %d): %w",
-			file, resp.StatusCode, extractS3Error(resp.String()),
+			"Can't upload file %q data (key: %s | status: %d): %w",
+			file, upload.Key, resp.StatusCode, extractS3Error(resp.String()),
 		)
 	}
 
@@ -2498,7 +2498,7 @@ func createMultipartData(file string, upload *Upload, maxFileSize int64) (*uploa
 		return nil, fmt.Errorf("Can't create multipart upload: %w", errs.First())
 	}
 
-	fw, err := mw.CreateFormFile("file", fd.Name())
+	fw, err := mw.CreateFormFile("file", fileName)
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't create file %q form: %w", file, err)
