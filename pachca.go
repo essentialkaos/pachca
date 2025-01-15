@@ -398,6 +398,14 @@ type LinkPreviews map[string]*LinkPreview
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// S3Error represents S3 error
+type S3Error struct {
+	Message string
+	Full    string
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // UnmarshalJSON parses JSON date
 func (d *Date) UnmarshalJSON(b []byte) error {
 	data := string(b)
@@ -1772,15 +1780,15 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't upload file %q data: %w", file, err)
+		return nil, fmt.Errorf("Can't send request to API: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf(
-			"Can't upload file %q data: %w",
-			file, extractS3Error(resp.String()),
+			"Can't upload file %q data (status: %d): %w",
+			file, resp.StatusCode, extractS3Error(resp.String()),
 		)
 	}
 
@@ -2305,6 +2313,17 @@ func (t *Thread) URL() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Error returns error message
+func (e *S3Error) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
+
+	return e.Message
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // IsReaction returns true if webhook contains data for message event
 func (w *Webhook) IsMessage() bool {
 	return w != nil && w.Type == WEBHOOK_TYPE_MESSAGE
@@ -2482,7 +2501,7 @@ func createMultipartData(file string, upload *Upload, maxFileSize int64) (*uploa
 	fw, err := mw.CreateFormFile("file", fd.Name())
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't write file %q part: %w", file, err)
+		return nil, fmt.Errorf("Can't create file %q form: %w", file, err)
 	}
 
 	_, err = io.Copy(fw, fd)
@@ -2493,10 +2512,7 @@ func createMultipartData(file string, upload *Upload, maxFileSize int64) (*uploa
 
 	errs.Reset()
 
-	errs.Add(
-		mw.Close(),
-		fd.Close(),
-	)
+	errs.Add(mw.Close(), fd.Close())
 
 	if !errs.IsEmpty() {
 		return nil, errs.First()
@@ -2513,10 +2529,16 @@ func extractS3Error(errorMessage string) error {
 	found := s3ErrorExtractRegex.FindStringSubmatch(errorMessage)
 
 	if len(found) == 2 {
-		return errors.New(found[1])
+		return &S3Error{
+			Message: found[1],
+			Full:    errorMessage,
+		}
 	}
 
-	return errors.New("Unknown error")
+	return &S3Error{
+		Message: errorMessage,
+		Full:    errorMessage,
+	}
 }
 
 // formatDate converts date from time.Time to string (ISO-8601)

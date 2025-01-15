@@ -554,9 +554,10 @@ func (s *PachcaSuite) TestAux(c *C) {
 	c.Assert(cc.getBatchSize(), Equals, 5)
 
 	err := extractS3Error("TEST")
-	c.Assert(err.Error(), Equals, "Unknown error")
+	c.Assert(err.Error(), Equals, "TEST")
 	err = extractS3Error(`<Error><Code>MalformedPOSTRequest</Code><Message>The body of your POST request is not well-formed multipart/form-data.</Message><Resource>/</Resource><RequestId>26dbc55e-ab66-4d23-9334-6b684e25ebf8</RequestId></Error>`)
 	c.Assert(err.Error(), Equals, "The body of your POST request is not well-formed multipart/form-data.")
+	c.Assert(err.(*S3Error).Full, Equals, "<Error><Code>MalformedPOSTRequest</Code><Message>The body of your POST request is not well-formed multipart/form-data.</Message><Resource>/</Resource><RequestId>26dbc55e-ab66-4d23-9334-6b684e25ebf8</RequestId></Error>")
 
 	c.Assert(guessFileType("text.txt"), Equals, FILE_TYPE_FILE)
 	c.Assert(guessFileType("TEXT.PNG"), Equals, FILE_TYPE_IMAGE)
