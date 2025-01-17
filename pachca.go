@@ -488,12 +488,15 @@ func NewClient(token string) (*Client, error) {
 		return nil, err
 	}
 
+	e := &req.Engine{}
+	e.SetUserAgent("EK|Pachca.go", "1")
+
 	return &Client{
 		BatchSize:   50,
 		MaxFileSize: 10 * 1024 * 1024, // 10 MB
 
 		token:  token,
-		engine: &req.Engine{},
+		engine: e,
 	}, nil
 }
 
@@ -541,7 +544,7 @@ func (c *Client) SetUserAgent(app, ver string) {
 		return
 	}
 
-	c.engine.SetUserAgent(app, ver, "EK-Pachca.go/1")
+	c.engine.SetUserAgent(app, ver, "EK|Pachca.go/1")
 }
 
 // Engine returns pointer to request engine used for all HTTP requests to API
