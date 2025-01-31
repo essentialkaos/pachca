@@ -1609,8 +1609,8 @@ func (c *Client) SendMessageToThread(threadID uint, text string) (*Message, erro
 	})
 }
 
-// ChangeMessageText helper to change message text
-func (c *Client) ChangeMessageText(messageID uint, text string) (*Message, error) {
+// UpdateMessage helper to change message text
+func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient

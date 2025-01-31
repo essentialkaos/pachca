@@ -3,6 +3,7 @@
 ### [0.6.0](https://kaos.sh/pachca/0.6.0)
 
 - `AddThreadMessage` and `AddThreadMessageText` now also returns `Thread`
+- `ChangeMessageText` renamed to `UpdateMessage`
 
 ### [0.5.5](https://kaos.sh/pachca/0.5.5)
 
