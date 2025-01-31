@@ -1609,8 +1609,8 @@ func (c *Client) SendMessageToThread(threadID uint, text string) (*Message, erro
 	})
 }
 
-// ChangeMessageText helper to change message text
-func (c *Client) ChangeMessageText(messageID uint, text string) (*Message, error) {
+// UpdateMessage helper to change message text
+func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1721,30 +1721,36 @@ func (c *Client) NewThread(messageID uint) (*Thread, error) {
 }
 
 // AddThreadMessage helper to create thread and add new message to it
-func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Message, error) {
+func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Thread, *Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
-		return nil, ErrNilClient
+		return nil, nil, ErrNilClient
 	case messageID == 0:
-		return nil, ErrInvalidMessageID
+		return nil, nil, ErrInvalidMessageID
 	case message == nil:
-		return nil, ErrNilMessageRequest
+		return nil, nil, ErrNilMessageRequest
 	}
 
 	thread, err := c.NewThread(messageID)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	message.EntityID = thread.ID
 	message.EntityType = ENTITY_TYPE_THREAD
 
-	return c.AddMessage(message)
+	msg, err := c.AddMessage(message)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return thread, msg, err
 }
 
 // AddThreadMessageText helper to create thread and add new message with given text to it
-func (c *Client) AddThreadMessageText(messageID uint, text string) (*Message, error) {
+func (c *Client) AddThreadMessageText(messageID uint, text string) (*Thread, *Message, error) {
 	return c.AddThreadMessage(messageID, &MessageRequest{Content: text})
 }
 

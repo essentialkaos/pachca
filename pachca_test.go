@@ -147,7 +147,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.SendMessageToThread(1, "Test")
 	c.Assert(err, Equals, ErrNilClient)
 
-	_, err = cc.ChangeMessageText(1, "Test")
+	_, err = cc.UpdateMessage(1, "Test")
 	c.Assert(err, Equals, ErrNilClient)
 
 	c.Assert(cc.AddLinkPreview(1, nil), Equals, ErrNilClient)
@@ -160,7 +160,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.NewThread(1)
 	c.Assert(err, Equals, ErrNilClient)
 
-	_, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
+	_, _, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
 	c.Assert(err, Equals, ErrNilClient)
 
 	// FILES
@@ -297,9 +297,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.SendMessageToThread(1, "")
 	c.Assert(err, Equals, ErrEmptyMessage)
 
-	_, err = cc.ChangeMessageText(0, "test")
+	_, err = cc.UpdateMessage(0, "test")
 	c.Assert(err, Equals, ErrInvalidMessageID)
-	_, err = cc.ChangeMessageText(1, "")
+	_, err = cc.UpdateMessage(1, "")
 	c.Assert(err, Equals, ErrEmptyMessage)
 
 	c.Assert(cc.AddLinkPreview(0, nil), Equals, ErrInvalidMessageID)
@@ -313,9 +313,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.NewThread(0)
 	c.Assert(err, Equals, ErrInvalidMessageID)
 
-	_, err = cc.AddThreadMessage(0, &MessageRequest{})
+	_, _, err = cc.AddThreadMessage(0, &MessageRequest{})
 	c.Assert(err, Equals, ErrInvalidMessageID)
-	_, err = cc.AddThreadMessage(1, nil)
+	_, _, err = cc.AddThreadMessage(1, nil)
 	c.Assert(err, Equals, ErrNilMessageRequest)
 
 	// FILES
