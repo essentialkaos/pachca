@@ -160,7 +160,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.NewThread(1)
 	c.Assert(err, Equals, ErrNilClient)
 
-	_, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
+	_, _, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
 	c.Assert(err, Equals, ErrNilClient)
 
 	// FILES
@@ -313,9 +313,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.NewThread(0)
 	c.Assert(err, Equals, ErrInvalidMessageID)
 
-	_, err = cc.AddThreadMessage(0, &MessageRequest{})
+	_, _, err = cc.AddThreadMessage(0, &MessageRequest{})
 	c.Assert(err, Equals, ErrInvalidMessageID)
-	_, err = cc.AddThreadMessage(1, nil)
+	_, _, err = cc.AddThreadMessage(1, nil)
 	c.Assert(err, Equals, ErrNilMessageRequest)
 
 	// FILES
