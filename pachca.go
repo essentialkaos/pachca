@@ -252,9 +252,9 @@ type File struct {
 	Name   string   `json:"name"`
 	Type   FileType `json:"file_type,omitempty"`
 	URL    string   `json:"url,omitempty"`
-	Size   uint     `json:"size"`
-	Width  uint     `json:"width,omitzero"`
-	Height uint     `json:"height,omitzero"`
+	Size   int64    `json:"size"`
+	Width  int      `json:"width,omitzero"`
+	Height int      `json:"height,omitzero"`
 }
 
 // Files is a slice of attachments
@@ -339,7 +339,7 @@ type UnfurlLink struct {
 type uploadInfo struct {
 	Key         string        // Uploading key
 	Name        string        // File name
-	Size        uint          // File size
+	Size        int64         // File size
 	ContentType string        // Content type
 	Buffer      *bytes.Buffer // Buffer with data
 }
@@ -2550,7 +2550,7 @@ func createMultipartData(file string, upload *Upload, maxFileSize int64) (*uploa
 	info := &uploadInfo{
 		Key:  strings.ReplaceAll(upload.Key, "${filename}", fileName),
 		Name: fileName,
-		Size: uint(stat.Size()),
+		Size: stat.Size(),
 	}
 
 	buf := &bytes.Buffer{}

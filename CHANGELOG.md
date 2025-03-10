@@ -1,5 +1,16 @@
 ## Changelog
 
+### [0.6.2](https://kaos.sh/pachca/0.6.2)
+
+- Type of `File.Size` changed from `uint` to `int64`
+- Type of `File.Width` changed from `uint` to `int`
+- Type of `File.Height` changed from `uint` to `int`
+
+### [0.6.1](https://kaos.sh/pachca/0.6.1)
+
+- Updated compatibility with the latest version of API
+- Dependencies update
+
 ### [0.6.0](https://kaos.sh/pachca/0.6.0)
 
 - `AddThreadMessage` and `AddThreadMessageText` now also returns `Thread`
