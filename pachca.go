@@ -75,12 +75,22 @@ const (
 	WEBHOOK_EVENT_NEW    WebhookEvent = "new"
 	WEBHOOK_EVENT_UPDATE WebhookEvent = "update"
 	WEBHOOK_EVENT_DELETE WebhookEvent = "delete"
+
+	WEBHOOK_EVENT_ADD    WebhookEvent = "add"
+	WEBHOOK_EVENT_REMOVE WebhookEvent = "remove"
+
+	WEBHOOK_EVENT_INVITE   WebhookEvent = "invite"
+	WEBHOOK_EVENT_CONFIRM  WebhookEvent = "confirm"
+	WEBHOOK_EVENT_SUSPEND  WebhookEvent = "suspend"
+	WEBHOOK_EVENT_ACTIVATE WebhookEvent = "activate"
 )
 
 const (
-	WEBHOOK_TYPE_MESSAGE  WebhookType = "message"
-	WEBHOOK_TYPE_REACTION WebhookType = "reaction"
-	WEBHOOK_TYPE_BUTTON   WebhookType = "button"
+	WEBHOOK_TYPE_MESSAGE        WebhookType = "message"
+	WEBHOOK_TYPE_REACTION       WebhookType = "reaction"
+	WEBHOOK_TYPE_BUTTON         WebhookType = "button"
+	WEBHOOK_TYPE_CHAT_MEMBER    WebhookType = "chat_member"
+	WEBHOOK_TYPE_COMPANY_MEMBER WebhookType = "company_member"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -140,24 +150,25 @@ type Users []*User
 
 // User contains info about user
 type User struct {
-	ID           uint         `json:"id"`
-	CreatedAt    Date         `json:"created_at"`
-	ImageURL     string       `json:"image_url"`
-	Email        string       `json:"email"`
-	FirstName    string       `json:"first_name"`
-	LastName     string       `json:"last_name"`
-	Nickname     string       `json:"nickname"`
-	Role         UserRole     `json:"role"`
-	PhoneNumber  string       `json:"phone_number"`
-	TimeZone     string       `json:"time_zone"`
-	Title        string       `json:"title"`
-	InviteStatus InviteStatus `json:"invite_status"`
-	Department   string       `json:"department"`
-	Properties   Properties   `json:"custom_properties"`
-	Tags         []string     `json:"list_tags"`
-	Status       *Status      `json:"user_status"`
-	IsBot        bool         `json:"bot"`
-	IsSuspended  bool         `json:"suspended"`
+	ID             uint         `json:"id"`
+	CreatedAt      Date         `json:"created_at"`
+	LastActivityAt Date         `json:"last_activity_at"`
+	ImageURL       string       `json:"image_url"`
+	Email          string       `json:"email"`
+	FirstName      string       `json:"first_name"`
+	LastName       string       `json:"last_name"`
+	Nickname       string       `json:"nickname"`
+	Role           UserRole     `json:"role"`
+	PhoneNumber    string       `json:"phone_number"`
+	TimeZone       string       `json:"time_zone"`
+	Title          string       `json:"title"`
+	InviteStatus   InviteStatus `json:"invite_status"`
+	Department     string       `json:"department"`
+	Properties     Properties   `json:"custom_properties"`
+	Tags           []string     `json:"list_tags"`
+	Status         *Status      `json:"user_status"`
+	IsBot          bool         `json:"bot"`
+	IsSuspended    bool         `json:"suspended"`
 }
 
 // Status is user status
@@ -236,12 +247,14 @@ type Forwarding struct {
 
 // File contains info about message attachment
 type File struct {
-	ID   uint     `json:"id,omitempty"`
-	Key  string   `json:"key"`
-	Name string   `json:"name"`
-	Type FileType `json:"file_type,omitempty"`
-	URL  string   `json:"url,omitempty"`
-	Size uint     `json:"size"`
+	ID     uint     `json:"id,omitempty"`
+	Key    string   `json:"key"`
+	Name   string   `json:"name"`
+	Type   FileType `json:"file_type,omitempty"`
+	URL    string   `json:"url,omitempty"`
+	Size   uint     `json:"size"`
+	Width  uint     `json:"width,omitzero"`
+	Height uint     `json:"height,omitzero"`
 }
 
 // Files is a slice of attachments
@@ -379,7 +392,9 @@ type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
 	EntityID           uint       `json:"entity_id,omitempty"`
 	Content            string     `json:"content"`
-	Files              Files      `json:"files,omitempty"`
+	DisplayAvatarURL   string     `json:"display_avatar_url,omitempty"`
+	DisplayName        string     `json:"display_name,omitempty"`
+	Files              Files      `json:"files,omitzero"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
 	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
@@ -2322,6 +2337,13 @@ func (t *Thread) URL() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// isZero is special method for omitzero
+func (f Files) isZero() bool {
+	return f == nil
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Error returns error message
 func (e *S3Error) Error() string {
 	if e == nil {
@@ -2348,6 +2370,16 @@ func (w *Webhook) IsButton() bool {
 	return w != nil && w.Type == WEBHOOK_TYPE_BUTTON
 }
 
+// IsChatMember returns true if webhook contains data for chat_member event
+func (w *Webhook) IsChatMember() bool {
+	return w != nil && w.Type == WEBHOOK_TYPE_CHAT_MEMBER
+}
+
+// IsCompanyMember returns true if webhook contains data for chat_member event
+func (w *Webhook) IsCompanyMember() bool {
+	return w != nil && w.Type == WEBHOOK_TYPE_COMPANY_MEMBER
+}
+
 // IsNew returns true if there is a webhook event for new message
 func (w *Webhook) IsNew() bool {
 	return w != nil && w.Event == WEBHOOK_EVENT_NEW
@@ -2358,9 +2390,43 @@ func (w *Webhook) IsUpdate() bool {
 	return w != nil && w.Event == WEBHOOK_EVENT_UPDATE
 }
 
-// IsDelete returns true if there is a webhook event for deleted message
+// IsDelete returns true if there is a webhook event for deleted message or
+// company member
 func (w *Webhook) IsDelete() bool {
 	return w != nil && w.Event == WEBHOOK_EVENT_DELETE
+}
+
+// IsAdd returns true if there is a webhook event for added chat member
+func (w *Webhook) IsAdd() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_ADD
+}
+
+// IsRemove returns true if there is a webhook event for removed chat member
+func (w *Webhook) IsRemove() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_REMOVE
+}
+
+// IsInvite returns true if there is a webhook event for invited company member
+func (w *Webhook) IsInvite() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_INVITE
+}
+
+// IsConfirm returns true if there is a webhook event for confirmed company
+// member
+func (w *Webhook) IsConfirm() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_CONFIRM
+}
+
+// IsSuspend returns true if there is a webhook event for suspended company
+// member
+func (w *Webhook) IsSuspend() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_SUSPEND
+}
+
+// IsActivate returns true if there is a webhook event for activated company
+// member
+func (w *Webhook) IsActivate() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_ACTIVATE
 }
 
 // Command returns slash command name from the beginning of the message
