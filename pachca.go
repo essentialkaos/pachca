@@ -394,7 +394,7 @@ type MessageRequest struct {
 	Content            string     `json:"content"`
 	DisplayAvatarURL   string     `json:"display_avatar_url,omitempty"`
 	DisplayName        string     `json:"display_name,omitempty"`
-	Files              Files      `json:"files,omitempty"`
+	Files              Files      `json:"files,omitzero"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
 	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
@@ -2333,6 +2333,13 @@ func (t *Thread) URL() string {
 		"%s/chats?thread_message_id=%d&sidebar_message=%d",
 		APP_URL, t.MessageID, t.ID,
 	)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// isZero is special method for omitzero
+func (f Files) isZero() bool {
+	return f == nil
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
