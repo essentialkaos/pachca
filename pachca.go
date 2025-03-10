@@ -140,24 +140,25 @@ type Users []*User
 
 // User contains info about user
 type User struct {
-	ID           uint         `json:"id"`
-	CreatedAt    Date         `json:"created_at"`
-	ImageURL     string       `json:"image_url"`
-	Email        string       `json:"email"`
-	FirstName    string       `json:"first_name"`
-	LastName     string       `json:"last_name"`
-	Nickname     string       `json:"nickname"`
-	Role         UserRole     `json:"role"`
-	PhoneNumber  string       `json:"phone_number"`
-	TimeZone     string       `json:"time_zone"`
-	Title        string       `json:"title"`
-	InviteStatus InviteStatus `json:"invite_status"`
-	Department   string       `json:"department"`
-	Properties   Properties   `json:"custom_properties"`
-	Tags         []string     `json:"list_tags"`
-	Status       *Status      `json:"user_status"`
-	IsBot        bool         `json:"bot"`
-	IsSuspended  bool         `json:"suspended"`
+	ID             uint         `json:"id"`
+	CreatedAt      Date         `json:"created_at"`
+	LastActivityAt Date         `json:"last_activity_at"`
+	ImageURL       string       `json:"image_url"`
+	Email          string       `json:"email"`
+	FirstName      string       `json:"first_name"`
+	LastName       string       `json:"last_name"`
+	Nickname       string       `json:"nickname"`
+	Role           UserRole     `json:"role"`
+	PhoneNumber    string       `json:"phone_number"`
+	TimeZone       string       `json:"time_zone"`
+	Title          string       `json:"title"`
+	InviteStatus   InviteStatus `json:"invite_status"`
+	Department     string       `json:"department"`
+	Properties     Properties   `json:"custom_properties"`
+	Tags           []string     `json:"list_tags"`
+	Status         *Status      `json:"user_status"`
+	IsBot          bool         `json:"bot"`
+	IsSuspended    bool         `json:"suspended"`
 }
 
 // Status is user status
@@ -236,12 +237,14 @@ type Forwarding struct {
 
 // File contains info about message attachment
 type File struct {
-	ID   uint     `json:"id,omitempty"`
-	Key  string   `json:"key"`
-	Name string   `json:"name"`
-	Type FileType `json:"file_type,omitempty"`
-	URL  string   `json:"url,omitempty"`
-	Size uint     `json:"size"`
+	ID     uint     `json:"id,omitempty"`
+	Key    string   `json:"key"`
+	Name   string   `json:"name"`
+	Type   FileType `json:"file_type,omitempty"`
+	URL    string   `json:"url,omitempty"`
+	Size   uint     `json:"size"`
+	Width  uint     `json:"width,omitzero"`
+	Height uint     `json:"height,omitzero"`
 }
 
 // Files is a slice of attachments
@@ -379,6 +382,8 @@ type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
 	EntityID           uint       `json:"entity_id,omitempty"`
 	Content            string     `json:"content"`
+	DisplayAvatarURL   string     `json:"display_avatar_url,omitempty"`
+	DisplayName        string     `json:"display_name,omitempty"`
 	Files              Files      `json:"files,omitempty"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
 	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
