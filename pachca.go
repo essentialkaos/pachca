@@ -75,12 +75,22 @@ const (
 	WEBHOOK_EVENT_NEW    WebhookEvent = "new"
 	WEBHOOK_EVENT_UPDATE WebhookEvent = "update"
 	WEBHOOK_EVENT_DELETE WebhookEvent = "delete"
+
+	WEBHOOK_EVENT_ADD    WebhookEvent = "add"
+	WEBHOOK_EVENT_REMOVE WebhookEvent = "remove"
+
+	WEBHOOK_EVENT_INVITE   WebhookEvent = "invite"
+	WEBHOOK_EVENT_CONFIRM  WebhookEvent = "confirm"
+	WEBHOOK_EVENT_SUSPEND  WebhookEvent = "suspend"
+	WEBHOOK_EVENT_ACTIVATE WebhookEvent = "activate"
 )
 
 const (
-	WEBHOOK_TYPE_MESSAGE  WebhookType = "message"
-	WEBHOOK_TYPE_REACTION WebhookType = "reaction"
-	WEBHOOK_TYPE_BUTTON   WebhookType = "button"
+	WEBHOOK_TYPE_MESSAGE        WebhookType = "message"
+	WEBHOOK_TYPE_REACTION       WebhookType = "reaction"
+	WEBHOOK_TYPE_BUTTON         WebhookType = "button"
+	WEBHOOK_TYPE_CHAT_MEMBER    WebhookType = "chat_member"
+	WEBHOOK_TYPE_COMPANY_MEMBER WebhookType = "company_member"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -2353,6 +2363,16 @@ func (w *Webhook) IsButton() bool {
 	return w != nil && w.Type == WEBHOOK_TYPE_BUTTON
 }
 
+// IsChatMember returns true if webhook contains data for chat_member event
+func (w *Webhook) IsChatMember() bool {
+	return w != nil && w.Type == WEBHOOK_TYPE_CHAT_MEMBER
+}
+
+// IsCompanyMember returns true if webhook contains data for chat_member event
+func (w *Webhook) IsCompanyMember() bool {
+	return w != nil && w.Type == WEBHOOK_TYPE_COMPANY_MEMBER
+}
+
 // IsNew returns true if there is a webhook event for new message
 func (w *Webhook) IsNew() bool {
 	return w != nil && w.Event == WEBHOOK_EVENT_NEW
@@ -2363,9 +2383,43 @@ func (w *Webhook) IsUpdate() bool {
 	return w != nil && w.Event == WEBHOOK_EVENT_UPDATE
 }
 
-// IsDelete returns true if there is a webhook event for deleted message
+// IsDelete returns true if there is a webhook event for deleted message or
+// company member
 func (w *Webhook) IsDelete() bool {
 	return w != nil && w.Event == WEBHOOK_EVENT_DELETE
+}
+
+// IsAdd returns true if there is a webhook event for added chat member
+func (w *Webhook) IsAdd() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_ADD
+}
+
+// IsRemove returns true if there is a webhook event for removed chat member
+func (w *Webhook) IsRemove() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_REMOVE
+}
+
+// IsInvite returns true if there is a webhook event for invited company member
+func (w *Webhook) IsInvite() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_INVITE
+}
+
+// IsConfirm returns true if there is a webhook event for confirmed company
+// member
+func (w *Webhook) IsConfirm() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_CONFIRM
+}
+
+// IsSuspend returns true if there is a webhook event for suspended company
+// member
+func (w *Webhook) IsSuspend() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_SUSPEND
+}
+
+// IsActivate returns true if there is a webhook event for activated company
+// member
+func (w *Webhook) IsActivate() bool {
+	return w != nil && w.Event == WEBHOOK_EVENT_ACTIVATE
 }
 
 // Command returns slash command name from the beginning of the message

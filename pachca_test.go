@@ -509,12 +509,24 @@ func (s *PachcaSuite) TestURLHelpers(c *C) {
 }
 
 func (s *PachcaSuite) TestWebhookHelpers(c *C) {
-	message := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Content: "/find-user j.doe"}
-	reaction := &Webhook{Type: WEBHOOK_TYPE_REACTION}
-	button := &Webhook{Type: WEBHOOK_TYPE_BUTTON}
-	new := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_NEW}
-	update := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_UPDATE}
-	delete := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_DELETE}
+	whMessage := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Content: "/find-user j.doe"}
+	whReaction := &Webhook{Type: WEBHOOK_TYPE_REACTION}
+	whButton := &Webhook{Type: WEBHOOK_TYPE_BUTTON}
+	whChatMember := &Webhook{Type: WEBHOOK_TYPE_CHAT_MEMBER}
+	whOrgMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER}
+
+	evNew := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_NEW}
+	evUpdate := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_UPDATE}
+	evDeleteMsg := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_DELETE}
+
+	evChadAdd := &Webhook{Type: WEBHOOK_TYPE_CHAT_MEMBER, Event: WEBHOOK_EVENT_ADD}
+	evChatRemove := &Webhook{Type: WEBHOOK_TYPE_CHAT_MEMBER, Event: WEBHOOK_EVENT_REMOVE}
+
+	evInviteMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_INVITE}
+	evConfirmMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_CONFIRM}
+	evSuspendMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_SUSPEND}
+	evActivateMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_ACTIVATE}
+	evDeleteMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_DELETE}
 
 	var nilWebhook *Webhook
 
@@ -526,13 +538,26 @@ func (s *PachcaSuite) TestWebhookHelpers(c *C) {
 	c.Assert(nilWebhook.IsDelete(), Equals, false)
 	c.Assert(nilWebhook.Command(), Equals, "")
 
-	c.Assert(message.IsMessage(), Equals, true)
-	c.Assert(reaction.IsReaction(), Equals, true)
-	c.Assert(button.IsButton(), Equals, true)
-	c.Assert(new.IsNew(), Equals, true)
-	c.Assert(update.IsUpdate(), Equals, true)
-	c.Assert(delete.IsDelete(), Equals, true)
-	c.Assert(message.Command(), Equals, "find-user")
+	c.Assert(whMessage.IsMessage(), Equals, true)
+	c.Assert(whReaction.IsReaction(), Equals, true)
+	c.Assert(whButton.IsButton(), Equals, true)
+	c.Assert(whChatMember.IsChatMember(), Equals, true)
+	c.Assert(whOrgMember.IsCompanyMember(), Equals, true)
+
+	c.Assert(whMessage.Command(), Equals, "find-user")
+
+	c.Assert(evNew.IsNew(), Equals, true)
+	c.Assert(evUpdate.IsUpdate(), Equals, true)
+	c.Assert(evDeleteMsg.IsDelete(), Equals, true)
+
+	c.Assert(evChadAdd.IsAdd(), Equals, true)
+	c.Assert(evChatRemove.IsRemove(), Equals, true)
+
+	c.Assert(evInviteMember.IsInvite(), Equals, true)
+	c.Assert(evConfirmMember.IsConfirm(), Equals, true)
+	c.Assert(evSuspendMember.IsSuspend(), Equals, true)
+	c.Assert(evActivateMember.IsActivate(), Equals, true)
+	c.Assert(evDeleteMember.IsDelete(), Equals, true)
 }
 
 func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
