@@ -36,6 +36,16 @@ const APP_URL = "https://app.pachca.com"
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
+	SORT_FIELD_ID           = "id"
+	SORT_FIELD_LAST_MESSAGE = "last_message_at"
+)
+
+const (
+	SORT_ORDER_ASC  = "asc"
+	SORT_ORDER_DESC = "desc"
+)
+
+const (
 	PROP_TYPE_DATE   PropertyType = "date"
 	PROP_TYPE_LINK   PropertyType = "link"
 	PROP_TYPE_NUMBER PropertyType = "number"
@@ -348,6 +358,7 @@ type uploadInfo struct {
 
 // ChatFilter is configuration for filtering chats
 type ChatFilter struct {
+	Sort              map[string]string
 	LastMessageAfter  time.Time
 	LastMessageBefore time.Time
 	Public            bool
@@ -2454,6 +2465,12 @@ func (f ChatFilter) ToQuery() req.Query {
 
 	if !f.LastMessageAfter.IsZero() {
 		query["last_message_at_after"] = formatDate(f.LastMessageAfter)
+	}
+
+	if len(f.Sort) != 0 {
+		for k, v := range f.Sort {
+			query["sort["+k+"]"] = v
+		}
 	}
 
 	return query

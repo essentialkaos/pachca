@@ -562,6 +562,7 @@ func (s *PachcaSuite) TestWebhookHelpers(c *C) {
 
 func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
 	cf := ChatFilter{
+		Sort:              map[string]string{SORT_FIELD_ID: SORT_ORDER_DESC},
 		Public:            true,
 		LastMessageAfter:  time.Now(),
 		LastMessageBefore: time.Now().AddDate(0, 0, 1),
@@ -569,6 +570,7 @@ func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
 
 	q := cf.ToQuery()
 
+	c.Assert(q["sort[id]"], Equals, SORT_ORDER_DESC)
 	c.Assert(q["availability"], Equals, "public")
 	c.Assert(q["last_message_at_before"], Not(Equals), "")
 	c.Assert(q["last_message_at_after"], Not(Equals), "")
