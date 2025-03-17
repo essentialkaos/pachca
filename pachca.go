@@ -2455,17 +2455,13 @@ func (w *Webhook) Command() string {
 func (f ChatFilter) ToQuery() req.Query {
 	query := req.Query{}
 
-	if f.Public {
-		query["availability"] = "public"
-	}
-
-	if !f.LastMessageBefore.IsZero() {
-		query["last_message_at_before"] = formatDate(f.LastMessageBefore)
-	}
-
-	if !f.LastMessageAfter.IsZero() {
-		query["last_message_at_after"] = formatDate(f.LastMessageAfter)
-	}
+	query.SetIf(f.Public, "availability", "public")
+	query.SetIf(!f.LastMessageBefore.IsZero(),
+		"last_message_at_before", formatDate(f.LastMessageBefore),
+	)
+	query.SetIf(!f.LastMessageAfter.IsZero(),
+		"last_message_at_after", formatDate(f.LastMessageAfter),
+	)
 
 	if len(f.Sort) != 0 {
 		for k, v := range f.Sort {
