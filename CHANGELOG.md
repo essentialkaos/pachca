@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.6.3](https://kaos.sh/pachca/0.6.3)
+
+- Added support of sorting chats using `ChatFilter`
+
 ### [0.6.2](https://kaos.sh/pachca/0.6.2)
 
 - Type of `File.Size` changed from `uint` to `int64`
