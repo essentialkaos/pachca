@@ -67,6 +67,9 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	// USERS
 
+	_, err = cc.CurrentUser()
+	c.Assert(err, Equals, ErrNilClient)
+
 	_, err = cc.GetUser(1)
 	c.Assert(err, Equals, ErrNilClient)
 
