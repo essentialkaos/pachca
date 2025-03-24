@@ -705,6 +705,27 @@ func (c *Client) DeleteReaction(messageID uint, emoji string) error {
 
 // USERS //////////////////////////////////////////////////////////////////////////// //
 
+// CurrentUser returns info about current user
+//
+// https://crm.pachca.com/dev/profile/get/
+func (c *Client) CurrentUser() (*User, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *User `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/profile"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't fetch current user info: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
 // GetUser returns info about user
 //
 // https://crm.pachca.com/dev/users/get/
