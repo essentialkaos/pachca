@@ -1,5 +1,13 @@
 ## Changelog
 
+### [0.8.0](https://kaos.sh/pachca/0.8.0)
+
+- Added new API method `GetMessages`
+
+### [0.7.0](https://kaos.sh/pachca/0.7.0)
+
+- Added method `CurrentUser` for fetching info about current user
+
 ### [0.6.3](https://kaos.sh/pachca/0.6.3)
 
 - Added support of sorting chats using `ChatFilter`
