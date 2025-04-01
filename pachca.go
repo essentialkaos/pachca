@@ -244,6 +244,9 @@ type Message struct {
 	Forwarding      *Forwarding `json:"forwarding"`
 }
 
+// Messages is a slice of messages
+type Messages []*Message
+
 // Forwarding contains info about message forwarding
 type Forwarding struct {
 	OriginalMessageID          uint `json:"original_message_id"`
@@ -491,6 +494,8 @@ var (
 	ErrInvalidEntityID   = errors.New("Entity ID must be greater than 0")
 	ErrBlankEmoji        = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews     = errors.New("Previews map has no data")
+	ErrInvalidPageNum    = errors.New("Page number must be greater than 0")
+	ErrInvalidPerPageNum = errors.New("Per page number must be between 1 and 50")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -1409,6 +1414,35 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 }
 
 // MESSAGES ///////////////////////////////////////////////////////////////////////// //
+
+// GetMessages returns messages from given chat
+//
+// https://crm.pachca.com/dev/messages/list/
+func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case chatID == 0:
+		return nil, ErrInvalidChatID
+	case page < 1:
+		return nil, ErrInvalidPageNum
+	case perPage < 1 || perPage > 50:
+		return nil, ErrInvalidPerPageNum
+	}
+
+	resp := &struct {
+		Data Messages `json:"data"`
+	}{}
+
+	query := req.Query{"chat_id": chatID, "page": page, "per": perPage}
+	err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't get messages of chat with ID %d: %w", chatID, err)
+	}
+
+	return resp.Data, nil
+}
 
 // GetMessage returns info about message
 //
