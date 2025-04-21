@@ -2,7 +2,7 @@ package pachca
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2024 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -153,6 +153,7 @@ type Chat struct {
 	LastMessageAt Date   `json:"last_message_at"`
 	IsPublic      bool   `json:"public"`
 	IsChannel     bool   `json:"channel"`
+	IsPersonal    bool   `json:"personal"`
 }
 
 // Users is a slice of users
@@ -394,11 +395,12 @@ type PropertyRequests []*PropertyRequest
 
 // ChatRequest is a struct with information needed to create or modify a chat
 type ChatRequest struct {
-	Name      string `json:"name,omitempty"`
-	Members   []uint `json:"member_ids,omitempty"`
-	Groups    []uint `json:"group_tag_ids,omitempty"`
-	IsChannel bool   `json:"channel,omitempty"`
-	IsPublic  bool   `json:"public,omitempty"`
+	Name       string `json:"name,omitempty"`
+	Members    []uint `json:"member_ids,omitempty"`
+	Groups     []uint `json:"group_tag_ids,omitempty"`
+	IsChannel  bool   `json:"channel,omitempty"`
+	IsPublic   bool   `json:"public,omitempty"`
+	IsPersonal bool   `json:"personal,omitempty"`
 }
 
 // MessageRequest is a struct with information needed to create or modify a message
