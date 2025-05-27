@@ -1,5 +1,20 @@
 ## Changelog
 
+### [0.9.0](https://kaos.sh/pachca/0.9.0)
+
+- Added method `ReadWebhook` for reading webhook data from `http.Request`
+- Added method `ReadWebhookSigned` for reading signed webhook data from `http.Request`
+- Dependencies update
+
+### [0.8.2](https://kaos.sh/pachca/0.8.2)
+
+- Dependencies update
+
+### [0.8.1](https://kaos.sh/pachca/0.8.1)
+
+- Added new field `IsPublic` to `Chat`
+- Dependencies update
+
 ### [0.8.0](https://kaos.sh/pachca/0.8.0)
 
 - Added new API method `GetMessages`

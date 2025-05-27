@@ -9,9 +9,13 @@ package pachca
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -19,6 +23,7 @@ import (
 	"time"
 
 	"github.com/essentialkaos/ek/v13/errors"
+	"github.com/essentialkaos/ek/v13/hashutil"
 	"github.com/essentialkaos/ek/v13/mathutil"
 	"github.com/essentialkaos/ek/v13/path"
 	"github.com/essentialkaos/ek/v13/req"
@@ -326,6 +331,7 @@ type Webhook struct {
 	MessageID       uint         `json:"message_id"`        // reaction, button
 	ParentMessageID uint         `json:"parent_message_id"` // message
 	Thread          *Thread      `json:"thread"`            // message
+	Timestamp       int64        `json:"webhook_timestamp"`
 }
 
 // WebhookThread contains info about message thread
@@ -498,6 +504,9 @@ var (
 	ErrEmptyPreviews     = errors.New("Previews map has no data")
 	ErrInvalidPageNum    = errors.New("Page number must be greater than 0")
 	ErrInvalidPerPageNum = errors.New("Per page number must be between 1 and 50")
+	ErrWebhookTooOld     = errors.New("Webhook is too old (created more than minute ago)")
+	ErrWebhookInvalidSig = errors.New("Webhook has invalid signature")
+	ErrWebhookNoSig      = errors.New("Webhook has no signature")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -567,6 +576,46 @@ func ValidateToken(token string) error {
 	}
 
 	return nil
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// ReadWebhook reads webhook data from HTTP request
+func ReadWebhook(r *http.Request) (*Webhook, error) {
+	w := &Webhook{}
+	err := json.NewDecoder(r.Body).Decode(w)
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't parse webhook data: %w", err)
+	}
+
+	return w, nil
+}
+
+// ReadWebhookSigned reads webhook data from HTTP request and validates signature
+func ReadWebhookSigned(r *http.Request, secret string) (*Webhook, error) {
+	if r.Header.Get("Pachca-Signature") == "" {
+		return nil, ErrWebhookNoSig
+	}
+
+	w := &Webhook{}
+	mac := hmac.New(sha256.New, []byte(secret))
+	tr := io.TeeReader(r.Body, mac)
+	err := json.NewDecoder(tr).Decode(w)
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't parse webhook data: %w", err)
+	}
+
+	if w.Timestamp > 0 && time.Now().Unix()-w.Timestamp > 60 {
+		return nil, ErrWebhookTooOld
+	}
+
+	if r.Header.Get("Pachca-Signature") != hashutil.Sum(mac) {
+		return nil, ErrWebhookInvalidSig
+	}
+
+	return w, nil
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
