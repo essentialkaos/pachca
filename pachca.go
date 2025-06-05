@@ -27,6 +27,7 @@ import (
 	"github.com/essentialkaos/ek/v13/mathutil"
 	"github.com/essentialkaos/ek/v13/path"
 	"github.com/essentialkaos/ek/v13/req"
+	"github.com/essentialkaos/ek/v13/sliceutil"
 	"github.com/essentialkaos/ek/v13/strutil"
 )
 
@@ -2165,119 +2166,65 @@ func (u Users) Find(nicknameOrEmail string) *User {
 
 // Active returns slice with active users
 func (u Users) Active() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsActive() {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsActive()
+	})
 }
 
 // Suspended returns slice with inactive users
 func (u Users) Suspended() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsSuspended {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsSuspended
+	})
 }
 
 // Invited returns all invited users
 func (u Users) Invited() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsInvited() {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsInvited()
+	})
 }
 
 // Bots returns slice with bots
 func (u Users) Bots() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsBot {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsBot
+	})
 }
 
 // People returns slice with non-bot users
 func (u Users) People() Users {
-	var result Users
-
-	for _, uu := range u {
-		if !uu.IsBot {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return !uu.IsBot
+	})
 }
 
 // Admins returns slice with admins
 func (u Users) Admins() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsAdmin() {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsAdmin()
+	})
 }
 
 // Regular returns slice with regular users
 func (u Users) Regular() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsRegular() {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsRegular()
+	})
 }
 
 // Guests returns slice with guests
 func (u Users) Guests() Users {
-	var result Users
-
-	for _, uu := range u {
-		if uu.IsGuest() {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsGuest()
+	})
 }
 
 // WithoutGuests returns slice with users without guests
 func (u Users) WithoutGuests() Users {
-	var result Users
-
-	for _, uu := range u {
-		if !uu.IsGuest() {
-			result = append(result, uu)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return !uu.IsGuest()
+	})
 }
 
 // Get returns chat with given ID
@@ -2306,54 +2253,30 @@ func (c Chats) Find(name string) *Chat {
 
 // Public returns slice with public chats
 func (c Chats) Public() Chats {
-	var result Chats
-
-	for _, cc := range c {
-		if cc.IsPublic {
-			result = append(result, cc)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
+		return cc.IsPublic
+	})
 }
 
 // Channels returns slice with channels
 func (c Chats) Channels() Chats {
-	var result Chats
-
-	for _, cc := range c {
-		if cc.IsChannel {
-			result = append(result, cc)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
+		return cc.IsChannel
+	})
 }
 
 // Personal returns p2p chats
 func (c Chats) Personal() Chats {
-	var result Chats
-
-	for _, cc := range c {
-		if cc.Name == "" {
-			result = append(result, cc)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
+		return cc.Name == ""
+	})
 }
 
 // Communal returns communal chats (non-p2p)
 func (c Chats) Communal() Chats {
-	var result Chats
-
-	for _, cc := range c {
-		if cc.Name != "" {
-			result = append(result, cc)
-		}
-	}
-
-	return result
+	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
+		return cc.Name != ""
+	})
 }
 
 // Get returns tag with given ID
