@@ -1,5 +1,12 @@
 ## Changelog
 
+### [0.10.0](https://kaos.sh/pachca/0.10.0)
+
+- Added new API method `GetChatUsers`
+- Added `Name` field to `Webhook` struct
+- Improved method `GetMessageReads`
+- Added chat roles `CHAT_ROLE_OWNER` and `CHAT_ROLE_ANY`
+
 ### [0.9.0](https://kaos.sh/pachca/0.9.0)
 
 - Added method `ReadWebhook` for reading webhook data from `http.Request`

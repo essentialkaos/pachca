@@ -72,8 +72,11 @@ const (
 
 const (
 	CHAT_ROLE_ADMIN  ChatRole = "admin"
+	CHAT_ROLE_OWNER  ChatRole = "owner"
 	CHAT_ROLE_EDITOR ChatRole = "editor"
 	CHAT_ROLE_MEMBER ChatRole = "member"
+
+	CHAT_ROLE_ANY = "all"
 )
 
 const (
@@ -314,6 +317,16 @@ type APIError struct {
 	StatusCode int
 }
 
+// Metadata is listing metadata
+type Metadata struct {
+	Paginate *Paginate `json:"paginate"`
+}
+
+// Paginate contains cursor to the next page
+type Paginate struct {
+	NextPage string `json:"next_page"`
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // WebhookMessage is message webhook payload
@@ -326,6 +339,7 @@ type Webhook struct {
 	Content         string       `json:"content"`           // message
 	Emoji           string       `json:"code"`              // reaction
 	Data            string       `json:"data"`              // button
+	Name            string       `json:"name"`              // reaction
 	UserID          uint         `json:"user_id"`           // message, reaction
 	CreatedAt       Date         `json:"created_at"`        // message, reaction, button
 	ChatID          uint         `json:"chat_id"`           // message
@@ -1257,6 +1271,58 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	return resp.Data, nil
 }
 
+// GetChatUsers returns slice with users of given chat
+//
+// https://crm.pachca.com/dev/members/users/list/
+func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case chatID == 0:
+		return nil, ErrInvalidChatID
+	}
+
+	switch memberRole {
+	case "":
+		memberRole = CHAT_ROLE_ANY
+	case CHAT_ROLE_ANY, CHAT_ROLE_ADMIN, CHAT_ROLE_OWNER,
+		CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER:
+		// okay
+	default:
+		return nil, fmt.Errorf("Unknown chat users role %q", memberRole)
+	}
+
+	query := req.Query{"role": memberRole}
+
+	resp := &struct {
+		Data Users     `json:"data"`
+		Meta *Metadata `json:"meta"`
+	}{}
+
+	var users Users
+
+	for {
+		err := c.sendRequest(
+			req.GET, getURL("/chats/%d/members", chatID),
+			query, nil, resp,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't fetch chat users info: %w", err)
+		}
+
+		users = append(users, resp.Data...)
+
+		if len(resp.Data) != 50 {
+			break
+		}
+
+		query.Set("cursor", resp.Meta.Paginate.NextPage)
+	}
+
+	return users, nil
+}
+
 // AddChatUsers adds users with given IDs to the chat
 //
 // https://crm.pachca.com/dev/members/users/new/
@@ -1551,11 +1617,11 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 			return nil, fmt.Errorf("Can't fetch message reads info: %w", err)
 		}
 
-		if len(resp.Data) == 0 {
+		result = append(result, resp.Data...)
+
+		if len(resp.Data) != 300 {
 			break
 		}
-
-		result = append(result, resp.Data...)
 	}
 
 	return result, nil
