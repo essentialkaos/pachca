@@ -626,7 +626,7 @@ func ReadWebhookSigned(r *http.Request, secret string) (*Webhook, error) {
 		return nil, ErrWebhookTooOld
 	}
 
-	if r.Header.Get("Pachca-Signature") != hashutil.Sum(mac).String() {
+	if !hashutil.Sum(mac).EqualString(r.Header.Get("Pachca-Signature")) {
 		return nil, ErrWebhookInvalidSig
 	}
 
