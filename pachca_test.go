@@ -433,26 +433,29 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 		{ID: 4, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_MULTI_GUEST},
 		{ID: 5, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: true, Role: ROLE_REGULAR},
 		{ID: 6, IsSuspended: true, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR, Nickname: "j.doe", Email: "test@example.com"},
+		{ID: 7, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_GUEST},
 	}
 
-	c.Assert(uu.Active(), HasLen, 4)
+	c.Assert(uu.Active(), HasLen, 5)
 	c.Assert(uu.Suspended(), HasLen, 1)
 
 	c.Assert(uu.Invited(), HasLen, 1)
 	c.Assert(uu.Invited()[0].ID, Equals, uint(1))
 	c.Assert(uu.Bots(), HasLen, 1)
 	c.Assert(uu.Bots()[0].ID, Equals, uint(5))
-	c.Assert(uu.People(), HasLen, 5)
+	c.Assert(uu.People(), HasLen, 6)
 	c.Assert(uu.Admins(), HasLen, 1)
 	c.Assert(uu.Admins()[0].ID, Equals, uint(3))
 	c.Assert(uu.Admins()[0].IsAdmin(), Equals, true)
 	c.Assert(uu.Regular(), HasLen, 4)
 	c.Assert(uu.Regular()[0].ID, Equals, uint(1))
 	c.Assert(uu.Regular()[0].IsRegular(), Equals, true)
-	c.Assert(uu.Guests(), HasLen, 1)
+	c.Assert(uu.Guests(), HasLen, 2)
+	c.Assert(uu.MultiGuests(), HasLen, 1)
 	c.Assert(uu.Guests()[0].ID, Equals, uint(4))
 	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
 	c.Assert(uu.WithoutGuests(), HasLen, 5)
+	c.Assert(uu.Paid(), HasLen, 6)
 
 	c.Assert(uu.Find("test"), IsNil)
 	c.Assert(uu.Find("j.doe"), NotNil)
