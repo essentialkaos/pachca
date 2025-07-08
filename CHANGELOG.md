@@ -1,11 +1,17 @@
 ## Changelog
 
-### [0.10.1](https://kaos.sh/pachca/0.10.1)
+### [0.10.2](https://kaos.sh/pachca/0.10.2)
 
 - Added helper `User.IsMultiGuest`
 - Added helper `User.IsPaid`
 - Added helper `Users.MultiGuests`
 - Added helper `Users.Paid`
+- Code refactoring
+
+### [0.10.1](https://kaos.sh/pachca/0.10.1)
+
+- Code refactoring
+- Dependencies update
 
 ### [0.10.0](https://kaos.sh/pachca/0.10.0)
 
