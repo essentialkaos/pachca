@@ -2173,7 +2173,17 @@ func (u *User) IsInvited() bool {
 
 // IsGuest returns true if user is guest or multi-guest
 func (u *User) IsGuest() bool {
-	return u != nil && u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_GUEST
+	return u != nil && (u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_GUEST)
+}
+
+// IsMultiGuest returns true if user is multi-guest
+func (u *User) IsMultiGuest() bool {
+	return u != nil && u.Role == ROLE_MULTI_GUEST
+}
+
+// IsPaid returns true if user is paid (not bot or guest)
+func (u *User) IsPaid() bool {
+	return u != nil && (u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_REGULAR || u.Role == ROLE_ADMIN)
 }
 
 // IsAdmin returns true if user is admin
@@ -2279,10 +2289,24 @@ func (u Users) Regular() Users {
 	})
 }
 
-// Guests returns slice with guests
+// Guests returns slice with guests or multi-guests
 func (u Users) Guests() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsGuest()
+	})
+}
+
+// MultiGuests returns slice with multi-guests
+func (u Users) MultiGuests() Users {
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsMultiGuest()
+	})
+}
+
+// Paid returns slice with paid users
+func (u Users) Paid() Users {
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.IsPaid()
 	})
 }
 

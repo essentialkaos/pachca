@@ -1,5 +1,12 @@
 ## Changelog
 
+### [0.10.1](https://kaos.sh/pachca/0.10.1)
+
+- Added helper `User.IsMultiGuest`
+- Added helper `User.IsPaid`
+- Added helper `Users.MultiGuests`
+- Added helper `Users.Paid`
+
 ### [0.10.0](https://kaos.sh/pachca/0.10.0)
 
 - Added new API method `GetChatUsers`
