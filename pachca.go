@@ -1201,7 +1201,7 @@ func (c *Client) GetChat(chatID uint) (*Chat, error) {
 	err := c.sendRequest(req.GET, getURL("/chats/%d", chatID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch user info: %w", err)
+		return nil, fmt.Errorf("Can't fetch chat info: %w", err)
 	}
 
 	return resp.Data, nil
