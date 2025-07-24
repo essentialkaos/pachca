@@ -286,8 +286,8 @@ type Files []*File
 // Button contains info about message button
 type Button struct {
 	Text string `json:"text"`
-	URL  string `json:"url"`
-	Data string `json:"data"`
+	URL  string `json:"url,omitempty"`
+	Data string `json:"data,omitempty"`
 }
 
 // Buttons is a slice of buttons
