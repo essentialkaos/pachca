@@ -291,7 +291,10 @@ type Button struct {
 }
 
 // Buttons is a slice of buttons
-type Buttons []*Button
+type Buttons []ButtonLine
+
+// ButtonCollection
+type ButtonLine []*Button
 
 // Upload contains upload info used for uploading files
 type Upload struct {
@@ -433,7 +436,7 @@ type MessageRequest struct {
 	DisplayName        string     `json:"display_name,omitempty"`
 	Files              Files      `json:"files,omitzero"`
 	Buttons            Buttons    `json:"buttons,omitempty"`
-	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
+	ParentMessageID    uint       `json:"parent_message_id,omitempty"`
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
 }
 
