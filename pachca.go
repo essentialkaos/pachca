@@ -431,12 +431,12 @@ type ChatRequest struct {
 type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
 	EntityID           uint       `json:"entity_id,omitempty"`
+	ParentMessageID    uint       `json:"parent_message_id,omitempty"`
 	Content            string     `json:"content"`
 	DisplayAvatarURL   string     `json:"display_avatar_url,omitempty"`
 	DisplayName        string     `json:"display_name,omitempty"`
 	Files              Files      `json:"files,omitzero"`
-	Buttons            Buttons    `json:"buttons,omitempty"`
-	ParentMessageID    uint       `json:"parent_message_id,omitempty"`
+	Buttons            Buttons    `json:"buttons,omitzero"`
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
 }
 
@@ -2473,6 +2473,11 @@ func (t *Thread) URL() string {
 // isZero is special method for omitzero
 func (f Files) isZero() bool {
 	return f == nil
+}
+
+// isZero is special method for omitzero
+func (b Buttons) isZero() bool {
+	return b == nil
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
