@@ -343,7 +343,7 @@ type Webhook struct {
 	Emoji           string       `json:"code"`              // reaction
 	Data            string       `json:"data"`              // button
 	Name            string       `json:"name"`              // reaction
-	UserID          uint         `json:"user_id"`           // message, reaction
+	UserID          uint         `json:"user_id"`           // message, reaction, button
 	CreatedAt       Date         `json:"created_at"`        // message, reaction, button
 	ChatID          uint         `json:"chat_id"`           // message
 	MessageID       uint         `json:"message_id"`        // reaction, button
