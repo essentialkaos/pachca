@@ -1822,19 +1822,7 @@ func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 		return nil, ErrEmptyMessage
 	}
 
-	msg, err := c.GetMessage(messageID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	msgReq := &MessageRequest{Content: text, Files: Files{}}
-
-	if len(msg.Files) > 0 {
-		msgReq.Files = msg.Files
-	}
-
-	return c.EditMessage(messageID, msgReq)
+	return c.EditMessage(messageID, &MessageRequest{Content: text})
 }
 
 // AddLinkPreview adds link previews to message with given ID
