@@ -286,12 +286,15 @@ type Files []*File
 // Button contains info about message button
 type Button struct {
 	Text string `json:"text"`
-	URL  string `json:"url"`
-	Data string `json:"data"`
+	URL  string `json:"url,omitempty"`
+	Data string `json:"data,omitempty"`
 }
 
 // Buttons is a slice of buttons
-type Buttons []*Button
+type Buttons []ButtonLine
+
+// ButtonCollection
+type ButtonLine []*Button
 
 // Upload contains upload info used for uploading files
 type Upload struct {
@@ -340,7 +343,7 @@ type Webhook struct {
 	Emoji           string       `json:"code"`              // reaction
 	Data            string       `json:"data"`              // button
 	Name            string       `json:"name"`              // reaction
-	UserID          uint         `json:"user_id"`           // message, reaction
+	UserID          uint         `json:"user_id"`           // message, reaction, button
 	CreatedAt       Date         `json:"created_at"`        // message, reaction, button
 	ChatID          uint         `json:"chat_id"`           // message
 	MessageID       uint         `json:"message_id"`        // reaction, button
@@ -428,12 +431,12 @@ type ChatRequest struct {
 type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
 	EntityID           uint       `json:"entity_id,omitempty"`
+	ParentMessageID    uint       `json:"parent_message_id,omitempty"`
 	Content            string     `json:"content"`
 	DisplayAvatarURL   string     `json:"display_avatar_url,omitempty"`
 	DisplayName        string     `json:"display_name,omitempty"`
 	Files              Files      `json:"files,omitzero"`
-	Buttons            Buttons    `json:"buttons,omitempty"`
-	ParentMessageID    Buttons    `json:"parent_message_id,omitempty"`
+	Buttons            Buttons    `json:"buttons,omitzero"`
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
 }
 
@@ -1819,19 +1822,7 @@ func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 		return nil, ErrEmptyMessage
 	}
 
-	msg, err := c.GetMessage(messageID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	msgReq := &MessageRequest{Content: text, Files: Files{}}
-
-	if len(msg.Files) > 0 {
-		msgReq.Files = msg.Files
-	}
-
-	return c.EditMessage(messageID, msgReq)
+	return c.EditMessage(messageID, &MessageRequest{Content: text})
 }
 
 // AddLinkPreview adds link previews to message with given ID
@@ -2470,6 +2461,11 @@ func (t *Thread) URL() string {
 // isZero is special method for omitzero
 func (f Files) isZero() bool {
 	return f == nil
+}
+
+// isZero is special method for omitzero
+func (b Buttons) isZero() bool {
+	return b == nil
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
