@@ -198,10 +198,10 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidMessageID)
 
 	c.Assert(cc.AddReaction(0, "😊"), Equals, ErrInvalidMessageID)
-	c.Assert(cc.AddReaction(1, ""), Equals, ErrBlankEmoji)
+	c.Assert(cc.AddReaction(1, ""), Equals, ErrBlankReaction)
 
 	c.Assert(cc.DeleteReaction(0, "😊"), Equals, ErrInvalidMessageID)
-	c.Assert(cc.DeleteReaction(1, ""), Equals, ErrBlankEmoji)
+	c.Assert(cc.DeleteReaction(1, ""), Equals, ErrBlankReaction)
 
 	// USERS
 

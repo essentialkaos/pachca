@@ -224,6 +224,7 @@ type Reaction struct {
 	UserID    uint   `json:"user_id"`
 	CreatedAt Date   `json:"created_at"`
 	Emoji     string `json:"code"`
+	Name      string `json:"name"`
 }
 
 // Reactions is a slice of reactions
@@ -440,6 +441,12 @@ type MessageRequest struct {
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
 }
 
+// ReactionRequest is a payload for message reaction
+type ReactionRequest struct {
+	Code string `json:"code"`
+	Name string `json:"name,omitempty"`
+}
+
 // LinkPreview contains link preview data
 type LinkPreview struct {
 	Title       string `json:"title"`
@@ -518,7 +525,7 @@ var (
 	ErrInvalidThreadID   = errors.New("Thread ID must be greater than 0")
 	ErrInvalidTagID      = errors.New("Group tag ID must be greater than 0")
 	ErrInvalidEntityID   = errors.New("Entity ID must be greater than 0")
-	ErrBlankEmoji        = errors.New("Non-blank emoji is required")
+	ErrBlankReaction     = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews     = errors.New("Previews map has no data")
 	ErrInvalidPageNum    = errors.New("Page number must be greater than 0")
 	ErrInvalidPerPageNum = errors.New("Per page number must be between 1 and 50")
@@ -727,26 +734,30 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 	return result, nil
 }
 
-// AddReaction adds given emoji reaction to the message
+// AddReaction adds given emoji reaction to the message. To add custom reaction
+// add it name after amoji using ":" as separator. For example "😲:omg".
 //
 // https://crm.pachca.com/dev/reactions/new/
-func (c *Client) AddReaction(messageID uint, emoji string) error {
+func (c *Client) AddReaction(messageID uint, reaction string) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
 	case messageID == 0:
 		return ErrInvalidMessageID
-	case emoji == "":
-		return ErrBlankEmoji
+	case reaction == "":
+		return ErrBlankReaction
 	}
+
+	emoji, name, _ := strings.Cut(reaction, ":")
+	payload := &ReactionRequest{Code: emoji, Name: name}
 
 	err := c.sendRequest(
 		req.POST, getURL("/messages/%d/reactions", messageID),
-		req.Query{"code": emoji}, nil, nil,
+		nil, payload, nil,
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add reaction %q to message %d: %w", emoji, messageID, err)
+		return fmt.Errorf("Can't add reaction %q to message %d: %w", reaction, messageID, err)
 	}
 
 	return nil
@@ -755,23 +766,26 @@ func (c *Client) AddReaction(messageID uint, emoji string) error {
 // DeleteReaction removes given emoji reaction from the message
 //
 // https://crm.pachca.com/dev/reactions/delete/
-func (c *Client) DeleteReaction(messageID uint, emoji string) error {
+func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 	switch {
 	case c == nil:
 		return ErrNilClient
 	case messageID == 0:
 		return ErrInvalidMessageID
-	case emoji == "":
-		return ErrBlankEmoji
+	case reaction == "":
+		return ErrBlankReaction
 	}
+
+	emoji, name, _ := strings.Cut(reaction, ":")
+	payload := &ReactionRequest{Code: emoji, Name: name}
 
 	err := c.sendRequest(
 		req.DELETE, getURL("/messages/%d/reactions", messageID),
-		req.Query{"code": emoji}, nil, nil,
+		nil, payload, nil,
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't remove reaction %q from message %d: %w", emoji, messageID, err)
+		return fmt.Errorf("Can't remove reaction %q from message %d: %w", reaction, messageID, err)
 	}
 
 	return nil
