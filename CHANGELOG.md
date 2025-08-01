@@ -1,5 +1,16 @@
 ## Changelog
 
+### [0.12.0](https://kaos.sh/pachca/0.12.0)
+
+- Added custom reactions support to `AddReaction` and `DeleteReaction`
+- Added name of reaction to `Reaction`
+
+### [0.11.0](https://kaos.sh/pachca/0.11.0)
+
+- Improved message update helper (`UpdateMessage`)
+- Fixed issue with addition buttons to message
+- Fixed type of parent message ID in `MessageRequest`
+
 ### [0.10.2](https://kaos.sh/pachca/0.10.2)
 
 - Added helper `User.IsMultiGuest`
