@@ -189,6 +189,7 @@ type User struct {
 	Status         *Status      `json:"user_status"`
 	IsBot          bool         `json:"bot"`
 	IsSuspended    bool         `json:"suspended"`
+	IsSSO          bool         `json:"sso"`
 }
 
 // Status is user status
