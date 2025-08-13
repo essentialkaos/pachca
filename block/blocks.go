@@ -1,4 +1,4 @@
-package blocks
+package block
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -263,7 +263,7 @@ func (b *Date) Set(year, month, day int) *Date {
 		return b
 	}
 
-	b.InitialValue = fmt.Sprintf("%d-%d-%d", year, month, day)
+	b.InitialValue = fmt.Sprintf("%d-%02d-%02d", year, month, day)
 
 	return b
 }
@@ -274,7 +274,7 @@ func (b *Date) SetWithDate(d time.Time) *Date {
 		return b
 	}
 
-	b.InitialValue = fmt.Sprintf("%d-%d-%d", d.Year(), d.Month(), d.Day())
+	b.InitialValue = fmt.Sprintf("%d-%02d-%02d", d.Year(), d.Month(), d.Day())
 
 	return b
 }
@@ -285,7 +285,7 @@ func (b *Time) Set(hour, minute int) *Time {
 		return b
 	}
 
-	b.InitialValue = fmt.Sprintf("%d:%d", hour, minute)
+	b.InitialValue = fmt.Sprintf("%02d:%02d", hour, minute)
 
 	return b
 }
@@ -296,7 +296,7 @@ func (b *Time) SetWithDate(d time.Time) *Time {
 		return b
 	}
 
-	b.InitialValue = fmt.Sprintf("%d:%d", d.Hour(), d.Minute())
+	b.InitialValue = fmt.Sprintf("%02d:%02d", d.Hour(), d.Minute())
 
 	return b
 }

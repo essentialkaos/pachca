@@ -25,7 +25,7 @@ import (
 	"github.com/essentialkaos/ek/v13/sliceutil"
 	"github.com/essentialkaos/ek/v13/strutil"
 
-	"github.com/essentialkaos/pachca/blocks"
+	"github.com/essentialkaos/pachca/block"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -289,10 +289,10 @@ type Upload struct {
 
 // View contains form view
 type View struct {
-	Title      string         `json:"title"`
-	CloseText  string         `json:"close_text,omitempty"`
-	SubmitText string         `json:"submit_text,omitempty"`
-	Blocks     []blocks.Block `json:"blocks"`
+	Title      string        `json:"title"`
+	CloseText  string        `json:"close_text,omitempty"`
+	SubmitText string        `json:"submit_text,omitempty"`
+	Blocks     []block.Block `json:"blocks"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -467,6 +467,7 @@ var (
 	ErrNilMessageRequest  = errors.New("Message request is nil")
 	ErrNilPropertyRequest = errors.New("Property request is nil")
 	ErrNilViewRequest     = errors.New("View request is nil")
+	ErrNilView            = errors.New("View data is nil")
 	ErrEmptyToken         = errors.New("Token is empty")
 	ErrEmptyTag           = errors.New("Group tag is empty")
 	ErrEmptyMessage       = errors.New("Message text is empty")
@@ -1940,6 +1941,8 @@ func (c *Client) OpenView(view *ViewRequest) error {
 		return ErrNilClient
 	case view == nil:
 		return ErrNilViewRequest
+	case view.View == nil:
+		return ErrNilView
 	case view.TriggerID == "":
 		return ErrEmptyTriggerID
 	case view.Type != VIEW_MODAL:
@@ -2421,7 +2424,7 @@ func (t *Thread) URL() string {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // AddBlock adds new block to view
-func (v *View) AddBlocks(blocks ...blocks.Block) {
+func (v *View) AddBlocks(blocks ...block.Block) {
 	if v == nil || len(blocks) == 0 {
 		return
 	}

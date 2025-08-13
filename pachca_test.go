@@ -176,6 +176,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	_, err = cc.UploadFile("test.txt")
 	c.Assert(err, Equals, ErrNilClient)
+
+	// FORMS
+
+	err = cc.OpenView(nil)
+	c.Assert(err, Equals, ErrNilClient)
 }
 
 func (s *PachcaSuite) TestNewPropertyRequest(c *C) {
@@ -345,6 +350,19 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	_, err = cc.UploadFile("")
 	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	// FORMS
+
+	err = cc.OpenView(nil)
+	c.Assert(err, Equals, ErrNilViewRequest)
+	err = cc.OpenView(&ViewRequest{})
+	c.Assert(err, Equals, ErrNilView)
+	err = cc.OpenView(&ViewRequest{View: &View{}})
+	c.Assert(err, Equals, ErrEmptyTriggerID)
+	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "test", View: &View{}})
+	c.Assert(err, ErrorMatches, `Unknown form type "test"`)
+	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "modal", View: &View{}})
+	c.Assert(err, Equals, ErrViewHasNoBlocks)
 }
 
 func (s *PachcaSuite) TestPropertiesHelpers(c *C) {

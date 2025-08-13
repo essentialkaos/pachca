@@ -24,9 +24,6 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MAX_WEBHOOK_SIZE is the maximum size of the webhook payload
-const MAX_WEBHOOK_SIZE = 1024 * 1024
-
 const (
 	EVENT_NEW    WebhookEvent = "new"
 	EVENT_UPDATE WebhookEvent = "update"
@@ -46,12 +43,12 @@ const (
 )
 
 const (
-	TYPE_MESSAGE        WebhookType = "message"
-	TYPE_REACTION       WebhookType = "reaction"
-	TYPE_BUTTON         WebhookType = "button"
-	TYPE_CHAT_MEMBER    WebhookType = "chat_member"
-	TYPE_COMPANY_MEMBER WebhookType = "company_member"
-	TYPE_VIEW           WebhookType = "view"
+	TYPE_MESSAGE     WebhookType = "message"
+	TYPE_REACTION    WebhookType = "reaction"
+	TYPE_BUTTON      WebhookType = "button"
+	TYPE_CHAT_MEMBER WebhookType = "chat_member"
+	TYPE_ORG_MEMBER  WebhookType = "company_member"
+	TYPE_VIEW        WebhookType = "view"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -85,6 +82,7 @@ type Message struct {
 	ParentMessageID uint              `json:"parent_message_id"`
 	CreatedAt       pachca.Date       `json:"created_at"`
 	Thread          *Thread           `json:"thread"`
+	Links           []*UnfurlLink     `json:"links"`
 }
 
 // Reaction contains payload of reaction webhook
@@ -109,10 +107,10 @@ type Button struct {
 	TriggerID string `json:"trigger_id"`
 }
 
-// Chat contains payload of chat members changes webhook
+// ChatMember contains payload of chat members changes webhook
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#chat-member
-type Chat struct {
+type ChatMember struct {
 	Webhook
 	Event     WebhookEvent `json:"event"`
 	ChatID    uint         `json:"chat_id"`
@@ -121,29 +119,19 @@ type Chat struct {
 	UserIDs   []uint       `json:"user_ids"`
 }
 
-// Organization contains payload of organization members changes webhook
+// OrgMember contains payload of organization members changes webhook
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#company-member
-type Organization struct {
+type OrgMember struct {
 	Webhook
 	Event     WebhookEvent `json:"event"`
 	UserIDs   []uint       `json:"user_ids"`
 	CreatedAt pachca.Date  `json:"created_at"`
 }
 
-// Unfurl contains payload for generating URL preview
-//
-// https://crm.pachca.com/dev/messages/link_previews/
-type Unfurl struct {
-	Webhook
-	Event     WebhookEvent  `json:"event"`
-	ChatID    uint          `json:"chat_id"`
-	MessageID uint          `json:"message_id"`
-	Links     []*UnfurlLink `json:"links"`
-}
-
 // View contains payload from view form
 type View struct {
+	Webhook
 	Event      WebhookEvent    `json:"event"`
 	Metadata   string          `json:"private_metadata"`
 	CallbackID string          `json:"callback_id"`
@@ -168,17 +156,25 @@ type UnfurlLink struct {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
+	ErrNilRequest  = errors.New("Request is nil")
 	ErrNilWebhook  = errors.New("Webhook is nil")
 	ErrEmptyData   = errors.New("Webhook has no data")
 	ErrInvalidSig  = errors.New("Webhook has invalid signature")
 	ErrNoSignature = errors.New("Webhook has no signature")
 )
 
+// MaxWebhookSize is the maximum size of the webhook payload
+var MaxWebhookSize int64 = 1024 * 1024
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Read reads webhook data from HTTP request
 func Read(r *http.Request) (any, error) {
-	rr := io.LimitReader(r.Body, MAX_WEBHOOK_SIZE)
+	if r == nil || r.Body == nil {
+		return nil, ErrNilRequest
+	}
+
+	rr := io.LimitReader(r.Body, MaxWebhookSize)
 	data, err := io.ReadAll(rr)
 
 	if err != nil {
@@ -190,11 +186,14 @@ func Read(r *http.Request) (any, error) {
 
 // ReadSigned reads webhook data from HTTP request and validates signature
 func ReadSigned(r *http.Request, secret string) (any, error) {
-	if r.Header.Get("Pachca-Signature") == "" {
+	switch {
+	case r == nil || r.Body == nil:
+		return nil, ErrNilRequest
+	case r.Header.Get("Pachca-Signature") == "":
 		return nil, ErrNoSignature
 	}
 
-	rr := io.LimitReader(r.Body, MAX_WEBHOOK_SIZE)
+	rr := io.LimitReader(r.Body, MaxWebhookSize)
 	data, err := io.ReadAll(rr)
 
 	if err != nil {
@@ -234,30 +233,21 @@ func Decode(data []byte) (any, error) {
 	case TYPE_BUTTON:
 		ww = &Button{}
 	case TYPE_CHAT_MEMBER:
-		ww = &Chat{}
-	case TYPE_COMPANY_MEMBER:
-		ww = &Organization{}
+		ww = &ChatMember{}
+	case TYPE_ORG_MEMBER:
+		ww = &OrgMember{}
 	case TYPE_VIEW:
 		ww = &View{}
 	default:
 		return nil, fmt.Errorf("Unsupported webhook type %q", w.Type)
 	}
 
-	err = json.Unmarshal(data, ww)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't parse webhook JSON: %w", err)
-	}
+	json.Unmarshal(data, ww)
 
 	return ww, nil
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
-
-// Is returns true if webhook has given type
-func (w *Webhook) Is(typ WebhookType) bool {
-	return w != nil && w.Type == typ
-}
 
 // Age returns age of webhook
 func (w *Webhook) Age() time.Duration {
