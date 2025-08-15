@@ -9,13 +9,9 @@ package pachca
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -23,12 +19,13 @@ import (
 	"time"
 
 	"github.com/essentialkaos/ek/v13/errors"
-	"github.com/essentialkaos/ek/v13/hashutil"
 	"github.com/essentialkaos/ek/v13/mathutil"
 	"github.com/essentialkaos/ek/v13/path"
 	"github.com/essentialkaos/ek/v13/req"
 	"github.com/essentialkaos/ek/v13/sliceutil"
 	"github.com/essentialkaos/ek/v13/strutil"
+
+	"github.com/essentialkaos/pachca/block"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -91,25 +88,7 @@ const (
 )
 
 const (
-	WEBHOOK_EVENT_NEW    WebhookEvent = "new"
-	WEBHOOK_EVENT_UPDATE WebhookEvent = "update"
-	WEBHOOK_EVENT_DELETE WebhookEvent = "delete"
-
-	WEBHOOK_EVENT_ADD    WebhookEvent = "add"
-	WEBHOOK_EVENT_REMOVE WebhookEvent = "remove"
-
-	WEBHOOK_EVENT_INVITE   WebhookEvent = "invite"
-	WEBHOOK_EVENT_CONFIRM  WebhookEvent = "confirm"
-	WEBHOOK_EVENT_SUSPEND  WebhookEvent = "suspend"
-	WEBHOOK_EVENT_ACTIVATE WebhookEvent = "activate"
-)
-
-const (
-	WEBHOOK_TYPE_MESSAGE        WebhookType = "message"
-	WEBHOOK_TYPE_REACTION       WebhookType = "reaction"
-	WEBHOOK_TYPE_BUTTON         WebhookType = "button"
-	WEBHOOK_TYPE_CHAT_MEMBER    WebhookType = "chat_member"
-	WEBHOOK_TYPE_COMPANY_MEMBER WebhookType = "company_member"
+	VIEW_MODAL ViewType = "modal"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -139,11 +118,8 @@ type InviteStatus string
 // FileType is type for file type
 type FileType string
 
-// WebhookEvent is type for webhook events
-type WebhookEvent string
-
-// WebhookType is type for webhook types
-type WebhookType string
+// ViewType is type for view
+type ViewType string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -189,6 +165,7 @@ type User struct {
 	Status         *Status      `json:"user_status"`
 	IsBot          bool         `json:"bot"`
 	IsSuspended    bool         `json:"suspended"`
+	IsSSO          bool         `json:"sso"`
 }
 
 // Status is user status
@@ -310,6 +287,14 @@ type Upload struct {
 	DirectURL          string `json:"direct_url"`
 }
 
+// View contains form view
+type View struct {
+	Title      string        `json:"title"`
+	CloseText  string        `json:"close_text,omitempty"`
+	SubmitText string        `json:"submit_text,omitempty"`
+	Blocks     []block.Block `json:"blocks"`
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // APIError contains API error info
@@ -329,47 +314,6 @@ type Metadata struct {
 // Paginate contains cursor to the next page
 type Paginate struct {
 	NextPage string `json:"next_page"`
-}
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-// WebhookMessage is message webhook payload
-type Webhook struct {
-	Type            WebhookType  `json:"type"`
-	ID              uint         `json:"id"`                // message
-	Event           WebhookEvent `json:"event"`             // message, reaction
-	EntityType      EntityType   `json:"entity_type"`       // message
-	EntityID        uint         `json:"entity_id"`         // message
-	Content         string       `json:"content"`           // message
-	Emoji           string       `json:"code"`              // reaction
-	Data            string       `json:"data"`              // button
-	Name            string       `json:"name"`              // reaction
-	UserID          uint         `json:"user_id"`           // message, reaction, button
-	CreatedAt       Date         `json:"created_at"`        // message, reaction, button
-	ChatID          uint         `json:"chat_id"`           // message
-	MessageID       uint         `json:"message_id"`        // reaction, button
-	ParentMessageID uint         `json:"parent_message_id"` // message
-	Thread          *Thread      `json:"thread"`            // message
-	Timestamp       int64        `json:"webhook_timestamp"`
-}
-
-// WebhookThread contains info about message thread
-type WebhookThread struct {
-	MessageID     uint `json:"message_id"`
-	MessageChatID uint `json:"message_chat_id"`
-}
-
-// WebhookLink contains payload for link unfurl
-type WebhookLink struct {
-	ChatID    uint          `json:"chat_id"`
-	MessageID uint          `json:"message_id"`
-	Links     []*UnfurlLink `json:"links"`
-}
-
-// UnfurlLink contains info about link in message to unfurl
-type UnfurlLink struct {
-	URL    string `json:"url"`
-	Domain string `json:"domain"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -447,6 +391,15 @@ type ReactionRequest struct {
 	Name string `json:"name,omitempty"`
 }
 
+// ViewRequest is a payload for open a view
+type ViewRequest struct {
+	Type       ViewType `json:"type"`
+	TriggerID  string   `json:"trigger_id"`
+	Metadata   string   `json:"private_metadata,omitempty"`
+	CallbackID string   `json:"callback_id,omitempty"`
+	View       *View    `json:"view"`
+}
+
 // LinkPreview contains link preview data
 type LinkPreview struct {
 	Title       string `json:"title"`
@@ -459,6 +412,9 @@ type LinkPreview struct {
 type LinkPreviews map[string]*LinkPreview
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// ViewErrors is a map with view errors
+type ViewErrors map[string]string
 
 // S3Error represents S3 error
 type S3Error struct {
@@ -505,33 +461,34 @@ var tokenValidationRegex = regexp.MustCompile(`^[a-zA-Z0-9\-_]{43}$`)
 var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 
 var (
-	ErrNilClient         = errors.New("Client is nil")
-	ErrNilUserRequest    = errors.New("User requests is nil")
-	ErrNilChatRequest    = errors.New("Chat requests is nil")
-	ErrNilMessageRequest = errors.New("Message requests is nil")
-	ErrNilProperty       = errors.New("Property requests is nil")
-	ErrEmptyToken        = errors.New("Token is empty")
-	ErrEmptyTag          = errors.New("Group tag is empty")
-	ErrEmptyMessage      = errors.New("Message text is empty")
-	ErrEmptyUserEmail    = errors.New("User email is required for creating user account")
-	ErrEmptyChatName     = errors.New("Name is required for creating new chat")
-	ErrEmptyUsersIDS     = errors.New("Users IDs are empty")
-	ErrEmptyTagsIDS      = errors.New("Tags IDs are empty")
-	ErrEmptyFilePath     = errors.New("Path to file is empty")
-	ErrInvalidToken      = errors.New("Token has wrong format")
-	ErrInvalidMessageID  = errors.New("Message ID must be greater than 0")
-	ErrInvalidChatID     = errors.New("Chat ID must be greater than 0")
-	ErrInvalidUserID     = errors.New("User ID must be greater than 0")
-	ErrInvalidThreadID   = errors.New("Thread ID must be greater than 0")
-	ErrInvalidTagID      = errors.New("Group tag ID must be greater than 0")
-	ErrInvalidEntityID   = errors.New("Entity ID must be greater than 0")
-	ErrBlankReaction     = errors.New("Non-blank emoji is required")
-	ErrEmptyPreviews     = errors.New("Previews map has no data")
-	ErrInvalidPageNum    = errors.New("Page number must be greater than 0")
-	ErrInvalidPerPageNum = errors.New("Per page number must be between 1 and 50")
-	ErrWebhookTooOld     = errors.New("Webhook is too old (created more than minute ago)")
-	ErrWebhookInvalidSig = errors.New("Webhook has invalid signature")
-	ErrWebhookNoSig      = errors.New("Webhook has no signature")
+	ErrNilClient          = errors.New("Client is nil")
+	ErrNilUserRequest     = errors.New("User request is nil")
+	ErrNilChatRequest     = errors.New("Chat request is nil")
+	ErrNilMessageRequest  = errors.New("Message request is nil")
+	ErrNilPropertyRequest = errors.New("Property request is nil")
+	ErrNilViewRequest     = errors.New("View request is nil")
+	ErrNilView            = errors.New("View data is nil")
+	ErrEmptyToken         = errors.New("Token is empty")
+	ErrEmptyTag           = errors.New("Group tag is empty")
+	ErrEmptyMessage       = errors.New("Message text is empty")
+	ErrEmptyUserEmail     = errors.New("User email is required for creating user account")
+	ErrEmptyChatName      = errors.New("Name is required for creating new chat")
+	ErrEmptyUsersIDS      = errors.New("Users IDs are empty")
+	ErrEmptyTagsIDS       = errors.New("Tags IDs are empty")
+	ErrEmptyFilePath      = errors.New("Path to file is empty")
+	ErrInvalidToken       = errors.New("Token has wrong format")
+	ErrInvalidMessageID   = errors.New("Message ID must be greater than 0")
+	ErrInvalidChatID      = errors.New("Chat ID must be greater than 0")
+	ErrInvalidUserID      = errors.New("User ID must be greater than 0")
+	ErrInvalidThreadID    = errors.New("Thread ID must be greater than 0")
+	ErrInvalidTagID       = errors.New("Group tag ID must be greater than 0")
+	ErrInvalidEntityID    = errors.New("Entity ID must be greater than 0")
+	ErrBlankReaction      = errors.New("Non-blank emoji is required")
+	ErrEmptyPreviews      = errors.New("Previews map has no data")
+	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
+	ErrInvalidPerPageNum  = errors.New("Per page number must be between 1 and 50")
+	ErrViewHasNoBlocks    = errors.New("View has no blocks")
+	ErrEmptyTriggerID     = errors.New("View has empty trigger ID")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -605,53 +562,13 @@ func ValidateToken(token string) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ReadWebhook reads webhook data from HTTP request
-func ReadWebhook(r *http.Request) (*Webhook, error) {
-	w := &Webhook{}
-	err := json.NewDecoder(r.Body).Decode(w)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't parse webhook data: %w", err)
-	}
-
-	return w, nil
-}
-
-// ReadWebhookSigned reads webhook data from HTTP request and validates signature
-func ReadWebhookSigned(r *http.Request, secret string) (*Webhook, error) {
-	if r.Header.Get("Pachca-Signature") == "" {
-		return nil, ErrWebhookNoSig
-	}
-
-	w := &Webhook{}
-	mac := hmac.New(sha256.New, []byte(secret))
-	tr := io.TeeReader(r.Body, mac)
-	err := json.NewDecoder(tr).Decode(w)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't parse webhook data: %w", err)
-	}
-
-	if w.Timestamp > 0 && time.Now().Unix()-w.Timestamp > 60 {
-		return nil, ErrWebhookTooOld
-	}
-
-	if !hashutil.Sum(mac).EqualString(r.Header.Get("Pachca-Signature")) {
-		return nil, ErrWebhookInvalidSig
-	}
-
-	return w, nil
-}
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
 // SetUserAgent sets user-agent info
 func (c *Client) SetUserAgent(app, ver string) {
 	if c == nil || c.engine == nil {
 		return
 	}
 
-	c.engine.SetUserAgent(app, ver, "EK|Pachca.go/1")
+	c.engine.SetUserAgent(app, ver, "EK|Pachca.go/0")
 }
 
 // Engine returns pointer to request engine used for all HTTP requests to API
@@ -2013,6 +1930,40 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	}, nil
 }
 
+// FORMS //////////////////////////////////////////////////////////////////////////// //
+
+// OpenView opens view with form
+//
+// https://crm.pachca.com/dev/forms/views/open/
+func (c *Client) OpenView(view *ViewRequest) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case view == nil:
+		return ErrNilViewRequest
+	case view.View == nil:
+		return ErrNilView
+	case view.TriggerID == "":
+		return ErrEmptyTriggerID
+	case view.Type != VIEW_MODAL:
+		return fmt.Errorf("Unknown form type %q", view.Type)
+	case len(view.View.Blocks) == 0:
+		return ErrViewHasNoBlocks
+	}
+
+	for _, b := range view.View.Blocks {
+		b.Init()
+	}
+
+	err := c.sendRequest(req.POST, getURL("/views/open"), nil, view, nil)
+
+	if err != nil {
+		return fmt.Errorf("Can't open view: %w", err)
+	}
+
+	return nil
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Get returns custom property with given ID
@@ -2111,7 +2062,7 @@ func (p *Property) String() string {
 func (p *Property) ToDate() (time.Time, error) {
 	switch {
 	case p == nil:
-		return time.Time{}, ErrNilProperty
+		return time.Time{}, ErrNilPropertyRequest
 	case p.Value == "":
 		return time.Time{}, nil
 	case p.Type != PROP_TYPE_DATE:
@@ -2131,7 +2082,7 @@ func (p *Property) Date() time.Time {
 func (p *Property) ToInt() (int, error) {
 	switch {
 	case p == nil:
-		return 0, ErrNilProperty
+		return 0, ErrNilPropertyRequest
 	case p.Value == "":
 		return 0, nil
 	case p.Type != PROP_TYPE_NUMBER:
@@ -2472,6 +2423,21 @@ func (t *Thread) URL() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// AddBlock adds new block to view
+func (v *View) AddBlocks(blocks ...block.Block) {
+	if v == nil || len(blocks) == 0 {
+		return
+	}
+
+	for _, b := range blocks {
+		b.Init()
+	}
+
+	v.Blocks = append(v.Blocks, blocks...)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // isZero is special method for omitzero
 func (f Files) isZero() bool {
 	return f == nil
@@ -2491,91 +2457,6 @@ func (e *S3Error) Error() string {
 	}
 
 	return e.Message
-}
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-// IsReaction returns true if webhook contains data for message event
-func (w *Webhook) IsMessage() bool {
-	return w != nil && w.Type == WEBHOOK_TYPE_MESSAGE
-}
-
-// IsReaction returns true if webhook contains data for reaction event
-func (w *Webhook) IsReaction() bool {
-	return w != nil && w.Type == WEBHOOK_TYPE_REACTION
-}
-
-// IsReaction returns true if webhook contains data for button event
-func (w *Webhook) IsButton() bool {
-	return w != nil && w.Type == WEBHOOK_TYPE_BUTTON
-}
-
-// IsChatMember returns true if webhook contains data for chat_member event
-func (w *Webhook) IsChatMember() bool {
-	return w != nil && w.Type == WEBHOOK_TYPE_CHAT_MEMBER
-}
-
-// IsCompanyMember returns true if webhook contains data for chat_member event
-func (w *Webhook) IsCompanyMember() bool {
-	return w != nil && w.Type == WEBHOOK_TYPE_COMPANY_MEMBER
-}
-
-// IsNew returns true if there is a webhook event for new message
-func (w *Webhook) IsNew() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_NEW
-}
-
-// IsUpdate returns true if there is a webhook event for updated message
-func (w *Webhook) IsUpdate() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_UPDATE
-}
-
-// IsDelete returns true if there is a webhook event for deleted message or
-// company member
-func (w *Webhook) IsDelete() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_DELETE
-}
-
-// IsAdd returns true if there is a webhook event for added chat member
-func (w *Webhook) IsAdd() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_ADD
-}
-
-// IsRemove returns true if there is a webhook event for removed chat member
-func (w *Webhook) IsRemove() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_REMOVE
-}
-
-// IsInvite returns true if there is a webhook event for invited company member
-func (w *Webhook) IsInvite() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_INVITE
-}
-
-// IsConfirm returns true if there is a webhook event for confirmed company
-// member
-func (w *Webhook) IsConfirm() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_CONFIRM
-}
-
-// IsSuspend returns true if there is a webhook event for suspended company
-// member
-func (w *Webhook) IsSuspend() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_SUSPEND
-}
-
-// IsActivate returns true if there is a webhook event for activated company
-// member
-func (w *Webhook) IsActivate() bool {
-	return w != nil && w.Event == WEBHOOK_EVENT_ACTIVATE
-}
-
-// Command returns slash command name from the beginning of the message
-func (w *Webhook) Command() string {
-	if w == nil || w.Content == "" {
-		return ""
-	}
-
-	return strings.TrimLeft(strutil.ReadField(w.Content, 0, false, ' '), "/")
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

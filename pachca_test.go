@@ -176,6 +176,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	_, err = cc.UploadFile("test.txt")
 	c.Assert(err, Equals, ErrNilClient)
+
+	// FORMS
+
+	err = cc.OpenView(nil)
+	c.Assert(err, Equals, ErrNilClient)
 }
 
 func (s *PachcaSuite) TestNewPropertyRequest(c *C) {
@@ -345,6 +350,19 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	_, err = cc.UploadFile("")
 	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	// FORMS
+
+	err = cc.OpenView(nil)
+	c.Assert(err, Equals, ErrNilViewRequest)
+	err = cc.OpenView(&ViewRequest{})
+	c.Assert(err, Equals, ErrNilView)
+	err = cc.OpenView(&ViewRequest{View: &View{}})
+	c.Assert(err, Equals, ErrEmptyTriggerID)
+	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "test", View: &View{}})
+	c.Assert(err, ErrorMatches, `Unknown form type "test"`)
+	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "modal", View: &View{}})
+	c.Assert(err, Equals, ErrViewHasNoBlocks)
 }
 
 func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
@@ -404,9 +422,9 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 	var pp *Property
 
 	_, err = pp.ToDate()
-	c.Assert(err, Equals, ErrNilProperty)
+	c.Assert(err, Equals, ErrNilPropertyRequest)
 	_, err = pp.ToInt()
-	c.Assert(err, Equals, ErrNilProperty)
+	c.Assert(err, Equals, ErrNilPropertyRequest)
 }
 
 func (s *PachcaSuite) TestUsersHelpers(c *C) {
@@ -532,58 +550,6 @@ func (s *PachcaSuite) TestURLHelpers(c *C) {
 	c.Assert(chat.URL(), Equals, "https://app.pachca.com/chats/15")
 	c.Assert(message.URL(), Equals, "https://app.pachca.com/chats/15?message=145")
 	c.Assert(thread.URL(), Equals, "https://app.pachca.com/chats?thread_message_id=145&sidebar_message=238")
-}
-
-func (s *PachcaSuite) TestWebhookHelpers(c *C) {
-	whMessage := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Content: "/find-user j.doe"}
-	whReaction := &Webhook{Type: WEBHOOK_TYPE_REACTION}
-	whButton := &Webhook{Type: WEBHOOK_TYPE_BUTTON}
-	whChatMember := &Webhook{Type: WEBHOOK_TYPE_CHAT_MEMBER}
-	whOrgMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER}
-
-	evNew := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_NEW}
-	evUpdate := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_UPDATE}
-	evDeleteMsg := &Webhook{Type: WEBHOOK_TYPE_MESSAGE, Event: WEBHOOK_EVENT_DELETE}
-
-	evChadAdd := &Webhook{Type: WEBHOOK_TYPE_CHAT_MEMBER, Event: WEBHOOK_EVENT_ADD}
-	evChatRemove := &Webhook{Type: WEBHOOK_TYPE_CHAT_MEMBER, Event: WEBHOOK_EVENT_REMOVE}
-
-	evInviteMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_INVITE}
-	evConfirmMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_CONFIRM}
-	evSuspendMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_SUSPEND}
-	evActivateMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_ACTIVATE}
-	evDeleteMember := &Webhook{Type: WEBHOOK_TYPE_COMPANY_MEMBER, Event: WEBHOOK_EVENT_DELETE}
-
-	var nilWebhook *Webhook
-
-	c.Assert(nilWebhook.IsMessage(), Equals, false)
-	c.Assert(nilWebhook.IsReaction(), Equals, false)
-	c.Assert(nilWebhook.IsButton(), Equals, false)
-	c.Assert(nilWebhook.IsNew(), Equals, false)
-	c.Assert(nilWebhook.IsUpdate(), Equals, false)
-	c.Assert(nilWebhook.IsDelete(), Equals, false)
-	c.Assert(nilWebhook.Command(), Equals, "")
-
-	c.Assert(whMessage.IsMessage(), Equals, true)
-	c.Assert(whReaction.IsReaction(), Equals, true)
-	c.Assert(whButton.IsButton(), Equals, true)
-	c.Assert(whChatMember.IsChatMember(), Equals, true)
-	c.Assert(whOrgMember.IsCompanyMember(), Equals, true)
-
-	c.Assert(whMessage.Command(), Equals, "find-user")
-
-	c.Assert(evNew.IsNew(), Equals, true)
-	c.Assert(evUpdate.IsUpdate(), Equals, true)
-	c.Assert(evDeleteMsg.IsDelete(), Equals, true)
-
-	c.Assert(evChadAdd.IsAdd(), Equals, true)
-	c.Assert(evChatRemove.IsRemove(), Equals, true)
-
-	c.Assert(evInviteMember.IsInvite(), Equals, true)
-	c.Assert(evConfirmMember.IsConfirm(), Equals, true)
-	c.Assert(evSuspendMember.IsSuspend(), Equals, true)
-	c.Assert(evActivateMember.IsActivate(), Equals, true)
-	c.Assert(evDeleteMember.IsDelete(), Equals, true)
 }
 
 func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
