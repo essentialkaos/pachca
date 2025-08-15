@@ -53,6 +53,17 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Webhook is basic webhook interface
+type Webhook interface {
+	// Is returns true if webhook has given type
+	Is(typ WebhookType) bool
+
+	// Age returns age of webhook
+	Age() time.Duration
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // WebhookEvent is type for webhook events
 type WebhookEvent string
 
@@ -61,8 +72,8 @@ type WebhookType string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Webhook is basic webhook object
-type Webhook struct {
+// Basic is basic webhook object
+type Basic struct {
 	Type      WebhookType `json:"type"`
 	Timestamp int64       `json:"webhook_timestamp"`
 }
@@ -71,7 +82,7 @@ type Webhook struct {
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#new-message
 type Message struct {
-	Webhook
+	Basic
 	MessageID       uint              `json:"id"`
 	Event           WebhookEvent      `json:"event"`
 	EntityType      pachca.EntityType `json:"entity_type"`
@@ -89,7 +100,7 @@ type Message struct {
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#reaction
 type Reaction struct {
-	Webhook
+	Basic
 	Event     WebhookEvent `json:"event"`
 	UserID    uint         `json:"user_id"`
 	MessageID uint         `json:"message_id"`
@@ -100,7 +111,7 @@ type Reaction struct {
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#button
 type Button struct {
-	Webhook
+	Basic
 	Data      string `json:"data"`
 	UserID    uint   `json:"user_id"`
 	MessageID uint   `json:"message_id"`
@@ -111,7 +122,7 @@ type Button struct {
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#chat-member
 type ChatMember struct {
-	Webhook
+	Basic
 	Event     WebhookEvent `json:"event"`
 	ChatID    uint         `json:"chat_id"`
 	ThreadID  uint         `json:"thread_id"`
@@ -123,7 +134,7 @@ type ChatMember struct {
 //
 // https://crm.pachca.com/dev/getting-started/webhooks/#company-member
 type OrgMember struct {
-	Webhook
+	Basic
 	Event     WebhookEvent `json:"event"`
 	UserIDs   []uint       `json:"user_ids"`
 	CreatedAt pachca.Date  `json:"created_at"`
@@ -131,7 +142,7 @@ type OrgMember struct {
 
 // View contains payload from view form
 type View struct {
-	Webhook
+	Basic
 	Event      WebhookEvent    `json:"event"`
 	Metadata   string          `json:"private_metadata"`
 	CallbackID string          `json:"callback_id"`
@@ -163,18 +174,21 @@ var (
 	ErrNoSignature = errors.New("Webhook has no signature")
 )
 
-// MaxWebhookSize is the maximum size of the webhook payload
-var MaxWebhookSize int64 = 1024 * 1024
+// MaxSize is the maximum size of the webhook payload
+var MaxSize int64 = 1024 * 1024
+
+// MaxAge is the maximum age of webhook
+var MaxAge = time.Minute
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Read reads webhook data from HTTP request
-func Read(r *http.Request) (any, error) {
+func Read(r *http.Request) (Webhook, error) {
 	if r == nil || r.Body == nil {
 		return nil, ErrNilRequest
 	}
 
-	rr := io.LimitReader(r.Body, MaxWebhookSize)
+	rr := io.LimitReader(r.Body, MaxSize)
 	data, err := io.ReadAll(rr)
 
 	if err != nil {
@@ -185,7 +199,7 @@ func Read(r *http.Request) (any, error) {
 }
 
 // ReadSigned reads webhook data from HTTP request and validates signature
-func ReadSigned(r *http.Request, secret string) (any, error) {
+func ReadSigned(r *http.Request, secret string) (Webhook, error) {
 	switch {
 	case r == nil || r.Body == nil:
 		return nil, ErrNilRequest
@@ -193,7 +207,7 @@ func ReadSigned(r *http.Request, secret string) (any, error) {
 		return nil, ErrNoSignature
 	}
 
-	rr := io.LimitReader(r.Body, MaxWebhookSize)
+	rr := io.LimitReader(r.Body, MaxSize)
 	data, err := io.ReadAll(rr)
 
 	if err != nil {
@@ -215,15 +229,19 @@ func ReadSigned(r *http.Request, secret string) (any, error) {
 }
 
 // Decode unmarshals webhook JSON data
-func Decode(data []byte) (any, error) {
-	w := &Webhook{}
+func Decode(data []byte) (Webhook, error) {
+	w := &Basic{}
 	err := json.Unmarshal(data, w)
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't parse webhook JSON: %w", err)
 	}
 
-	var ww any
+	if w.Age() > MaxAge {
+		return nil, fmt.Errorf("Webhook is too old (%s > %s)", w.Age(), MaxAge)
+	}
+
+	var ww Webhook
 
 	switch w.Type {
 	case TYPE_MESSAGE:
@@ -249,8 +267,13 @@ func Decode(data []byte) (any, error) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Is returns true if webhook has given type
+func (w *Basic) Is(typ WebhookType) bool {
+	return w != nil && w.Type == typ
+}
+
 // Age returns age of webhook
-func (w *Webhook) Age() time.Duration {
+func (w *Basic) Age() time.Duration {
 	if w == nil {
 		return 0
 	}
