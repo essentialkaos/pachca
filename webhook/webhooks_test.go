@@ -9,6 +9,7 @@ package webhook
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -33,6 +34,10 @@ type WebhookSuite struct{}
 var _ = Suite(&WebhookSuite{})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+func (s *WebhookSuite) SetUpSuite(c *C) {
+	MaxAge = 100000 * time.Hour
+}
 
 func (s *WebhookSuite) TestRead(c *C) {
 	r, _ := http.NewRequest(
@@ -65,7 +70,10 @@ func (s *WebhookSuite) TestDecode(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &Message{})
-	c.Assert(w.(*Message).Age(), Not(Equals), time.Duration(0))
+	c.Assert(w.Age(), Not(Equals), time.Duration(0))
+	c.Assert(w.Is(TYPE_MESSAGE), Equals, true)
+	c.Assert(w.GetType(), Equals, TYPE_MESSAGE)
+	c.Assert(fmt.Sprint(w), Equals, string(TYPE_MESSAGE))
 
 	w, err = Decode([]byte(`{"event":"new","type":"reaction","webhook_timestamp":1755117405}`))
 	c.Assert(err, IsNil)
@@ -130,6 +138,11 @@ func (s *WebhookSuite) TestErrors(c *C) {
 	_, err = Decode([]byte(`{"event":"new","type":"unknown","webhook_timestamp":1755117405}`))
 	c.Assert(err, ErrorMatches, `Unsupported webhook type "unknown"`)
 
+	MaxAge = time.Second
+	_, err = Decode([]byte(`{"event":"new","type":"message","webhook_timestamp":1755117405}`))
+	c.Assert(err, ErrorMatches, `Webhook is too old .*`)
+	MaxAge = 100000 * time.Hour
+
 	var v *View
 	d := &ViewData{}
 
@@ -138,6 +151,9 @@ func (s *WebhookSuite) TestErrors(c *C) {
 	w, _ := Decode([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405}`))
 	c.Assert(w.(*View).UnmarshalData(d), Equals, ErrEmptyData)
 
-	var ww *Webhook
+	var ww *Basic
+	c.Assert(ww.Is(TYPE_MESSAGE), Equals, false)
 	c.Assert(ww.Age(), Equals, time.Duration(0))
+	c.Assert(ww.GetType(), Equals, WebhookType(""))
+	c.Assert(ww.String(), Equals, "")
 }
