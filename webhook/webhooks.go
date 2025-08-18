@@ -55,11 +55,14 @@ const (
 
 // Webhook is basic webhook interface
 type Webhook interface {
-	// Is returns true if webhook has given type
+	// Is returns true if the webhook has given type
 	Is(typ WebhookType) bool
 
-	// Age returns age of webhook
+	// Age returns age of the webhook
 	Age() time.Duration
+
+	// GetType returns type of the webhook
+	GetType() WebhookType
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -267,18 +270,32 @@ func Decode(data []byte) (Webhook, error) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Is returns true if webhook has given type
+// Is returns true if the webhook has given type
 func (w *Basic) Is(typ WebhookType) bool {
 	return w != nil && w.Type == typ
 }
 
-// Age returns age of webhook
+// Age returns age of the webhook
 func (w *Basic) Age() time.Duration {
 	if w == nil {
 		return 0
 	}
 
 	return time.Since(time.Unix(w.Timestamp, 0))
+}
+
+// GetType returns type of the webhook
+func (w *Basic) GetType() WebhookType {
+	if w == nil {
+		return ""
+	}
+
+	return w.Type
+}
+
+// String returns string representation of the webhook (type)
+func (w *Basic) String() string {
+	return string(w.GetType())
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
