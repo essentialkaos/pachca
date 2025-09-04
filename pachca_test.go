@@ -105,7 +105,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	// CHATS
 
-	_, err = cc.GetChats()
+	_, err = cc.GetChats(1)
 	c.Assert(err, Equals, ErrNilClient)
 
 	_, err = cc.GetChat(1)
@@ -117,7 +117,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.EditChat(1, &ChatRequest{Name: "Test"})
 	c.Assert(err, Equals, ErrNilClient)
 
-	_, err = cc.GetChatUsers(0, CHAT_ROLE_ANY)
+	_, err = cc.GetChatUsers(0, 1, CHAT_ROLE_ANY)
 	c.Assert(err, Equals, ErrNilClient)
 
 	c.Assert(cc.AddChatUsers(1, []uint{1, 2, 3}, true), Equals, ErrNilClient)
@@ -175,6 +175,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	// FILES
 
 	_, err = cc.UploadFile("test.txt")
+	c.Assert(err, Equals, ErrNilClient)
+
+	// BOTS
+
+	err = cc.UpdateBot(0, "")
 	c.Assert(err, Equals, ErrNilClient)
 
 	// FORMS
@@ -258,9 +263,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.EditChat(1, nil)
 	c.Assert(err, Equals, ErrNilChatRequest)
 
-	_, err = cc.GetChatUsers(0, CHAT_ROLE_ANY)
+	_, err = cc.GetChatUsers(0, 1, CHAT_ROLE_ANY)
 	c.Assert(err, Equals, ErrInvalidChatID)
-	_, err = cc.GetChatUsers(1, ChatRole("test"))
+	_, err = cc.GetChatUsers(1, 1, ChatRole("test"))
 	c.Assert(err, ErrorMatches, `Unknown chat users role "test"`)
 
 	c.Assert(cc.AddChatUsers(0, []uint{1, 2, 3}, true), Equals, ErrInvalidChatID)
@@ -349,6 +354,13 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	// FILES
 
 	_, err = cc.UploadFile("")
+	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	// BOTS
+
+	err = cc.UpdateBot(0, "")
+	c.Assert(err, Equals, ErrInvalidBotID)
+	err = cc.UpdateBot(1, "")
 	c.Assert(err, Equals, ErrEmptyFilePath)
 
 	// FORMS

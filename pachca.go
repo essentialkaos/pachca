@@ -93,6 +93,11 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// MAX_PAGES is maximum number of pages using for listing items
+const MAX_PAGES = 100_000
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Date is JSON date
 type Date struct {
 	time.Time
@@ -460,6 +465,8 @@ var tokenValidationRegex = regexp.MustCompile(`^[a-zA-Z0-9\-_]{43}$`)
 // s3ErrorExtractRegex is regex pattern for extracting text from S3 error message
 var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 var (
 	ErrNilClient          = errors.New("Client is nil")
 	ErrNilUserRequest     = errors.New("User request is nil")
@@ -483,6 +490,7 @@ var (
 	ErrInvalidThreadID    = errors.New("Thread ID must be greater than 0")
 	ErrInvalidTagID       = errors.New("Group tag ID must be greater than 0")
 	ErrInvalidEntityID    = errors.New("Entity ID must be greater than 0")
+	ErrInvalidBotID       = errors.New("Bot ID must be greater than 0")
 	ErrBlankReaction      = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("Previews map has no data")
 	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
@@ -1076,10 +1084,11 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // CHATS //////////////////////////////////////////////////////////////////////////// //
 
-// GetChats returns all chats and conversations
+// GetChats returns chats and conversations. If pages parameter is less than zero,
+// method returns all chats.
 //
 // https://crm.pachca.com/dev/chats/list/
-func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
+func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
 	}
@@ -1087,20 +1096,23 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	var result Chats
 	var query req.Query
 
-	if len(filter) == 0 {
-		query = req.Query{"per": c.getBatchSize()}
-	} else {
-		query = filter[0].ToQuery()
-		query["per"] = c.getBatchSize()
+	if pages < 1 {
+		pages = MAX_PAGES
 	}
 
-	for i := 1; i < 100; i++ {
-		query["page"] = i
+	if len(filter) == 0 {
+		query = req.Query{"limit": c.getBatchSize()}
+	} else {
+		query = filter[0].ToQuery()
+		query["limit"] = c.getBatchSize()
+	}
 
-		resp := &struct {
-			Data Chats `json:"data"`
-		}{}
+	resp := &struct {
+		Data Chats     `json:"data"`
+		Meta *Metadata `json:"meta"`
+	}{}
 
+	for i := 0; i < pages; i++ {
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
 
 		if err != nil {
@@ -1112,6 +1124,11 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		if len(resp.Data) != c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -1205,10 +1222,11 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	return resp.Data, nil
 }
 
-// GetChatUsers returns slice with users of given chat
+// GetChatUsers returns slice with users of given chat. If pages parameter is less than zero,
+// method returns all users.
 //
 // https://crm.pachca.com/dev/members/users/list/
-func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
+func (c *Client) GetChatUsers(chatID uint, pages int, memberRole ChatRole) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1226,7 +1244,14 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		return nil, fmt.Errorf("Unknown chat users role %q", memberRole)
 	}
 
-	query := req.Query{"role": memberRole}
+	if pages < 1 {
+		pages = MAX_PAGES
+	}
+
+	query := req.Query{
+		"role":  memberRole,
+		"limit": c.getBatchSize(),
+	}
 
 	resp := &struct {
 		Data Users     `json:"data"`
@@ -1235,7 +1260,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 	var users Users
 
-	for {
+	for i := 0; i < pages; i++ {
 		err := c.sendRequest(
 			req.GET, getURL("/chats/%d/members", chatID),
 			query, nil, resp,
@@ -1247,11 +1272,14 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 		users = append(users, resp.Data...)
 
-		if len(resp.Data) != 50 {
+		if len(resp.Data) != c.getBatchSize() {
 			break
 		}
 
-		query.Set("cursor", resp.Meta.Paginate.NextPage)
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return users, nil
@@ -1928,6 +1956,40 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		Size: info.Size,
 		Type: guessFileType(info.Name),
 	}, nil
+}
+
+// BOTS ///////////////////////////////////////////////////////////////////////////// //
+
+// UpdateBot updates bot webhook URL
+//
+// https://crm.pachca.com/dev/bots/update/
+func (c *Client) UpdateBot(botID uint, webhookURL string) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case botID == 0:
+		return ErrInvalidBotID
+	case webhookURL == "":
+		return ErrEmptyFilePath
+	}
+
+	payload := struct {
+		Bot struct {
+			Webhook struct {
+				URL string `json:"outgoing_url"`
+			} `json:"webhook"`
+		} `json:"bot"`
+	}{}
+
+	payload.Bot.Webhook.URL = webhookURL
+
+	err := c.sendRequest(req.PUT, getURL("/bots/%d", botID), nil, &payload, nil)
+
+	if err != nil {
+		return fmt.Errorf("Can't update bot settings: %w", err)
+	}
+
+	return nil
 }
 
 // FORMS //////////////////////////////////////////////////////////////////////////// //
