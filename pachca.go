@@ -93,6 +93,11 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// MAX_PAGES is maximum number of pages using for listing items
+const MAX_PAGES = 100_000
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Date is JSON date
 type Date struct {
 	time.Time
@@ -1092,7 +1097,7 @@ func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 	var query req.Query
 
 	if pages < 1 {
-		pages = 100_000
+		pages = MAX_PAGES
 	}
 
 	if len(filter) == 0 {
@@ -1240,7 +1245,7 @@ func (c *Client) GetChatUsers(chatID uint, pages int, memberRole ChatRole) (User
 	}
 
 	if pages < 1 {
-		pages = 100_000
+		pages = MAX_PAGES
 	}
 
 	query := req.Query{
