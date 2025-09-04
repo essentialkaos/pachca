@@ -460,6 +460,8 @@ var tokenValidationRegex = regexp.MustCompile(`^[a-zA-Z0-9\-_]{43}$`)
 // s3ErrorExtractRegex is regex pattern for extracting text from S3 error message
 var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 var (
 	ErrNilClient          = errors.New("Client is nil")
 	ErrNilUserRequest     = errors.New("User request is nil")
@@ -483,6 +485,7 @@ var (
 	ErrInvalidThreadID    = errors.New("Thread ID must be greater than 0")
 	ErrInvalidTagID       = errors.New("Group tag ID must be greater than 0")
 	ErrInvalidEntityID    = errors.New("Entity ID must be greater than 0")
+	ErrInvalidBotID       = errors.New("Bot ID must be greater than 0")
 	ErrBlankReaction      = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("Previews map has no data")
 	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
@@ -1928,6 +1931,40 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		Size: info.Size,
 		Type: guessFileType(info.Name),
 	}, nil
+}
+
+// BOTS ///////////////////////////////////////////////////////////////////////////// //
+
+// UpdateBot updates bot webhook URL
+//
+// https://crm.pachca.com/dev/bots/update/
+func (c *Client) UpdateBot(botID uint, webhookURL string) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case botID == 0:
+		return ErrInvalidBotID
+	case webhookURL == "":
+		return ErrEmptyFilePath
+	}
+
+	payload := struct {
+		Bot struct {
+			Webhook struct {
+				URL string `json:"outgoing_url"`
+			} `json:"webhook"`
+		} `json:"bot"`
+	}{}
+
+	payload.Bot.Webhook.URL = webhookURL
+
+	err := c.sendRequest(req.PUT, getURL("/bots/%d", botID), nil, &payload, nil)
+
+	if err != nil {
+		return fmt.Errorf("Can't update bot settings: %w", err)
+	}
+
+	return nil
 }
 
 // FORMS //////////////////////////////////////////////////////////////////////////// //

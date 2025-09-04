@@ -177,6 +177,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.UploadFile("test.txt")
 	c.Assert(err, Equals, ErrNilClient)
 
+	// BOTS
+
+	err = cc.UpdateBot(0, "")
+	c.Assert(err, Equals, ErrNilClient)
+
 	// FORMS
 
 	err = cc.OpenView(nil)
@@ -349,6 +354,13 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	// FILES
 
 	_, err = cc.UploadFile("")
+	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	// BOTS
+
+	err = cc.UpdateBot(0, "")
+	c.Assert(err, Equals, ErrInvalidBotID)
+	err = cc.UpdateBot(1, "")
 	c.Assert(err, Equals, ErrEmptyFilePath)
 
 	// FORMS
