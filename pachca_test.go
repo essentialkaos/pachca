@@ -105,7 +105,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	// CHATS
 
-	_, err = cc.GetChats()
+	_, err = cc.GetChats(1)
 	c.Assert(err, Equals, ErrNilClient)
 
 	_, err = cc.GetChat(1)

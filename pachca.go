@@ -1079,10 +1079,10 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // CHATS //////////////////////////////////////////////////////////////////////////// //
 
-// GetChats returns all chats and conversations
+// GetChats returns chats and conversations
 //
 // https://crm.pachca.com/dev/chats/list/
-func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
+func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
 	}
@@ -1090,18 +1090,21 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	var result Chats
 	var query req.Query
 
-	if len(filter) == 0 {
-		query = req.Query{"per": c.getBatchSize()}
-	} else {
-		query = filter[0].ToQuery()
-		query["per"] = c.getBatchSize()
+	if pages < 1 {
+		pages = 1000
 	}
 
-	for i := 1; i < 100; i++ {
-		query["page"] = i
+	if len(filter) == 0 {
+		query = req.Query{"limit": c.getBatchSize()}
+	} else {
+		query = filter[0].ToQuery()
+		query["limit"] = c.getBatchSize()
+	}
 
+	for i := 0; i < pages; i++ {
 		resp := &struct {
-			Data Chats `json:"data"`
+			Data Chats     `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
@@ -1115,6 +1118,11 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		if len(resp.Data) != c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
