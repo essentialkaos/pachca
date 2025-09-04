@@ -1079,7 +1079,8 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // CHATS //////////////////////////////////////////////////////////////////////////// //
 
-// GetChats returns chats and conversations
+// GetChats returns chats and conversations. If pages parameter is less than zero,
+// method returns all chats.
 //
 // https://crm.pachca.com/dev/chats/list/
 func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
@@ -1091,7 +1092,7 @@ func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 	var query req.Query
 
 	if pages < 1 {
-		pages = 1000
+		pages = 100_000
 	}
 
 	if len(filter) == 0 {
@@ -1101,12 +1102,12 @@ func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 		query["limit"] = c.getBatchSize()
 	}
 
-	for i := 0; i < pages; i++ {
-		resp := &struct {
-			Data Chats     `json:"data"`
-			Meta *Metadata `json:"meta"`
-		}{}
+	resp := &struct {
+		Data Chats     `json:"data"`
+		Meta *Metadata `json:"meta"`
+	}{}
 
+	for i := 0; i < pages; i++ {
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
 
 		if err != nil {
@@ -1216,10 +1217,11 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	return resp.Data, nil
 }
 
-// GetChatUsers returns slice with users of given chat
+// GetChatUsers returns slice with users of given chat. If pages parameter is less than zero,
+// method returns all users.
 //
 // https://crm.pachca.com/dev/members/users/list/
-func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
+func (c *Client) GetChatUsers(chatID uint, pages int, memberRole ChatRole) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1237,7 +1239,14 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		return nil, fmt.Errorf("Unknown chat users role %q", memberRole)
 	}
 
-	query := req.Query{"role": memberRole}
+	if pages < 1 {
+		pages = 100_000
+	}
+
+	query := req.Query{
+		"role":  memberRole,
+		"limit": c.getBatchSize(),
+	}
 
 	resp := &struct {
 		Data Users     `json:"data"`
@@ -1246,7 +1255,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 	var users Users
 
-	for {
+	for i := 0; i < pages; i++ {
 		err := c.sendRequest(
 			req.GET, getURL("/chats/%d/members", chatID),
 			query, nil, resp,
@@ -1258,11 +1267,14 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 		users = append(users, resp.Data...)
 
-		if len(resp.Data) != 50 {
+		if len(resp.Data) != c.getBatchSize() {
 			break
 		}
 
-		query.Set("cursor", resp.Meta.Paginate.NextPage)
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return users, nil

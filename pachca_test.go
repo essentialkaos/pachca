@@ -117,7 +117,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.EditChat(1, &ChatRequest{Name: "Test"})
 	c.Assert(err, Equals, ErrNilClient)
 
-	_, err = cc.GetChatUsers(0, CHAT_ROLE_ANY)
+	_, err = cc.GetChatUsers(0, 1, CHAT_ROLE_ANY)
 	c.Assert(err, Equals, ErrNilClient)
 
 	c.Assert(cc.AddChatUsers(1, []uint{1, 2, 3}, true), Equals, ErrNilClient)
@@ -263,9 +263,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.EditChat(1, nil)
 	c.Assert(err, Equals, ErrNilChatRequest)
 
-	_, err = cc.GetChatUsers(0, CHAT_ROLE_ANY)
+	_, err = cc.GetChatUsers(0, 1, CHAT_ROLE_ANY)
 	c.Assert(err, Equals, ErrInvalidChatID)
-	_, err = cc.GetChatUsers(1, ChatRole("test"))
+	_, err = cc.GetChatUsers(1, 1, ChatRole("test"))
 	c.Assert(err, ErrorMatches, `Unknown chat users role "test"`)
 
 	c.Assert(cc.AddChatUsers(0, []uint{1, 2, 3}, true), Equals, ErrInvalidChatID)
