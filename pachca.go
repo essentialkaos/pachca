@@ -633,7 +633,7 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 
 	query := req.Query{"per": c.getBatchSize()}
 
-	for i := 1; i < 100; i++ {
+	for i := 1; i < MAX_PAGES; i++ {
 		query["page"] = i
 
 		resp := &struct {
@@ -782,7 +782,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 		query["query"] = searchQuery[0]
 	}
 
-	for i := 1; i < 100; i++ {
+	for i := 1; i < MAX_PAGES; i++ {
 		query["page"] = i
 
 		resp := &struct {
@@ -903,7 +903,7 @@ func (c *Client) GetTags() (Tags, error) {
 
 	query := req.Query{"per": c.getBatchSize()}
 
-	for i := 1; i < 100; i++ {
+	for i := 1; i < MAX_PAGES; i++ {
 		query["page"] = i
 
 		resp := &struct {
@@ -968,7 +968,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 	query := req.Query{"per": c.getBatchSize()}
 
-	for i := 1; i < 100; i++ {
+	for i := 1; i < MAX_PAGES; i++ {
 		query["page"] = i
 
 		resp := &struct {
@@ -1084,21 +1084,16 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // CHATS //////////////////////////////////////////////////////////////////////////// //
 
-// GetChats returns chats and conversations. If pages parameter is less than zero,
-// method returns all chats.
+// GetChats returns all chats and conversations
 //
 // https://crm.pachca.com/dev/chats/list/
-func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
+func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
 	}
 
 	var result Chats
 	var query req.Query
-
-	if pages < 1 {
-		pages = MAX_PAGES
-	}
 
 	if len(filter) == 0 {
 		query = req.Query{"limit": c.getBatchSize()}
@@ -1107,12 +1102,12 @@ func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 		query["limit"] = c.getBatchSize()
 	}
 
-	resp := &struct {
-		Data Chats     `json:"data"`
-		Meta *Metadata `json:"meta"`
-	}{}
+	for i := 0; i < MAX_PAGES; i++ {
+		resp := &struct {
+			Data Chats     `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
 
-	for i := 0; i < pages; i++ {
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
 
 		if err != nil {
@@ -1134,7 +1129,7 @@ func (c *Client) GetChats(pages int, filter ...ChatFilter) (Chats, error) {
 	return result, nil
 }
 
-// GetChats returns info about specific channel
+// GetChat returns info about specific channel
 //
 // https://crm.pachca.com/dev/chats/get/
 func (c *Client) GetChat(chatID uint) (*Chat, error) {
@@ -1222,11 +1217,10 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	return resp.Data, nil
 }
 
-// GetChatUsers returns slice with users of given chat. If pages parameter is less than zero,
-// method returns all users.
+// GetChatUsers returns all users of given chat
 //
 // https://crm.pachca.com/dev/members/users/list/
-func (c *Client) GetChatUsers(chatID uint, pages int, memberRole ChatRole) (Users, error) {
+func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1244,23 +1238,19 @@ func (c *Client) GetChatUsers(chatID uint, pages int, memberRole ChatRole) (User
 		return nil, fmt.Errorf("Unknown chat users role %q", memberRole)
 	}
 
-	if pages < 1 {
-		pages = MAX_PAGES
-	}
-
 	query := req.Query{
 		"role":  memberRole,
 		"limit": c.getBatchSize(),
 	}
 
-	resp := &struct {
-		Data Users     `json:"data"`
-		Meta *Metadata `json:"meta"`
-	}{}
-
 	var users Users
 
-	for i := 0; i < pages; i++ {
+	for i := 0; i < MAX_PAGES; i++ {
+		resp := &struct {
+			Data Users     `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
+
 		err := c.sendRequest(
 			req.GET, getURL("/chats/%d/members", chatID),
 			query, nil, resp,
@@ -1567,7 +1557,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 	query := req.Query{"per": 300}
 
-	for i := 1; i < 1000; i++ {
+	for i := 1; i < MAX_PAGES; i++ {
 		query["page"] = i
 
 		err := c.sendRequest(
