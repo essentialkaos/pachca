@@ -1706,6 +1706,38 @@ func (c *Client) UnpinMessage(messageID uint) error {
 	return nil
 }
 
+// AddLinkPreview adds link previews to message with given ID
+//
+// https://crm.pachca.com/dev/messages/link_previews/
+func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	case len(previews) == 0:
+		return ErrEmptyPreviews
+	}
+
+	payload := &struct {
+		Previews LinkPreviews `json:"link_previews"`
+	}{
+		Previews: previews,
+	}
+
+	err := c.sendRequest(
+		req.POST,
+		getURL("/messages/%d/link_previews", messageID),
+		nil, payload, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("Can't add previews to message %d: %w", messageID, err)
+	}
+
+	return nil
+}
+
 // SendMessageToUser helper to send message to user with given ID
 func (c *Client) SendMessageToUser(userID uint, text string) (*Message, error) {
 	switch {
@@ -1774,36 +1806,31 @@ func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 	return c.EditMessage(messageID, &MessageRequest{Content: text})
 }
 
-// AddLinkPreview adds link previews to message with given ID
-//
-// https://crm.pachca.com/dev/messages/link_previews/
-func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
+// DeleteMessageButtons is a helper for deleting buttons from a message
+func (c *Client) DeleteMessageButtons(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
 		return ErrNilClient
 	case messageID == 0:
 		return ErrInvalidMessageID
-	case len(previews) == 0:
-		return ErrEmptyPreviews
 	}
 
-	payload := &struct {
-		Previews LinkPreviews `json:"link_previews"`
-	}{
-		Previews: previews,
-	}
-
-	err := c.sendRequest(
-		req.POST,
-		getURL("/messages/%d/link_previews", messageID),
-		nil, payload, nil,
-	)
+	msg, err := c.GetMessage(messageID)
 
 	if err != nil {
-		return fmt.Errorf("Can't add previews to message %d: %w", messageID, err)
+		return err
 	}
 
-	return nil
+	if len(msg.Buttons) == 0 {
+		return nil
+	}
+
+	_, err = c.EditMessage(messageID, &MessageRequest{
+		Content: msg.Content,
+		Buttons: Buttons{},
+	})
+
+	return err
 }
 
 // THREADS ////////////////////////////////////////////////////////////////////////// //
