@@ -1806,6 +1806,33 @@ func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 	return c.EditMessage(messageID, &MessageRequest{Content: text})
 }
 
+// DeleteMessageButtons is a helper for deleting buttons from a message
+func (c *Client) DeleteMessageButtons(messageID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	}
+
+	msg, err := c.GetMessage(messageID)
+
+	if err != nil {
+		return err
+	}
+
+	if len(msg.Buttons) == 0 {
+		return nil
+	}
+
+	_, err = c.EditMessage(messageID, &MessageRequest{
+		Content: msg.Content,
+		Buttons: Buttons{},
+	})
+
+	return err
+}
+
 // THREADS ////////////////////////////////////////////////////////////////////////// //
 
 // GetThread returns info about thread

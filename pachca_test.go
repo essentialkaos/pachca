@@ -146,6 +146,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(cc.DeleteMessage(1), Equals, ErrNilClient)
 	c.Assert(cc.PinMessage(1), Equals, ErrNilClient)
 	c.Assert(cc.UnpinMessage(1), Equals, ErrNilClient)
+	c.Assert(cc.DeleteMessageButtons(1), Equals, ErrNilClient)
 
 	_, err = cc.SendMessageToUser(1, "Test")
 	c.Assert(err, Equals, ErrNilClient)
@@ -314,6 +315,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(cc.DeleteMessage(0), Equals, ErrInvalidMessageID)
 	c.Assert(cc.PinMessage(0), Equals, ErrInvalidMessageID)
 	c.Assert(cc.UnpinMessage(0), Equals, ErrInvalidMessageID)
+	c.Assert(cc.DeleteMessageButtons(0), Equals, ErrInvalidMessageID)
 
 	_, err = cc.SendMessageToUser(0, "test")
 	c.Assert(err, Equals, ErrInvalidUserID)
