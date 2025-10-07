@@ -105,7 +105,7 @@ func (t *Time) UnmarshalJSON(b []byte) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// String rturns string representation of time
+// String returns string representation of time
 func (t *Time) String() string {
 	if t == nil {
 		return "00:00"
