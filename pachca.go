@@ -14,6 +14,7 @@ import (
 	"mime/multipart"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -2196,6 +2197,11 @@ func (u *User) HasAvatar() bool {
 	return u != nil && u.ImageURL != ""
 }
 
+// HasTag returns true if user has given tag
+func (u *User) HasTag(tag string) bool {
+	return u != nil && slices.Contains(u.Tags, tag)
+}
+
 // IsActive returns true if user is active
 func (u *User) IsActive() bool {
 	return u != nil && !u.IsSuspended && u.InviteStatus == INVITE_CONFIRMED
@@ -2349,6 +2355,13 @@ func (u Users) Paid() Users {
 func (u Users) WithoutGuests() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return !uu.IsGuest()
+	})
+}
+
+// WithTag returns users with given tag
+func (u Users) WithTag(tag string) Users {
+	return sliceutil.Filter(u, func(uu *User, _ int) bool {
+		return uu.HasTag(tag)
 	})
 }
 

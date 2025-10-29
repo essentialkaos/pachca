@@ -445,9 +445,10 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	var u *User
 	c.Assert(u.FullName(), Equals, "")
 
-	u = &User{ID: 1234, FirstName: "John", LastName: "Doe", Nickname: "j.doe", ImageURL: "http//domain.com/image.png"}
+	u = &User{ID: 1234, FirstName: "John", LastName: "Doe", Nickname: "j.doe", ImageURL: "http//domain.com/image.png", Tags: []string{"developers"}}
 	c.Assert(u.FullName(), Equals, "John Doe")
 	c.Assert(u.HasAvatar(), Equals, true)
+	c.Assert(u.HasTag("developers"), Equals, true)
 	u = &User{ID: 1234, LastName: "Doe", Nickname: "j.doe"}
 	c.Assert(u.FullName(), Equals, "Doe")
 	u = &User{ID: 1234, FirstName: "John", Nickname: "j.doe"}
@@ -459,8 +460,8 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(u.IsActive(), Equals, true)
 
 	uu := Users{
-		{ID: 1, IsSuspended: false, InviteStatus: INVITE_SENT, IsBot: false, Role: ROLE_REGULAR},
-		{ID: 2, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR},
+		{ID: 1, IsSuspended: false, InviteStatus: INVITE_SENT, IsBot: false, Role: ROLE_REGULAR, Tags: []string{"developers"}},
+		{ID: 2, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_REGULAR, Tags: []string{"developers"}},
 		{ID: 3, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_ADMIN},
 		{ID: 4, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: false, Role: ROLE_MULTI_GUEST},
 		{ID: 5, IsSuspended: false, InviteStatus: INVITE_CONFIRMED, IsBot: true, Role: ROLE_REGULAR},
@@ -488,6 +489,7 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(uu.Guests()[0].IsGuest(), Equals, true)
 	c.Assert(uu.WithoutGuests(), HasLen, 5)
 	c.Assert(uu.Paid(), HasLen, 6)
+	c.Assert(uu.WithTag("developers"), HasLen, 2)
 
 	c.Assert(uu.Find("test"), IsNil)
 	c.Assert(uu.Find("j.doe"), NotNil)

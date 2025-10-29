@@ -1,5 +1,41 @@
 ## Changelog
 
+### [0.18.0](https://kaos.sh/pachca/0.18.0)
+
+- Added helper `User.HasTag`
+- Added helper `Users.WithTag`
+
+### [0.17.0](https://kaos.sh/pachca/0.17.0)
+
+- Added sub-package for blocks data
+
+### [0.16.0](https://kaos.sh/pachca/0.16.0)
+
+- Added helper `DeleteMessageButtons`
+- Dependencies update
+
+### [0.15.1](https://kaos.sh/pachca/0.15.1)
+
+- Improved working with paginated methods
+- Dependencies update
+
+### [0.15.0](https://kaos.sh/pachca/0.15.0)
+
+- Added `UpdateBot` method
+- `GetChats` migrated to cursor pagination
+- Improved cursor pagination for `GetChatUsers`
+- Dependencies update
+
+### [0.14.0](https://kaos.sh/pachca/0.14.0)
+
+- Refactored working with webhooks
+
+### [0.13.0](https://kaos.sh/pachca/0.13.0)
+
+- Added [forms](https://crm.pachca.com/dev/forms/getting-started/) support
+- Webhook support has been rewritten from scratch
+- Dependencies update
+
 ### [0.12.0](https://kaos.sh/pachca/0.12.0)
 
 - Added custom reactions support to `AddReaction` and `DeleteReaction`
