@@ -114,6 +114,34 @@ func (s *WebhookSuite) TestView(c *C) {
 	c.Assert(d.Info, Equals, "Test info")
 }
 
+func (s *WebhookSuite) TestMessageCommand(c *C) {
+	var wh1 *Message
+	wh2 := &Message{Content: ""}
+	wh3 := &Message{Content: "test"}
+	wh4 := &Message{Content: "/test"}
+	wh5 := &Message{Content: `/test "John Doe" 123`}
+
+	cn, ca := wh1.Command()
+	c.Assert(cn, Equals, "")
+	c.Assert(ca, IsNil)
+
+	cn, ca = wh2.Command()
+	c.Assert(cn, Equals, "")
+	c.Assert(ca, IsNil)
+
+	cn, ca = wh3.Command()
+	c.Assert(cn, Equals, "")
+	c.Assert(ca, IsNil)
+
+	cn, ca = wh4.Command()
+	c.Assert(cn, Equals, "/test")
+	c.Assert(ca, IsNil)
+
+	cn, ca = wh5.Command()
+	c.Assert(cn, Equals, "/test")
+	c.Assert(ca, DeepEquals, []string{"John Doe", "123"})
+}
+
 func (s *WebhookSuite) TestErrors(c *C) {
 	r, _ := http.NewRequest(
 		"GET", "https://webhook.com",

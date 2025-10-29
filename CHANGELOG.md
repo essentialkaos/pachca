@@ -2,6 +2,7 @@
 
 ### [0.18.0](https://kaos.sh/pachca/0.18.0)
 
+- **`[webhook]`** Added helper `Message.Command`
 - Added helper `User.HasTag`
 - Added helper `Users.WithTag`
 

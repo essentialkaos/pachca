@@ -15,9 +15,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/essentialkaos/ek/v13/hashutil"
+	"github.com/essentialkaos/ek/v13/strutil"
 
 	"github.com/essentialkaos/pachca"
 )
@@ -296,6 +298,29 @@ func (w *Basic) GetType() WebhookType {
 // String returns string representation of the webhook (type)
 func (w *Basic) String() string {
 	return string(w.GetType())
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// Command parses webhook content as a command
+func (wh *Message) Command() (string, []string) {
+	if wh == nil || wh.Content == "" {
+		return "", nil
+	}
+
+	data := strings.Trim(wh.Content, " ")
+
+	if data == "" || data[0] != '/' {
+		return "", nil
+	}
+
+	cmd := strutil.Fields(data)
+
+	if len(cmd) == 1 {
+		return cmd[0], nil
+	}
+
+	return cmd[0], cmd[1:]
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
