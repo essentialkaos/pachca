@@ -643,3 +643,11 @@ func (s *PachcaSuite) TestAPIErrorToString(c *C) {
 
 	c.Assert(err.Error(), Equals, "(unhandled) Ошибка выполнения запроса [system:-]")
 }
+
+func (s *PachcaSuite) TestIsZero(c *C) {
+	var f Files
+	c.Assert(f.isZero(), Equals, true)
+
+	var b Buttons
+	c.Assert(b.isZero(), Equals, true)
+}
