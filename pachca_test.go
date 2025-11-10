@@ -12,6 +12,8 @@ import (
 	"time"
 
 	. "github.com/essentialkaos/check"
+
+	"github.com/essentialkaos/pachca/block"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -584,6 +586,22 @@ func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
 	c.Assert(q["last_message_at_after"], Not(Equals), "")
 }
 
+func (s *PachcaSuite) TestViewHelpers(c *C) {
+	var v *View
+
+	c.Assert(v.AddBlocks(nil, nil), IsNil)
+	c.Assert(v.AddBlocksIf(true, nil, nil), IsNil)
+
+	v = &View{Title: "Form", SubmitText: "Ok", CloseText: "Cancel"}
+
+	c.Assert(v.AddBlocks(nil, nil), NotNil)
+	c.Assert(v.AddBlocksIf(true, nil, nil), NotNil)
+	c.Assert(v.Blocks, HasLen, 0)
+
+	c.Assert(v.AddBlocksIf(true, &block.PlainText{Text: "Some text"}), NotNil)
+	c.Assert(v.Blocks, HasLen, 1)
+}
+
 func (s *PachcaSuite) TestAux(c *C) {
 	cc := &Client{BatchSize: 1}
 	c.Assert(cc.getBatchSize(), Equals, 5)
@@ -611,6 +629,10 @@ func (s *PachcaSuite) TestJSONDateDecoder(c *C) {
 }
 
 func (s *PachcaSuite) TestAPIErrorToString(c *C) {
+	var s3Err *S3Error
+
+	c.Assert(s3Err.Error(), Equals, "<nil>")
+
 	err := APIError{
 		Key:        "system",
 		Value:      "",

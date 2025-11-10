@@ -1,5 +1,11 @@
 ## Changelog
 
+### [0.19.0](https://kaos.sh/pachca/0.19.0)
+
+- Added method `View.AddBlocksIf`
+- `View.AddBlocks` now returns pointer to view
+- Ignore `nil` blocks in `View.AddBlocks`
+
 ### [0.18.0](https://kaos.sh/pachca/0.18.0)
 
 - **`[webhook]`** Added helper `Message.Command`
