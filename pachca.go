@@ -2533,7 +2533,7 @@ func (v *View) AddBlocks(blocks ...block.Block) *View {
 
 // AddBlocksIf conditionally adds new blocks to the view
 func (v *View) AddBlocksIf(cond bool, blocks ...block.Block) *View {
-	if v == nil || len(blocks) == 0 || cond == false {
+	if cond == false {
 		return v
 	}
 
