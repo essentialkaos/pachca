@@ -210,7 +210,7 @@ func (b *Files) Init() {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// AddOption adds new option to select list
+// AddOption adds a new option to select list
 func (b *Select) AddOption(text, value string, selected bool) *Select {
 	if b == nil {
 		return b
@@ -225,7 +225,16 @@ func (b *Select) AddOption(text, value string, selected bool) *Select {
 	return b
 }
 
-// AddOption adds new option to radio group
+// AddOptionIf conditionally adds a new option to select list
+func (b *Select) AddOptionIf(cond bool, text, value string, selected bool) *Select {
+	if cond == false {
+		return b
+	}
+
+	return b.AddOption(text, value, selected)
+}
+
+// AddOption adds a new option to radio group
 func (b *Radio) AddOption(text, value, desc string, selected bool) *Radio {
 	if b == nil {
 		return b
@@ -241,7 +250,16 @@ func (b *Radio) AddOption(text, value, desc string, selected bool) *Radio {
 	return b
 }
 
-// AddOption adds new option to checkbox group
+// AddOptionIf conditionally adds a new option to radio group
+func (b *Radio) AddOptionIf(cond bool, text, value, desc string, selected bool) *Radio {
+	if cond == false {
+		return b
+	}
+
+	return b.AddOption(text, value, desc, selected)
+}
+
+// AddOption adds a new option to checkbox group
 func (b *Checkbox) AddOption(text, value, desc string, selected bool) *Checkbox {
 	if b == nil {
 		return b
@@ -257,6 +275,15 @@ func (b *Checkbox) AddOption(text, value, desc string, selected bool) *Checkbox 
 	return b
 }
 
+// AddOptionIf conditionally adds a new option to checkbox group
+func (b *Checkbox) AddOptionIf(cond bool, text, value, desc string, selected bool) *Checkbox {
+	if cond == false {
+		return b
+	}
+
+	return b.AddOption(text, value, desc, selected)
+}
+
 // Set sets initial date
 func (b *Date) Set(year, month, day int) *Date {
 	if b == nil {
@@ -266,6 +293,15 @@ func (b *Date) Set(year, month, day int) *Date {
 	b.InitialValue = fmt.Sprintf("%d-%02d-%02d", year, month, day)
 
 	return b
+}
+
+// SetIf conditionally sets initial date
+func (b *Date) SetIf(cond bool, year, month, day int) *Date {
+	if cond == false {
+		return b
+	}
+
+	return b.Set(year, month, day)
 }
 
 // SetWithDate sets initial date using time.Time
@@ -279,6 +315,15 @@ func (b *Date) SetWithDate(d time.Time) *Date {
 	return b
 }
 
+// SetWithDateIf conditionally sets initial date using time.Time
+func (b *Date) SetWithDateIf(cond bool, d time.Time) *Date {
+	if cond == false {
+		return b
+	}
+
+	return b.SetWithDate(d)
+}
+
 // Set sets initial time
 func (b *Time) Set(hour, minute int) *Time {
 	if b == nil {
@@ -290,6 +335,15 @@ func (b *Time) Set(hour, minute int) *Time {
 	return b
 }
 
+// SetIf conditionally sets initial time
+func (b *Time) SetIf(cond bool, hour, minute int) *Time {
+	if cond == false {
+		return b
+	}
+
+	return b.Set(hour, minute)
+}
+
 // SetWithDate sets initial time using time.Time
 func (b *Time) SetWithDate(d time.Time) *Time {
 	if b == nil {
@@ -299,6 +353,15 @@ func (b *Time) SetWithDate(d time.Time) *Time {
 	b.InitialValue = fmt.Sprintf("%02d:%02d", d.Hour(), d.Minute())
 
 	return b
+}
+
+// SetWithDateIf conditionally sets initial time using time.Time
+func (b *Time) SetWithDateIf(cond bool, d time.Time) *Time {
+	if cond == false {
+		return b
+	}
+
+	return b.SetWithDate(d)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

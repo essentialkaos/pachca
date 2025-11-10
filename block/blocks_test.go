@@ -75,20 +75,34 @@ func (s *BlocksSuite) TestInit(c *C) {
 func (s *BlocksSuite) TestNil(c *C) {
 	var bs *Select
 	c.Assert(bs.AddOption("test", "Test1234", true), IsNil)
+	c.Assert(bs.AddOptionIf(true, "test", "Test1234", true), IsNil)
+	c.Assert(bs.AddOptionIf(false, "test", "Test1234", true), IsNil)
 
 	var br *Radio
 	c.Assert(br.AddOption("test", "Test1234", "Test description", true), IsNil)
+	c.Assert(br.AddOptionIf(true, "test", "Test1234", "Test description", true), IsNil)
+	c.Assert(br.AddOptionIf(false, "test", "Test1234", "Test description", true), IsNil)
 
 	var bc *Checkbox
 	c.Assert(bc.AddOption("test", "Test1234", "Test description", true), IsNil)
+	c.Assert(bc.AddOptionIf(true, "test", "Test1234", "Test description", true), IsNil)
+	c.Assert(bc.AddOptionIf(false, "test", "Test1234", "Test description", true), IsNil)
 
 	var bd *Date
 	c.Assert(bd.Set(2024, 2, 15), IsNil)
+	c.Assert(bd.SetIf(true, 2024, 2, 15), IsNil)
+	c.Assert(bd.SetIf(false, 2024, 2, 15), IsNil)
 	c.Assert(bd.SetWithDate(time.Date(2025, 6, 20, 12, 30, 0, 0, time.Local)), IsNil)
+	c.Assert(bd.SetWithDateIf(true, time.Date(2025, 6, 20, 12, 30, 0, 0, time.Local)), IsNil)
+	c.Assert(bd.SetWithDateIf(false, time.Date(2025, 6, 20, 12, 30, 0, 0, time.Local)), IsNil)
 
 	var bt *Time
 	c.Assert(bt.Set(6, 45), IsNil)
+	c.Assert(bt.SetIf(true, 6, 45), IsNil)
+	c.Assert(bt.SetIf(false, 6, 45), IsNil)
 	c.Assert(bt.SetWithDate(time.Date(2025, 6, 20, 12, 5, 0, 0, time.Local)), IsNil)
+	c.Assert(bt.SetWithDateIf(true, time.Date(2025, 6, 20, 12, 5, 0, 0, time.Local)), IsNil)
+	c.Assert(bt.SetWithDateIf(false, time.Date(2025, 6, 20, 12, 5, 0, 0, time.Local)), IsNil)
 }
 
 func (s *BlocksSuite) TestHelpers(c *C) {
