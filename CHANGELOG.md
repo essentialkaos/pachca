@@ -1,5 +1,18 @@
 ## Changelog
 
+### [0.19.0](https://kaos.sh/pachca/0.19.0)
+
+- Added method `View.AddBlocksIf`
+- `View.AddBlocks` now returns pointer to view
+- Ignore `nil` blocks in `View.AddBlocks`
+- **`[block]`** Added method `Select.AddOptionIf`
+- **`[block]`** Added method `Radio.AddOptionIf`
+- **`[block]`** Added method `Checkbox.AddOptionIf`
+- **`[block]`** Added method `Date.SetIf`
+- **`[block]`** Added method `Date.SetWithDateIf`
+- **`[block]`** Added method `Time.SetIf`
+- **`[block]`** Added method `Time.SetWithDateIf`
+
 ### [0.18.0](https://kaos.sh/pachca/0.18.0)
 
 - **`[webhook]`** Added helper `Message.Command`

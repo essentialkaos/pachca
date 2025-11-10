@@ -2515,17 +2515,29 @@ func (t *Thread) URL() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// AddBlock adds new block to view
-func (v *View) AddBlocks(blocks ...block.Block) {
+// AddBlock adds new blocks to the view
+func (v *View) AddBlocks(blocks ...block.Block) *View {
 	if v == nil || len(blocks) == 0 {
-		return
+		return v
 	}
 
 	for _, b := range blocks {
-		b.Init()
+		if b != nil {
+			b.Init()
+			v.Blocks = append(v.Blocks, b)
+		}
 	}
 
-	v.Blocks = append(v.Blocks, blocks...)
+	return v
+}
+
+// AddBlocksIf conditionally adds new blocks to the view
+func (v *View) AddBlocksIf(cond bool, blocks ...block.Block) *View {
+	if cond == false {
+		return v
+	}
+
+	return v.AddBlocks(blocks...)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
