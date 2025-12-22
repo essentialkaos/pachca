@@ -227,7 +227,7 @@ func (b *Select) AddOption(text, value string, selected bool) *Select {
 
 // AddOptionIf conditionally adds a new option to select list
 func (b *Select) AddOptionIf(cond bool, text, value string, selected bool) *Select {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
@@ -252,7 +252,7 @@ func (b *Radio) AddOption(text, value, desc string, selected bool) *Radio {
 
 // AddOptionIf conditionally adds a new option to radio group
 func (b *Radio) AddOptionIf(cond bool, text, value, desc string, selected bool) *Radio {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
@@ -277,7 +277,7 @@ func (b *Checkbox) AddOption(text, value, desc string, selected bool) *Checkbox 
 
 // AddOptionIf conditionally adds a new option to checkbox group
 func (b *Checkbox) AddOptionIf(cond bool, text, value, desc string, selected bool) *Checkbox {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
@@ -297,7 +297,7 @@ func (b *Date) Set(year, month, day int) *Date {
 
 // SetIf conditionally sets initial date
 func (b *Date) SetIf(cond bool, year, month, day int) *Date {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
@@ -317,7 +317,7 @@ func (b *Date) SetWithDate(d time.Time) *Date {
 
 // SetWithDateIf conditionally sets initial date using time.Time
 func (b *Date) SetWithDateIf(cond bool, d time.Time) *Date {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
@@ -337,7 +337,7 @@ func (b *Time) Set(hour, minute int) *Time {
 
 // SetIf conditionally sets initial time
 func (b *Time) SetIf(cond bool, hour, minute int) *Time {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
@@ -357,7 +357,7 @@ func (b *Time) SetWithDate(d time.Time) *Time {
 
 // SetWithDateIf conditionally sets initial time using time.Time
 func (b *Time) SetWithDateIf(cond bool, d time.Time) *Time {
-	if cond == false {
+	if !cond {
 		return b
 	}
 
