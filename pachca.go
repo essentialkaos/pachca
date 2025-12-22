@@ -2020,8 +2020,17 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	return nil
 }
 
-// GetWebhookEvents returns slice with webhook events. Note that you have
-// to parse event payload using webhook.DecodeJSON.
+// GetWebhookEvents returns webhook events. Each event's Payload field contains
+// raw JSON that must be decoded using webhook.DecodeJSON to extract the specific
+// webhook type (Message, Reaction, etc.).
+//
+// Example:
+//
+//	events, _ := client.GetWebhookEvents(10)
+//	for _, ev := range events {
+//	    wh, _ := webhook.DecodeJSON(ev.Payload)
+//	    // Handle webhook based on type
+//	}
 //
 // https://crm.pachca.com/dev/webhooks/events/get/
 func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
@@ -2035,7 +2044,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 	var result []*WebhookEvent
 	query := req.Query{}
 
-	for i := 0; i < max(maxPages, MAX_PAGES); i++ {
+	for i := 0; i < min(maxPages, MAX_PAGES); i++ {
 		resp := &struct {
 			Data []*WebhookEvent `json:"data"`
 			Meta *Metadata       `json:"meta"`

@@ -248,7 +248,7 @@ func DecodeBytes(data []byte) (Webhook, error) {
 	return w, nil
 }
 
-// DecodeBytes unmarshals bytes with webhook JSON data
+// DecodeJSON unmarshals raw JSON message with webhook JSON data
 func DecodeJSON(data json.RawMessage) (Webhook, error) {
 	return decodeWebhookData([]byte(data))
 }
