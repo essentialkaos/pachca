@@ -9,6 +9,7 @@ package webhook
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -66,7 +67,7 @@ func (s *WebhookSuite) TestReadSigned(c *C) {
 }
 
 func (s *WebhookSuite) TestDecode(c *C) {
-	w, err := Decode([]byte(`{"event":"new","type":"message","webhook_timestamp":1755117405}`))
+	w, err := DecodeBytes([]byte(`{"event":"new","type":"message","webhook_timestamp":1755117405}`))
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &Message{})
@@ -75,34 +76,39 @@ func (s *WebhookSuite) TestDecode(c *C) {
 	c.Assert(w.GetType(), Equals, TYPE_MESSAGE)
 	c.Assert(fmt.Sprint(w), Equals, string(TYPE_MESSAGE))
 
-	w, err = Decode([]byte(`{"event":"new","type":"reaction","webhook_timestamp":1755117405}`))
+	w, err = DecodeBytes([]byte(`{"event":"new","type":"reaction","webhook_timestamp":1755117405}`))
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &Reaction{})
 
-	w, err = Decode([]byte(`{"type":"button","webhook_timestamp":1755117405}`))
+	w, err = DecodeBytes([]byte(`{"type":"button","webhook_timestamp":1755117405}`))
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &Button{})
 
-	w, err = Decode([]byte(`{"event":"add","type":"chat_member","webhook_timestamp":1755117405}`))
+	w, err = DecodeBytes([]byte(`{"event":"add","type":"chat_member","webhook_timestamp":1755117405}`))
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &ChatMember{})
 
-	w, err = Decode([]byte(`{"event":"invite","type":"company_member","webhook_timestamp":1755117405}`))
+	w, err = DecodeBytes([]byte(`{"event":"invite","type":"company_member","webhook_timestamp":1755117405}`))
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &OrgMember{})
 
-	w, err = Decode([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405}`))
+	w, err = DecodeBytes([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405}`))
+	c.Assert(err, IsNil)
+	c.Assert(w, NotNil)
+	c.Assert(w, FitsTypeOf, &View{})
+
+	w, err = DecodeJSON(json.RawMessage([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405}`)))
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
 	c.Assert(w, FitsTypeOf, &View{})
 }
 
 func (s *WebhookSuite) TestView(c *C) {
-	w, err := Decode([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405,"data":{"info":"Test info"}}`))
+	w, err := DecodeBytes([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405,"data":{"info":"Test info"}}`))
 
 	c.Assert(err, IsNil)
 	c.Assert(w, NotNil)
@@ -161,13 +167,13 @@ func (s *WebhookSuite) TestErrors(c *C) {
 	_, err = ReadSigned(r, `xxxx`)
 	c.Assert(err, Equals, ErrInvalidSig)
 
-	_, err = Decode([]byte("{"))
+	_, err = DecodeBytes([]byte("{"))
 	c.Assert(err, ErrorMatches, `Can't parse webhook JSON: unexpected end of JSON input`)
-	_, err = Decode([]byte(`{"event":"new","type":"unknown","webhook_timestamp":1755117405}`))
+	_, err = DecodeBytes([]byte(`{"event":"new","type":"unknown","webhook_timestamp":1755117405}`))
 	c.Assert(err, ErrorMatches, `Unsupported webhook type "unknown"`)
 
 	MaxAge = time.Second
-	_, err = Decode([]byte(`{"event":"new","type":"message","webhook_timestamp":1755117405}`))
+	_, err = DecodeBytes([]byte(`{"event":"new","type":"message","webhook_timestamp":1755117405}`))
 	c.Assert(err, ErrorMatches, `Webhook is too old .*`)
 	MaxAge = 100000 * time.Hour
 
@@ -176,7 +182,7 @@ func (s *WebhookSuite) TestErrors(c *C) {
 
 	c.Assert(v.UnmarshalData(d), Equals, ErrNilWebhook)
 
-	w, _ := Decode([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405}`))
+	w, _ := DecodeBytes([]byte(`{"event":"submit","type":"view","webhook_timestamp":1755117405}`))
 	c.Assert(w.(*View).UnmarshalData(d), Equals, ErrEmptyData)
 
 	var ww *Basic

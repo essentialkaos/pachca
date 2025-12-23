@@ -200,7 +200,7 @@ func Read(r *http.Request) (Webhook, error) {
 		return nil, fmt.Errorf("Can't read webhook data: %w", err)
 	}
 
-	return Decode(data)
+	return DecodeBytes(data)
 }
 
 // ReadSigned reads webhook data from HTTP request and validates signature
@@ -230,44 +230,27 @@ func ReadSigned(r *http.Request, secret string) (Webhook, error) {
 		return nil, ErrInvalidSig
 	}
 
-	return Decode(data)
+	return DecodeBytes(data)
 }
 
-// Decode unmarshals webhook JSON data
-func Decode(data []byte) (Webhook, error) {
-	w := &Basic{}
-	err := json.Unmarshal(data, w)
+// DecodeBytes unmarshals bytes with webhook JSON data
+func DecodeBytes(data []byte) (Webhook, error) {
+	w, err := decodeWebhookData(data)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't parse webhook JSON: %w", err)
+		return nil, err
 	}
 
 	if w.Age() > MaxAge {
 		return nil, fmt.Errorf("Webhook is too old (%s > %s)", w.Age(), MaxAge)
 	}
 
-	var ww Webhook
+	return w, nil
+}
 
-	switch w.Type {
-	case TYPE_MESSAGE:
-		ww = &Message{}
-	case TYPE_REACTION:
-		ww = &Reaction{}
-	case TYPE_BUTTON:
-		ww = &Button{}
-	case TYPE_CHAT_MEMBER:
-		ww = &ChatMember{}
-	case TYPE_ORG_MEMBER:
-		ww = &OrgMember{}
-	case TYPE_VIEW:
-		ww = &View{}
-	default:
-		return nil, fmt.Errorf("Unsupported webhook type %q", w.Type)
-	}
-
-	json.Unmarshal(data, ww)
-
-	return ww, nil
+// DecodeJSON unmarshals raw JSON message with webhook JSON data
+func DecodeJSON(data json.RawMessage) (Webhook, error) {
+	return decodeWebhookData([]byte(data))
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -338,3 +321,36 @@ func (w *View) UnmarshalData(v any) error {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// decodeWebhookData decodes webhook data
+func decodeWebhookData(data []byte) (Webhook, error) {
+	w := &Basic{}
+	err := json.Unmarshal(data, w)
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't parse webhook JSON: %w", err)
+	}
+
+	var ww Webhook
+
+	switch w.Type {
+	case TYPE_MESSAGE:
+		ww = &Message{}
+	case TYPE_REACTION:
+		ww = &Reaction{}
+	case TYPE_BUTTON:
+		ww = &Button{}
+	case TYPE_CHAT_MEMBER:
+		ww = &ChatMember{}
+	case TYPE_ORG_MEMBER:
+		ww = &OrgMember{}
+	case TYPE_VIEW:
+		ww = &View{}
+	default:
+		return nil, fmt.Errorf("Unsupported webhook type %q", w.Type)
+	}
+
+	json.Unmarshal(data, ww)
+
+	return ww, nil
+}

@@ -9,6 +9,7 @@ package pachca
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -301,6 +302,13 @@ type View struct {
 	Blocks     []block.Block `json:"blocks"`
 }
 
+// WebhookEvent contains webhook event data
+type WebhookEvent struct {
+	ID        string          `json:"id"`
+	EventType string          `json:"event_type"`
+	Payload   json.RawMessage `json:"payload"`
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // APIError contains API error info
@@ -492,12 +500,14 @@ var (
 	ErrInvalidTagID       = errors.New("Group tag ID must be greater than 0")
 	ErrInvalidEntityID    = errors.New("Entity ID must be greater than 0")
 	ErrInvalidBotID       = errors.New("Bot ID must be greater than 0")
+	ErrInvalidEventID     = errors.New("Invalid event ID")
 	ErrBlankReaction      = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("Previews map has no data")
 	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
 	ErrInvalidPerPageNum  = errors.New("Per page number must be between 1 and 50")
 	ErrViewHasNoBlocks    = errors.New("View has no blocks")
 	ErrEmptyTriggerID     = errors.New("View has empty trigger ID")
+	ErrInvalidMaxPages    = errors.New("Minimum number of result pages must be greater than 0")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -2010,6 +2020,80 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	return nil
 }
 
+// GetWebhookEvents returns webhook events. Each event's Payload field contains
+// raw JSON that must be decoded using webhook.DecodeJSON to extract the specific
+// webhook type (Message, Reaction, etc.).
+//
+// Example:
+//
+//	events, _ := client.GetWebhookEvents(10)
+//	for _, ev := range events {
+//	    wh, _ := webhook.DecodeJSON(ev.Payload)
+//	    // Handle webhook based on type
+//	}
+//
+// https://crm.pachca.com/dev/webhooks/events/get/
+func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case maxPages < 1:
+		return nil, ErrInvalidMaxPages
+	}
+
+	var result []*WebhookEvent
+	query := req.Query{}
+
+	for i := 0; i < min(maxPages, MAX_PAGES); i++ {
+		resp := &struct {
+			Data []*WebhookEvent `json:"data"`
+			Meta *Metadata       `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/webhooks/events"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't fetch webhook events: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if len(resp.Data) != c.getBatchSize() {
+			break
+		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
+	}
+
+	return result, nil
+}
+
+// DeleteWebhookEvent deletes webhook event with given ID
+//
+// https://crm.pachca.com/dev/webhooks/events/delete/
+func (c *Client) DeleteWebhookEvent(eventID string) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case eventID == "" || len(eventID) != 26:
+		return ErrInvalidEventID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/webhooks/events/%s", eventID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("Can't delete webhook event with ID %s: %w", eventID, err)
+	}
+
+	return nil
+}
+
 // FORMS //////////////////////////////////////////////////////////////////////////// //
 
 // OpenView opens view with form
@@ -2533,7 +2617,7 @@ func (v *View) AddBlocks(blocks ...block.Block) *View {
 
 // AddBlocksIf conditionally adds new blocks to the view
 func (v *View) AddBlocksIf(cond bool, blocks ...block.Block) *View {
-	if cond == false {
+	if !cond {
 		return v
 	}
 

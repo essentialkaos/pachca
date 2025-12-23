@@ -1,5 +1,13 @@
 ## Changelog
 
+### [0.20.0](https://kaos.sh/pachca/0.20.0)
+
+- Added method `GetWebhookEvents`
+- Added method `DeleteWebhookEvent`
+- **`[webhook]`** Added method `DecodeJSON` to decode webhook data without age validation
+- **`[webhook]`** Method `Decode` renamed to `DecodeBytes`
+- Code refactoring
+
 ### [0.19.0](https://kaos.sh/pachca/0.19.0)
 
 - Added method `View.AddBlocksIf`
