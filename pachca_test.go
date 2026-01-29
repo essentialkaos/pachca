@@ -88,7 +88,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	// TAGS
 
-	_, err = cc.GetTags()
+	_, err = cc.GetTags("test1", "test2")
 	c.Assert(err, Equals, ErrNilClient)
 
 	_, err = cc.GetTag(1)

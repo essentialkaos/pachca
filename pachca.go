@@ -2,7 +2,7 @@ package pachca
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -905,7 +905,7 @@ func (c *Client) DeleteUser(userID uint) error {
 // GetTags returns all group tags
 //
 // https://crm.pachca.com/dev/group_tags/list/
-func (c *Client) GetTags() (Tags, error) {
+func (c *Client) GetTags(names ...string) (Tags, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
 	}
@@ -913,6 +913,7 @@ func (c *Client) GetTags() (Tags, error) {
 	var result Tags
 
 	query := req.Query{"per": c.getBatchSize()}
+	query.SetIf(len(names) > 0, "names[]", names)
 
 	for i := 1; i < MAX_PAGES; i++ {
 		query["page"] = i
