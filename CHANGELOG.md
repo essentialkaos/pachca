@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.20.1](https://kaos.sh/pachca/0.20.1)
+
+- Updated method `GetTags` to support filtering tags
+
 ### [0.20.0](https://kaos.sh/pachca/0.20.0)
 
 - Added method `GetWebhookEvents`
