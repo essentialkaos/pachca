@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.20.2](https://kaos.sh/pachca/0.20.2)
+
+- **`[block]`** Added a quick hack for parsing date block values, to support different date layouts
+
 ### [0.20.1](https://kaos.sh/pachca/0.20.1)
 
 - Updated method `GetTags` to support filtering tags
