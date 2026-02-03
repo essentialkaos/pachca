@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/essentialkaos/ek/v13/timeutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -53,7 +55,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	date, err := time.Parse(`"2006-01-02"`, data)
+	date, err := timeutil.ParseWithAny(data, `"2006-01-02"`, `"02.01.2006"`)
 
 	if err != nil {
 		return err
