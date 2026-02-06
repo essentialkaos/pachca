@@ -94,8 +94,11 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MAX_PAGES is maximum number of pages using for listing items
+// MAX_PAGES is the maximum number of pages using for listing items
 const MAX_PAGES = 100_000
+
+// MAX_PER_PAGE is the maximum number of entities per page
+const MAX_PER_PAGE = 50
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -503,6 +506,7 @@ var (
 	ErrBlankReaction      = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("Previews map has no data")
 	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
+	ErrInvalidMessageNum  = errors.New("Number of messages must be greater than 0")
 	ErrInvalidPerPageNum  = errors.New("Per page number must be between 1 and 50")
 	ErrViewHasNoBlocks    = errors.New("View has no blocks")
 	ErrEmptyTriggerID     = errors.New("View has empty trigger ID")
@@ -534,7 +538,7 @@ func NewClient(token string) (*Client, error) {
 	e.SetUserAgent("EK|Pachca.go", "1")
 
 	return &Client{
-		BatchSize:   50,
+		BatchSize:   MAX_PER_PAGE,
 		MaxFileSize: 10 * 1024 * 1024, // 10 MB
 
 		token:  token,
@@ -1507,7 +1511,7 @@ func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
 		return nil, ErrInvalidChatID
 	case page < 1:
 		return nil, ErrInvalidPageNum
-	case perPage < 1 || perPage > 50:
+	case perPage < 1 || perPage > MAX_PER_PAGE:
 		return nil, ErrInvalidPerPageNum
 	}
 
@@ -1523,6 +1527,39 @@ func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
 	}
 
 	return resp.Data, nil
+}
+
+// GetLatestMessages returns specified number of the latest messages from the chat
+func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case chatID == 0:
+		return nil, ErrInvalidChatID
+	case numMessages < 1:
+		return nil, ErrInvalidMessageNum
+	}
+
+	var result Messages
+	var perPage int
+
+	for page := 1; page < MAX_PAGES; page++ {
+		perPage = min(MAX_PER_PAGE, numMessages)
+
+		messages, err := c.GetMessages(chatID, page, perPage)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, messages...)
+
+		if perPage < MAX_PER_PAGE || len(messages) < MAX_PER_PAGE {
+			break
+		}
+	}
+
+	return result, nil
 }
 
 // GetMessage returns info about message
@@ -2729,7 +2766,7 @@ func (f ChatFilter) ToQuery() req.Query {
 
 // getBatchSize returns batch size for paginated responses
 func (c *Client) getBatchSize() int {
-	return mathutil.Between(c.BatchSize, 5, 50)
+	return mathutil.Between(c.BatchSize, 5, MAX_PER_PAGE)
 }
 
 // sendRequest sends request to Pachca API
