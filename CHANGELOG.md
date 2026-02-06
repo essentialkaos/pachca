@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.21.0](https://kaos.sh/pachca/0.21.0)
+
+- Improved method `UploadFile` to pipe data instead of buffering
+
 ### [0.20.2](https://kaos.sh/pachca/0.20.2)
 
 - **`[block]`** Added a quick hack for parsing date block values, to support different date layouts
