@@ -2,9 +2,9 @@
 
 <p align="center">
   <a href="https://kaos.sh/g/pachca"><img src=".github/images/godoc.svg"/></a>
-  <a href="https://kaos.sh/y/pachca"><img src="https://kaos.sh/y/b434ebac89384823b1b1e06771618e09.svg" alt="Codacy badge" /></a>
-  <a href="https://kaos.sh/w/pachca/ci"><img src="https://kaos.sh/w/pachca/ci.svg" alt="GitHub Actions CI Status" /></a>
-  <a href="https://kaos.sh/w/pachca/codeql"><img src="https://kaos.sh/w/pachca/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
+  <a href="https://kaos.sh/y/pachca"><img src="https://app.codacy.com/project/badge/Grade/b434ebac89384823b1b1e06771618e09" alt="Codacy badge" /></a>
+  <a href="https://kaos.sh/w/pachca/ci"><img src="https://github.com/essentialkaos/pachca/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions CI Status" /></a>
+  <a href="https://kaos.sh/w/pachca/codeql"><img src="https://github.com/essentialkaos/pachca/actions/workflows/codeql.yml/badge.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
@@ -18,8 +18,8 @@
 
 | Branch | Status |
 |--------|----------|
-| `master` | [![CI](https://kaos.sh/w/pachca/ci.svg?branch=master)](https://kaos.sh/w/pachca/ci?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/pachca/ci.svg?branch=develop)](https://kaos.sh/w/pachca/ci?query=branch:develop) |
+| `master` | [![CI](https://github.com/essentialkaos/pachca/actions/workflows/ci.yml/badge.svg?branch=master)](https://kaos.sh/w/pachca/ci?query=branch:master) |
+| `develop` | [![CI](https://github.com/essentialkaos/pachca/actions/workflows/ci.yml/badge.svg?branch=develop)](https://kaos.sh/w/pachca/ci?query=branch:develop) |
 
 ### Contributing
 

@@ -8,7 +8,6 @@ package pachca
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -95,8 +94,11 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MAX_PAGES is maximum number of pages using for listing items
+// MAX_PAGES is the maximum number of pages using for listing items
 const MAX_PAGES = 100_000
+
+// MAX_PER_PAGE is the maximum number of entities per page
+const MAX_PER_PAGE = 50
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -334,11 +336,11 @@ type Paginate struct {
 
 // uploadInfo contains info about uploaded file
 type uploadInfo struct {
-	Key         string        // Uploading key
-	Name        string        // File name
-	Size        int64         // File size
-	ContentType string        // Content type
-	Buffer      *bytes.Buffer // Buffer with data
+	Key         string    // Uploading key
+	Name        string    // File name
+	Size        int64     // File size
+	ContentType string    // Content type
+	Reader      io.Reader // Data reader
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -504,6 +506,7 @@ var (
 	ErrBlankReaction      = errors.New("Non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("Previews map has no data")
 	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
+	ErrInvalidMessageNum  = errors.New("Number of messages must be greater than 0")
 	ErrInvalidPerPageNum  = errors.New("Per page number must be between 1 and 50")
 	ErrViewHasNoBlocks    = errors.New("View has no blocks")
 	ErrEmptyTriggerID     = errors.New("View has empty trigger ID")
@@ -535,7 +538,7 @@ func NewClient(token string) (*Client, error) {
 	e.SetUserAgent("EK|Pachca.go", "1")
 
 	return &Client{
-		BatchSize:   50,
+		BatchSize:   MAX_PER_PAGE,
 		MaxFileSize: 10 * 1024 * 1024, // 10 MB
 
 		token:  token,
@@ -1508,7 +1511,7 @@ func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
 		return nil, ErrInvalidChatID
 	case page < 1:
 		return nil, ErrInvalidPageNum
-	case perPage < 1 || perPage > 50:
+	case perPage < 1 || perPage > MAX_PER_PAGE:
 		return nil, ErrInvalidPerPageNum
 	}
 
@@ -1524,6 +1527,39 @@ func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
 	}
 
 	return resp.Data, nil
+}
+
+// GetLatestMessages returns specified number of the latest messages from the chat
+func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case chatID == 0:
+		return nil, ErrInvalidChatID
+	case numMessages < 1:
+		return nil, ErrInvalidMessageNum
+	}
+
+	var result Messages
+	var perPage int
+
+	for page := 1; page < MAX_PAGES; page++ {
+		perPage = min(MAX_PER_PAGE, numMessages)
+
+		messages, err := c.GetMessages(chatID, page, perPage)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, messages...)
+
+		if perPage < MAX_PER_PAGE || len(messages) < MAX_PER_PAGE {
+			break
+		}
+	}
+
+	return result, nil
 }
 
 // GetMessage returns info about message
@@ -1945,24 +1981,79 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		return nil, ErrEmptyFilePath
 	}
 
+	fd, err := os.Open(file)
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't open file %q to upload: %w", file, err)
+	}
+
+	stat, err := fd.Stat()
+
+	if err != nil {
+		return nil, fmt.Errorf("Can't get file %q info: %w", file, err)
+	}
+
+	if stat.Size() >= c.MaxFileSize {
+		return nil, fmt.Errorf("File size exceeds the limit (%d): %w", c.MaxFileSize, err)
+	}
+
 	upload := &Upload{}
-	err := c.sendRequest(req.POST, getURL("/uploads"), nil, nil, upload)
+	err = c.sendRequest(req.POST, getURL("/uploads"), nil, nil, upload)
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't create upload for file %q: %w", file, err)
 	}
 
-	info, err := createMultipartData(file, upload, c.MaxFileSize)
+	fileName := path.Base(fd.Name())
+	key := strings.ReplaceAll(upload.Key, "${filename}", fileName)
+	pr, pw := io.Pipe()
+	mw := multipart.NewWriter(pw)
 
-	if err != nil {
-		return nil, err
-	}
+	go func() {
+		defer pw.Close()
+		defer mw.Close()
+		defer fd.Close()
+
+		var errs errors.Bundle
+
+		errs.Add(
+			mw.WriteField("Content-Disposition", upload.ContentDisposition),
+			mw.WriteField("acl", upload.ACL),
+			mw.WriteField("policy", upload.Policy),
+			mw.WriteField("x-amz-credential", upload.Credential),
+			mw.WriteField("x-amz-algorithm", upload.Algorithm),
+			mw.WriteField("x-amz-date", upload.Date),
+			mw.WriteField("x-amz-signature", upload.Signature),
+			mw.WriteField("key", upload.Key),
+		)
+
+		if !errs.IsEmpty() {
+			pw.CloseWithError(fmt.Errorf("Can't create multipart upload: %w", errs.First()))
+			return
+		}
+
+		fw, err := mw.CreateFormFile("file", fileName)
+
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+
+		_, err = io.Copy(fw, fd)
+
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+
+	contentType := mw.FormDataContentType()
 
 	resp, err := c.engine.Post(
 		req.Request{
 			URL:         upload.DirectURL,
-			ContentType: info.ContentType,
-			Body:        info.Buffer,
+			ContentType: contentType,
+			Body:        pr,
 		},
 	)
 
@@ -1980,10 +2071,10 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	}
 
 	return &File{
-		Key:  info.Key,
-		Name: info.Name,
-		Size: info.Size,
-		Type: guessFileType(info.Name),
+		Key:  key,
+		Name: fileName,
+		Size: stat.Size(),
+		Type: guessFileType(fileName),
 	}, nil
 }
 
@@ -2675,7 +2766,7 @@ func (f ChatFilter) ToQuery() req.Query {
 
 // getBatchSize returns batch size for paginated responses
 func (c *Client) getBatchSize() int {
-	return mathutil.Between(c.BatchSize, 5, 50)
+	return mathutil.Between(c.BatchSize, 5, MAX_PER_PAGE)
 }
 
 // sendRequest sends request to Pachca API
@@ -2737,78 +2828,6 @@ func getURL(endpoint string, args ...any) string {
 	}
 
 	return API_URL + fmt.Sprintf(endpoint, args...)
-}
-
-// createMultipartData creates multipart data with file data
-func createMultipartData(file string, upload *Upload, maxFileSize int64) (*uploadInfo, error) {
-	fd, err := os.Open(file)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't open file %q to upload: %w", file, err)
-	}
-
-	stat, err := fd.Stat()
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't get file %q info: %w", file, err)
-	}
-
-	if stat.Size() >= maxFileSize {
-		return nil, fmt.Errorf("File size exceeds the limit (%d): %w", maxFileSize, err)
-	}
-
-	fileName := path.Base(fd.Name())
-
-	info := &uploadInfo{
-		Key:  strings.ReplaceAll(upload.Key, "${filename}", fileName),
-		Name: fileName,
-		Size: stat.Size(),
-	}
-
-	buf := &bytes.Buffer{}
-	mw := multipart.NewWriter(buf)
-
-	var errs errors.Bundle
-
-	errs.Add(
-		mw.WriteField("Content-Disposition", upload.ContentDisposition),
-		mw.WriteField("acl", upload.ACL),
-		mw.WriteField("policy", upload.Policy),
-		mw.WriteField("x-amz-credential", upload.Credential),
-		mw.WriteField("x-amz-algorithm", upload.Algorithm),
-		mw.WriteField("x-amz-date", upload.Date),
-		mw.WriteField("x-amz-signature", upload.Signature),
-		mw.WriteField("key", upload.Key),
-	)
-
-	if !errs.IsEmpty() {
-		return nil, fmt.Errorf("Can't create multipart upload: %w", errs.First())
-	}
-
-	fw, err := mw.CreateFormFile("file", fileName)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't create file %q form: %w", file, err)
-	}
-
-	_, err = io.Copy(fw, fd)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't write file %q part: %w", file, err)
-	}
-
-	errs.Reset()
-
-	errs.Add(mw.Close(), fd.Close())
-
-	if !errs.IsEmpty() {
-		return nil, errs.First()
-	}
-
-	info.Buffer = buf
-	info.ContentType = mw.FormDataContentType()
-
-	return info, nil
 }
 
 // extractS3Error extracts error text from S3 error message
