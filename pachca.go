@@ -1554,7 +1554,7 @@ func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, erro
 		}
 
 		result = append(result, messages...)
-		numMessages -= perPage
+		numMessages -= len(result)
 
 		if perPage < MAX_PER_PAGE || len(messages) < MAX_PER_PAGE {
 			break
