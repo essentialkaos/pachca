@@ -1540,7 +1540,8 @@ func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, erro
 		return nil, ErrInvalidMessageNum
 	}
 
-	var result Messages
+	result := make(Messages, 0, numMessages)
+
 	var perPage int
 
 	for page := 1; page < MAX_PAGES; page++ {
@@ -1553,6 +1554,7 @@ func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, erro
 		}
 
 		result = append(result, messages...)
+		numMessages -= perPage
 
 		if perPage < MAX_PER_PAGE || len(messages) < MAX_PER_PAGE {
 			break
@@ -1987,6 +1989,8 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		return nil, fmt.Errorf("Can't open file %q to upload: %w", file, err)
 	}
 
+	defer fd.Close()
+
 	stat, err := fd.Stat()
 
 	if err != nil {
@@ -2009,10 +2013,11 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	pr, pw := io.Pipe()
 	mw := multipart.NewWriter(pw)
 
+	contentType := mw.FormDataContentType()
+
 	go func() {
 		defer pw.Close()
 		defer mw.Close()
-		defer fd.Close()
 
 		var errs errors.Bundle
 
@@ -2046,8 +2051,6 @@ func (c *Client) UploadFile(file string) (*File, error) {
 			return
 		}
 	}()
-
-	contentType := mw.FormDataContentType()
 
 	resp, err := c.engine.Post(
 		req.Request{
