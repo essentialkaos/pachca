@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.21.1](https://kaos.sh/pachca/0.21.1)
+
+- Code refactoring
+
 ### [0.21.0](https://kaos.sh/pachca/0.21.0)
 
 - Improved method `UploadFile` to pipe data instead of buffering
