@@ -18,8 +18,8 @@
 
 | Branch | Status |
 |--------|----------|
-| `master` | [![CI](https://kaos.sh/w/pachca/ci.svg?branch=master)](https://kaos.sh/w/pachca/ci?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/pachca/ci.svg?branch=develop)](https://kaos.sh/w/pachca/ci?query=branch:develop) |
+| `master` | [![CI](https://github.com/essentialkaos/pachca/actions/workflows/ci.yml/badge.svg?branch=master)](https://kaos.sh/w/pachca/ci?query=branch:master) |
+| `develop` | [![CI](https://github.com/essentialkaos/pachca/actions/workflows/ci.yml/badge.svg?branch=develop)](https://kaos.sh/w/pachca/ci?query=branch:develop) |
 
 ### Contributing
 
