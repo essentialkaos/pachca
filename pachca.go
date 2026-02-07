@@ -1998,7 +1998,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	}
 
 	if stat.Size() >= c.MaxFileSize {
-		return nil, fmt.Errorf("File size exceeds the limit (%d): %w", c.MaxFileSize, err)
+		return nil, fmt.Errorf("File size exceeds the limit (%d ≥ %d)", stat.Size(), c.MaxFileSize)
 	}
 
 	upload := &Upload{}
