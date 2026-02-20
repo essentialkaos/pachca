@@ -2739,10 +2739,10 @@ func (f ChatFilter) ToQuery() req.Query {
 
 	query.SetIf(f.Public, "availability", "public")
 	query.SetIf(!f.LastMessageBefore.IsZero(),
-		"last_message_at_before", formatDate(f.LastMessageBefore),
+		"last_message_at_before", formatDate(f.LastMessageBefore.UTC()),
 	)
 	query.SetIf(!f.LastMessageAfter.IsZero(),
-		"last_message_at_after", formatDate(f.LastMessageAfter),
+		"last_message_at_after", formatDate(f.LastMessageAfter.UTC()),
 	)
 
 	if len(f.Sort) != 0 {
