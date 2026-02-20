@@ -95,7 +95,7 @@ const (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // MAX_PAGES is the maximum number of pages using for listing items
-const MAX_PAGES = 100_000
+const MAX_PAGES = 1_000
 
 // MAX_PER_PAGE is the maximum number of entities per page
 const MAX_PER_PAGE = 50
@@ -505,9 +505,7 @@ var (
 	ErrInvalidEventID     = errors.New("invalid event ID")
 	ErrBlankReaction      = errors.New("non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("previews map has no data")
-	ErrInvalidPageNum     = errors.New("page number must be greater than 0")
 	ErrInvalidMessageNum  = errors.New("number of messages must be greater than 0")
-	ErrInvalidPerPageNum  = errors.New("per page number must be between 1 and 50")
 	ErrViewHasNoBlocks    = errors.New("view has no blocks")
 	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
 	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
@@ -645,13 +643,12 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 
 	var result Reactions
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
 
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
 			Data Reactions `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -665,9 +662,14 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -790,17 +792,13 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 	var result Users
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
+	query.SetIf(len(searchQuery) != 0, "query", searchQuery[0])
 
-	if len(searchQuery) != 0 {
-		query["query"] = searchQuery[0]
-	}
-
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
-			Data Users `json:"data"`
+			Data Users     `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/users"), query, nil, resp)
@@ -811,9 +809,14 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -915,14 +918,13 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 	var result Tags
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
 	query.SetIf(len(names) > 0, "names[]", names)
 
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
-			Data Tags `json:"data"`
+			Data Tags      `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/group_tags"), query, nil, resp)
@@ -933,9 +935,14 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -981,13 +988,12 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 	var result Users
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
 
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
-			Data Users `json:"data"`
+			Data Users     `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -1001,9 +1007,14 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -1117,7 +1128,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		query["limit"] = c.getBatchSize()
 	}
 
-	for i := 0; i < MAX_PAGES; i++ {
+	for range MAX_PAGES {
 		resp := &struct {
 			Data Chats     `json:"data"`
 			Meta *Metadata `json:"meta"`
@@ -1131,7 +1142,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 
@@ -1260,7 +1271,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 	var users Users
 
-	for i := 0; i < MAX_PAGES; i++ {
+	for range MAX_PAGES {
 		resp := &struct {
 			Data Users     `json:"data"`
 			Meta *Metadata `json:"meta"`
@@ -1277,7 +1288,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 		users = append(users, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 
@@ -1503,62 +1514,44 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 // GetMessages returns messages from given chat
 //
 // https://dev.pachca.com/messages/list
-func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
+func (c *Client) GetMessages(chatID uint, minLastMessages int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
 	case chatID == 0:
 		return nil, ErrInvalidChatID
-	case page < 1:
-		return nil, ErrInvalidPageNum
-	case perPage < 1 || perPage > MAX_PER_PAGE:
-		return nil, ErrInvalidPerPageNum
-	}
-
-	resp := &struct {
-		Data Messages `json:"data"`
-	}{}
-
-	query := req.Query{"chat_id": chatID, "page": page, "per": perPage}
-	err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
-
-	if err != nil {
-		return nil, fmt.Errorf("can't get messages of chat with ID %d: %w", chatID, err)
-	}
-
-	return resp.Data, nil
-}
-
-// GetLatestMessages returns specified number of the latest messages from the chat
-func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, error) {
-	switch {
-	case c == nil || c.engine == nil:
-		return nil, ErrNilClient
-	case chatID == 0:
-		return nil, ErrInvalidChatID
-	case numMessages < 1:
+	case minLastMessages < 1:
 		return nil, ErrInvalidMessageNum
 	}
 
-	result := make(Messages, 0, numMessages)
+	var result Messages
 
-	var perPage int
+	batchSize := c.getBatchSize()
+	limit := min(minLastMessages, batchSize)
+	query := req.Query{"chat_id": chatID, "limit": limit}
 
-	for page := 1; page < MAX_PAGES; page++ {
-		perPage = min(MAX_PER_PAGE, numMessages)
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
 
-		messages, err := c.GetMessages(chatID, page, perPage)
+		err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't get messages of chat with ID %d: %w", chatID, err)
 		}
 
-		result = append(result, messages...)
-		numMessages -= len(messages)
+		result = append(result, resp.Data...)
 
-		if perPage < MAX_PER_PAGE || len(messages) < MAX_PER_PAGE {
+		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= minLastMessages {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -1601,14 +1594,13 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 	var result []uint
 
-	resp := &struct {
-		Data []uint `json:"data"`
-	}{}
+	query := req.Query{"limit": 300}
 
-	query := req.Query{"per": 300}
-
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
+	for range MAX_PAGES {
+		resp := &struct {
+			Data []uint    `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
 
 		err := c.sendRequest(
 			req.GET, getURL("/messages/%d/read_member_ids", messageID),
@@ -1624,6 +1616,11 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 		if len(resp.Data) != 300 {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -2153,7 +2150,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 

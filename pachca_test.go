@@ -130,10 +130,7 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	// MESSAGES
 
-	_, err = cc.GetMessages(1, 1, 25)
-	c.Assert(err, Equals, ErrNilClient)
-
-	_, err = cc.GetLatestMessages(1, 100)
+	_, err = cc.GetMessages(1, 25)
 	c.Assert(err, Equals, ErrNilClient)
 
 	_, err = cc.GetMessage(1)
@@ -298,18 +295,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	// MESSAGES
 
-	_, err = cc.GetMessages(0, 1, 25)
+	_, err = cc.GetMessages(0, 1)
 	c.Assert(err, Equals, ErrInvalidChatID)
-	_, err = cc.GetMessages(1, -3, 25)
-	c.Assert(err, Equals, ErrInvalidPageNum)
-	_, err = cc.GetMessages(1, 1, 500)
-	c.Assert(err, Equals, ErrInvalidPerPageNum)
-	_, err = cc.GetMessages(1, 1, 0)
-	c.Assert(err, Equals, ErrInvalidPerPageNum)
-
-	_, err = cc.GetLatestMessages(0, 1)
-	c.Assert(err, Equals, ErrInvalidChatID)
-	_, err = cc.GetLatestMessages(1, 0)
+	_, err = cc.GetMessages(1, -1)
 	c.Assert(err, Equals, ErrInvalidMessageNum)
 
 	_, err = cc.GetMessage(0)
