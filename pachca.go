@@ -666,10 +666,9 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -813,10 +812,9 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -939,10 +937,9 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1011,10 +1008,9 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1146,10 +1142,9 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1292,10 +1287,9 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return users, nil
@@ -1548,10 +1542,9 @@ func (c *Client) GetMessages(chatID uint, minLastMessages int) (Messages, error)
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1617,10 +1610,9 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -2154,10 +2146,9 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
