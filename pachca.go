@@ -74,7 +74,7 @@ const (
 	CHAT_ROLE_EDITOR ChatRole = "editor"
 	CHAT_ROLE_MEMBER ChatRole = "member"
 
-	CHAT_ROLE_ANY = "all"
+	CHAT_ROLE_ANY ChatRole = "all"
 )
 
 const (
@@ -231,7 +231,7 @@ type Message struct {
 	EntityID        uint        `json:"entity_id"`
 	ChatID          uint        `json:"chat_id"`
 	ParentMessageID uint        `json:"parent_message_id"`
-	UsedID          uint        `json:"user_id"`
+	UserID          uint        `json:"user_id"`
 	EntityType      EntityType  `json:"entity_type"`
 	Content         string      `json:"content"`
 	CreatedAt       Date        `json:"created_at"`
@@ -280,7 +280,7 @@ type Button struct {
 // Buttons is a slice of buttons
 type Buttons []ButtonLine
 
-// ButtonCollection
+// ButtonLine is a single row of buttons
 type ButtonLine []*Button
 
 // Upload contains upload info used for uploading files
@@ -479,36 +479,37 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilClient          = errors.New("client is nil")
-	ErrNilUserRequest     = errors.New("user request is nil")
-	ErrNilChatRequest     = errors.New("chat request is nil")
-	ErrNilMessageRequest  = errors.New("message request is nil")
-	ErrNilPropertyRequest = errors.New("property request is nil")
-	ErrNilViewRequest     = errors.New("view request is nil")
-	ErrNilView            = errors.New("view data is nil")
-	ErrEmptyToken         = errors.New("token is empty")
-	ErrEmptyTag           = errors.New("group tag is empty")
-	ErrEmptyMessage       = errors.New("message text is empty")
-	ErrEmptyUserEmail     = errors.New("user email is required for creating user account")
-	ErrEmptyChatName      = errors.New("name is required for creating new chat")
-	ErrEmptyUsersIDS      = errors.New("users IDs are empty")
-	ErrEmptyTagsIDS       = errors.New("tags IDs are empty")
-	ErrEmptyFilePath      = errors.New("path to file is empty")
-	ErrInvalidToken       = errors.New("token has wrong format")
-	ErrInvalidMessageID   = errors.New("message ID must be greater than 0")
-	ErrInvalidChatID      = errors.New("chat ID must be greater than 0")
-	ErrInvalidUserID      = errors.New("user ID must be greater than 0")
-	ErrInvalidThreadID    = errors.New("thread ID must be greater than 0")
-	ErrInvalidTagID       = errors.New("group tag ID must be greater than 0")
-	ErrInvalidEntityID    = errors.New("entity ID must be greater than 0")
-	ErrInvalidBotID       = errors.New("bot ID must be greater than 0")
-	ErrInvalidEventID     = errors.New("invalid event ID")
-	ErrBlankReaction      = errors.New("non-blank emoji is required")
-	ErrEmptyPreviews      = errors.New("previews map has no data")
-	ErrInvalidMessageNum  = errors.New("number of messages must be greater than 0")
-	ErrViewHasNoBlocks    = errors.New("view has no blocks")
-	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
-	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
+	ErrNilClient           = errors.New("client is nil")
+	ErrNilUserRequest      = errors.New("user request is nil")
+	ErrNilChatRequest      = errors.New("chat request is nil")
+	ErrNilMessageRequest   = errors.New("message request is nil")
+	ErrNilPropertyRequest  = errors.New("property request is nil")
+	ErrNilViewRequest      = errors.New("view request is nil")
+	ErrNilView             = errors.New("view data is nil")
+	ErrEmptyToken          = errors.New("token is empty")
+	ErrEmptyTag            = errors.New("group tag is empty")
+	ErrEmptyMessage        = errors.New("message text is empty")
+	ErrEmptyUserEmail      = errors.New("user email is required for creating user account")
+	ErrEmptyChatName       = errors.New("name is required for creating new chat")
+	ErrEmptyUsersIDS       = errors.New("users IDs are empty")
+	ErrEmptyTagsIDS        = errors.New("tags IDs are empty")
+	ErrEmptyFilePath       = errors.New("path to file is empty")
+	ErrInvalidToken        = errors.New("token has wrong format")
+	ErrInvalidMessageID    = errors.New("message ID must be greater than 0")
+	ErrInvalidChatID       = errors.New("chat ID must be greater than 0")
+	ErrInvalidUserID       = errors.New("user ID must be greater than 0")
+	ErrInvalidThreadID     = errors.New("thread ID must be greater than 0")
+	ErrInvalidTagID        = errors.New("group tag ID must be greater than 0")
+	ErrInvalidEntityID     = errors.New("entity ID must be greater than 0")
+	ErrInvalidBotID        = errors.New("bot ID must be greater than 0")
+	ErrInvalidEventID      = errors.New("invalid event ID")
+	ErrBlankReaction       = errors.New("non-blank emoji is required")
+	ErrEmptyPreviews       = errors.New("previews map has no data")
+	ErrInvalidMessageLimit = errors.New("number of messages must be greater than 0")
+	ErrViewHasNoBlocks     = errors.New("view has no blocks")
+	ErrEmptyTriggerID      = errors.New("view has empty trigger ID")
+	ErrInvalidMaxPages     = errors.New("minimum number of result pages must be greater than 0")
+	ErrEmptyWebhookURL     = errors.New("webhook URL is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -666,10 +667,9 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -813,10 +813,9 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -939,10 +938,9 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1011,10 +1009,9 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1146,10 +1143,9 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1264,12 +1260,9 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		return nil, fmt.Errorf("unknown chat users role %q", memberRole)
 	}
 
-	query := req.Query{
-		"role":  memberRole,
-		"limit": c.getBatchSize(),
-	}
+	var result Users
 
-	var users Users
+	query := req.Query{"role": memberRole, "limit": c.getBatchSize()}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1286,19 +1279,18 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 			return nil, fmt.Errorf("can't fetch chat users info: %w", err)
 		}
 
-		users = append(users, resp.Data...)
+		result = append(result, resp.Data...)
 
 		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
-	return users, nil
+	return result, nil
 }
 
 // AddChatUsers adds users with given IDs to the chat, channel or thread
@@ -1514,21 +1506,21 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 // GetMessages returns messages from given chat
 //
 // https://dev.pachca.com/messages/list
-func (c *Client) GetMessages(chatID uint, minLastMessages int) (Messages, error) {
+func (c *Client) GetMessages(chatID uint, limit int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
 	case chatID == 0:
 		return nil, ErrInvalidChatID
-	case minLastMessages < 1:
-		return nil, ErrInvalidMessageNum
+	case limit < 1:
+		return nil, ErrInvalidMessageLimit
 	}
 
 	var result Messages
 
 	batchSize := c.getBatchSize()
-	limit := min(minLastMessages, batchSize)
-	query := req.Query{"chat_id": chatID, "limit": limit}
+	reqLimit := min(limit, batchSize)
+	query := req.Query{"chat_id": chatID, "limit": reqLimit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1544,14 +1536,13 @@ func (c *Client) GetMessages(chatID uint, minLastMessages int) (Messages, error)
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= minLastMessages {
+		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= reqLimit {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -1617,10 +1608,9 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -2090,7 +2080,7 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	case botID == 0:
 		return ErrInvalidBotID
 	case webhookURL == "":
-		return ErrEmptyFilePath
+		return ErrEmptyWebhookURL
 	}
 
 	payload := struct {
@@ -2154,10 +2144,9 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 			break
 		}
 
-		query.SetIf(
-			resp.Meta != nil && resp.Meta.Paginate != nil,
-			"cursor", resp.Meta.Paginate.NextPage,
-		)
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
 	}
 
 	return result, nil
@@ -2259,10 +2248,10 @@ func (p Properties) Find(name string) *Property {
 // FindAny returns first found property with one of given names
 func (p Properties) FindAny(name ...string) *Property {
 	for _, n := range name {
-		p := p.Find(n)
+		pp := p.Find(n)
 
-		if p != nil {
-			return p
+		if pp != nil {
+			return pp
 		}
 	}
 
@@ -2342,7 +2331,7 @@ func (p *Property) ToInt() (int, error) {
 	case p.Value == "":
 		return 0, nil
 	case p.Type != PROP_TYPE_NUMBER:
-		return 0, fmt.Errorf("invalid property type for date (%s)", p.Type)
+		return 0, fmt.Errorf("invalid property type for number (%s)", p.Type)
 	}
 
 	return strconv.Atoi(p.Value)
@@ -2691,7 +2680,7 @@ func (t *Thread) URL() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// AddBlock adds new blocks to the view
+// AddBlocks adds new blocks to the view
 func (v *View) AddBlocks(blocks ...block.Block) *View {
 	if v == nil || len(blocks) == 0 {
 		return v
@@ -2747,10 +2736,10 @@ func (f ChatFilter) ToQuery() req.Query {
 
 	query.SetIf(f.Public, "availability", "public")
 	query.SetIf(!f.LastMessageBefore.IsZero(),
-		"last_message_at_before", formatDate(f.LastMessageBefore),
+		"last_message_at_before", formatDate(f.LastMessageBefore.UTC()),
 	)
 	query.SetIf(!f.LastMessageAfter.IsZero(),
-		"last_message_at_after", formatDate(f.LastMessageAfter),
+		"last_message_at_after", formatDate(f.LastMessageAfter.UTC()),
 	)
 
 	if len(f.Sort) != 0 {

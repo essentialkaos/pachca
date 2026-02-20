@@ -298,7 +298,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.GetMessages(0, 1)
 	c.Assert(err, Equals, ErrInvalidChatID)
 	_, err = cc.GetMessages(1, -1)
-	c.Assert(err, Equals, ErrInvalidMessageNum)
+	c.Assert(err, Equals, ErrInvalidMessageLimit)
 
 	_, err = cc.GetMessage(0)
 	c.Assert(err, Equals, ErrInvalidMessageID)
@@ -367,7 +367,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	err = cc.UpdateBot(0, "")
 	c.Assert(err, Equals, ErrInvalidBotID)
 	err = cc.UpdateBot(1, "")
-	c.Assert(err, Equals, ErrEmptyFilePath)
+	c.Assert(err, Equals, ErrEmptyWebhookURL)
 	_, err = cc.GetWebhookEvents(0)
 	c.Assert(err, Equals, ErrInvalidMaxPages)
 	err = cc.DeleteWebhookEvent("")
