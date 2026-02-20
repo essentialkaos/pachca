@@ -278,7 +278,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.GetChatUsers(0, CHAT_ROLE_ANY)
 	c.Assert(err, Equals, ErrInvalidChatID)
 	_, err = cc.GetChatUsers(1, ChatRole("test"))
-	c.Assert(err, ErrorMatches, `Unknown chat users role "test"`)
+	c.Assert(err, ErrorMatches, `unknown chat users role "test"`)
 
 	c.Assert(cc.AddChatUsers(0, []uint{1, 2, 3}, true), Equals, ErrInvalidChatID)
 	c.Assert(cc.AddChatUsers(1, nil, true), Equals, ErrEmptyUsersIDS)
@@ -291,7 +291,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	c.Assert(cc.SetChatUserRole(0, 1, CHAT_ROLE_ADMIN), Equals, ErrInvalidChatID)
 	c.Assert(cc.SetChatUserRole(1, 0, CHAT_ROLE_ADMIN), Equals, ErrInvalidUserID)
-	c.Assert(cc.SetChatUserRole(1, 1, ChatRole("test")).Error(), Equals, `Invalid chat role "test" (must be admin, editor or member)`)
+	c.Assert(cc.SetChatUserRole(1, 1, ChatRole("test")).Error(), Equals, `invalid chat role "test" (must be admin, editor or member)`)
 
 	c.Assert(cc.ExcludeChatTag(0, 1), Equals, ErrInvalidChatID)
 	c.Assert(cc.ExcludeChatTag(1, 0), Equals, ErrInvalidTagID)
@@ -396,7 +396,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	err = cc.OpenView(&ViewRequest{View: &View{}})
 	c.Assert(err, Equals, ErrEmptyTriggerID)
 	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "test", View: &View{}})
-	c.Assert(err, ErrorMatches, `Unknown form type "test"`)
+	c.Assert(err, ErrorMatches, `unknown form type "test"`)
 	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "modal", View: &View{}})
 	c.Assert(err, Equals, ErrViewHasNoBlocks)
 }

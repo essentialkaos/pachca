@@ -479,38 +479,38 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilClient          = errors.New("Client is nil")
-	ErrNilUserRequest     = errors.New("User request is nil")
-	ErrNilChatRequest     = errors.New("Chat request is nil")
-	ErrNilMessageRequest  = errors.New("Message request is nil")
-	ErrNilPropertyRequest = errors.New("Property request is nil")
-	ErrNilViewRequest     = errors.New("View request is nil")
-	ErrNilView            = errors.New("View data is nil")
-	ErrEmptyToken         = errors.New("Token is empty")
-	ErrEmptyTag           = errors.New("Group tag is empty")
-	ErrEmptyMessage       = errors.New("Message text is empty")
-	ErrEmptyUserEmail     = errors.New("User email is required for creating user account")
-	ErrEmptyChatName      = errors.New("Name is required for creating new chat")
-	ErrEmptyUsersIDS      = errors.New("Users IDs are empty")
-	ErrEmptyTagsIDS       = errors.New("Tags IDs are empty")
-	ErrEmptyFilePath      = errors.New("Path to file is empty")
-	ErrInvalidToken       = errors.New("Token has wrong format")
-	ErrInvalidMessageID   = errors.New("Message ID must be greater than 0")
-	ErrInvalidChatID      = errors.New("Chat ID must be greater than 0")
-	ErrInvalidUserID      = errors.New("User ID must be greater than 0")
-	ErrInvalidThreadID    = errors.New("Thread ID must be greater than 0")
-	ErrInvalidTagID       = errors.New("Group tag ID must be greater than 0")
-	ErrInvalidEntityID    = errors.New("Entity ID must be greater than 0")
-	ErrInvalidBotID       = errors.New("Bot ID must be greater than 0")
-	ErrInvalidEventID     = errors.New("Invalid event ID")
-	ErrBlankReaction      = errors.New("Non-blank emoji is required")
-	ErrEmptyPreviews      = errors.New("Previews map has no data")
-	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
-	ErrInvalidMessageNum  = errors.New("Number of messages must be greater than 0")
-	ErrInvalidPerPageNum  = errors.New("Per page number must be between 1 and 50")
-	ErrViewHasNoBlocks    = errors.New("View has no blocks")
-	ErrEmptyTriggerID     = errors.New("View has empty trigger ID")
-	ErrInvalidMaxPages    = errors.New("Minimum number of result pages must be greater than 0")
+	ErrNilClient          = errors.New("client is nil")
+	ErrNilUserRequest     = errors.New("user request is nil")
+	ErrNilChatRequest     = errors.New("chat request is nil")
+	ErrNilMessageRequest  = errors.New("message request is nil")
+	ErrNilPropertyRequest = errors.New("property request is nil")
+	ErrNilViewRequest     = errors.New("view request is nil")
+	ErrNilView            = errors.New("view data is nil")
+	ErrEmptyToken         = errors.New("token is empty")
+	ErrEmptyTag           = errors.New("group tag is empty")
+	ErrEmptyMessage       = errors.New("message text is empty")
+	ErrEmptyUserEmail     = errors.New("user email is required for creating user account")
+	ErrEmptyChatName      = errors.New("name is required for creating new chat")
+	ErrEmptyUsersIDS      = errors.New("users IDs are empty")
+	ErrEmptyTagsIDS       = errors.New("tags IDs are empty")
+	ErrEmptyFilePath      = errors.New("path to file is empty")
+	ErrInvalidToken       = errors.New("token has wrong format")
+	ErrInvalidMessageID   = errors.New("message ID must be greater than 0")
+	ErrInvalidChatID      = errors.New("chat ID must be greater than 0")
+	ErrInvalidUserID      = errors.New("user ID must be greater than 0")
+	ErrInvalidThreadID    = errors.New("thread ID must be greater than 0")
+	ErrInvalidTagID       = errors.New("group tag ID must be greater than 0")
+	ErrInvalidEntityID    = errors.New("entity ID must be greater than 0")
+	ErrInvalidBotID       = errors.New("bot ID must be greater than 0")
+	ErrInvalidEventID     = errors.New("invalid event ID")
+	ErrBlankReaction      = errors.New("non-blank emoji is required")
+	ErrEmptyPreviews      = errors.New("previews map has no data")
+	ErrInvalidPageNum     = errors.New("page number must be greater than 0")
+	ErrInvalidMessageNum  = errors.New("number of messages must be greater than 0")
+	ErrInvalidPerPageNum  = errors.New("per page number must be between 1 and 50")
+	ErrViewHasNoBlocks    = errors.New("view has no blocks")
+	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
+	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -624,7 +624,7 @@ func (c *Client) GetProperties() (Properties, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch custom properties: %w", err)
+		return nil, fmt.Errorf("can't fetch custom properties: %w", err)
 	}
 
 	return resp.Data, nil
@@ -660,7 +660,7 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch reactions for message %d: %w", messageID, err)
+			return nil, fmt.Errorf("can't fetch reactions for message %d: %w", messageID, err)
 		}
 
 		result = append(result, resp.Data...)
@@ -696,7 +696,7 @@ func (c *Client) AddReaction(messageID uint, reaction string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add reaction %q to message %d: %w", reaction, messageID, err)
+		return fmt.Errorf("can't add reaction %q to message %d: %w", reaction, messageID, err)
 	}
 
 	return nil
@@ -724,7 +724,7 @@ func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't remove reaction %q from message %d: %w", reaction, messageID, err)
+		return fmt.Errorf("can't remove reaction %q from message %d: %w", reaction, messageID, err)
 	}
 
 	return nil
@@ -747,7 +747,7 @@ func (c *Client) CurrentUser() (*User, error) {
 	err := c.sendRequest(req.GET, getURL("/profile"), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch current user info: %w", err)
+		return nil, fmt.Errorf("can't fetch current user info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -774,7 +774,7 @@ func (c *Client) GetUser(userID uint) (*User, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch user info: %w", err)
+		return nil, fmt.Errorf("can't fetch user info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -806,7 +806,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 		err := c.sendRequest(req.GET, getURL("/users"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch users: %w", err)
+			return nil, fmt.Errorf("can't fetch users: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -845,7 +845,7 @@ func (c *Client) AddUser(user *UserRequest) (*User, error) {
 	err := c.sendRequest(req.POST, getURL("/users"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create a new user: %w", err)
+		return nil, fmt.Errorf("can't create a new user: %w", err)
 	}
 
 	return resp.Data, nil
@@ -877,7 +877,7 @@ func (c *Client) EditUser(userID uint, user *UserRequest) (*User, error) {
 	err := c.sendRequest(req.PUT, getURL("/users/%d", userID), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't edit user %d: %w", userID, err)
+		return nil, fmt.Errorf("can't edit user %d: %w", userID, err)
 	}
 
 	return resp.Data, nil
@@ -897,7 +897,7 @@ func (c *Client) DeleteUser(userID uint) error {
 	err := c.sendRequest(req.DELETE, getURL("/users/%d", userID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete user %d: %w", userID, err)
+		return fmt.Errorf("can't delete user %d: %w", userID, err)
 	}
 
 	return nil
@@ -928,7 +928,7 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 		err := c.sendRequest(req.GET, getURL("/group_tags"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch group tags: %w", err)
+			return nil, fmt.Errorf("can't fetch group tags: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -962,7 +962,7 @@ func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch group tag: %w", err)
+		return nil, fmt.Errorf("can't fetch group tag: %w", err)
 	}
 
 	return resp.Data, nil
@@ -996,7 +996,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch group tag users: %w", err)
+			return nil, fmt.Errorf("can't fetch group tag users: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -1033,7 +1033,7 @@ func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 	err := c.sendRequest(req.POST, getURL("/group_tags"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create new group tag %q: %w", groupTagName, err)
+		return nil, fmt.Errorf("can't create new group tag %q: %w", groupTagName, err)
 	}
 
 	return resp.Data, nil
@@ -1068,7 +1068,7 @@ func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't edit group tag %d: %w", groupTagID, err)
+		return nil, fmt.Errorf("can't edit group tag %d: %w", groupTagID, err)
 	}
 
 	return resp.Data, nil
@@ -1091,7 +1091,7 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete group tag %d: %w", groupTagID, err)
+		return fmt.Errorf("can't delete group tag %d: %w", groupTagID, err)
 	}
 
 	return nil
@@ -1126,7 +1126,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch chats: %w", err)
+			return nil, fmt.Errorf("can't fetch chats: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -1162,7 +1162,7 @@ func (c *Client) GetChat(chatID uint) (*Chat, error) {
 	err := c.sendRequest(req.GET, getURL("/chats/%d", chatID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch chat info: %w", err)
+		return nil, fmt.Errorf("can't fetch chat info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1194,7 +1194,7 @@ func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 	err := c.sendRequest(req.POST, getURL("/chats"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create a new chat %q: %w", chat.Name, err)
+		return nil, fmt.Errorf("can't create a new chat %q: %w", chat.Name, err)
 	}
 
 	return resp.Data, nil
@@ -1226,7 +1226,7 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	err := c.sendRequest(req.PUT, getURL("/chats/%d", chatID), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't modify chat %d: %w", chatID, err)
+		return nil, fmt.Errorf("can't modify chat %d: %w", chatID, err)
 	}
 
 	return resp.Data, nil
@@ -1250,7 +1250,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER:
 		// okay
 	default:
-		return nil, fmt.Errorf("Unknown chat users role %q", memberRole)
+		return nil, fmt.Errorf("unknown chat users role %q", memberRole)
 	}
 
 	query := req.Query{
@@ -1272,7 +1272,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch chat users info: %w", err)
+			return nil, fmt.Errorf("can't fetch chat users info: %w", err)
 		}
 
 		users = append(users, resp.Data...)
@@ -1290,9 +1290,9 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	return users, nil
 }
 
-// AddChatUsers adds users with given IDs to the chat
+// AddChatUsers adds users with given IDs to the chat, channel or thread
 //
-// https://crm.pachca.com/dev/members/users/new/
+// https://dev.pachca.com/members/add-members
 func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1321,7 +1321,7 @@ func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add users to chat %d: %w", chatID, err)
+		return fmt.Errorf("can't add users to chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1352,7 +1352,7 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add group tags to chat %d: %w", chatID, err)
+		return fmt.Errorf("can't add group tags to chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1376,7 +1376,7 @@ func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 		// okay
 	default:
 		return fmt.Errorf(
-			"Invalid chat role %q (must be %s, %s or %s)",
+			"invalid chat role %q (must be %s, %s or %s)",
 			role, CHAT_ROLE_ADMIN, CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER,
 		)
 	}
@@ -1388,7 +1388,7 @@ func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 
 	if err != nil {
 		return fmt.Errorf(
-			"Can't set role to %q for user with ID %d in chat %d: %w",
+			"can't set role to %q for user with ID %d in chat %d: %w",
 			role, userID, chatID, err,
 		)
 	}
@@ -1416,7 +1416,7 @@ func (c *Client) ExcludeChatUser(chatID, userID uint) error {
 
 	if err != nil {
 		return fmt.Errorf(
-			"Can't exclude user %d from chat %d: %w",
+			"can't exclude user %d from chat %d: %w",
 			userID, chatID, err,
 		)
 	}
@@ -1444,7 +1444,7 @@ func (c *Client) ExcludeChatTag(chatID, tagID uint) error {
 
 	if err != nil {
 		return fmt.Errorf(
-			"Can't exclude group tag %d from chat %d: %w",
+			"can't exclude group tag %d from chat %d: %w",
 			tagID, chatID, err,
 		)
 	}
@@ -1469,7 +1469,7 @@ func (c *Client) ArchiveChat(chatID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't archive chat %d: %w", chatID, err)
+		return fmt.Errorf("can't archive chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1492,7 +1492,7 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't unarchive chat %d: %w", chatID, err)
+		return fmt.Errorf("can't unarchive chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1523,7 +1523,7 @@ func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
 	err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't get messages of chat with ID %d: %w", chatID, err)
+		return nil, fmt.Errorf("can't get messages of chat with ID %d: %w", chatID, err)
 	}
 
 	return resp.Data, nil
@@ -1582,7 +1582,7 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	err := c.sendRequest(req.GET, getURL("/messages/%d", messageID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch message info: %w", err)
+		return nil, fmt.Errorf("can't fetch message info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1616,7 +1616,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch message reads info: %w", err)
+			return nil, fmt.Errorf("can't fetch message reads info: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -1655,7 +1655,7 @@ func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 	err := c.sendRequest(req.POST, getURL("/messages"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create a new message: %w", err)
+		return nil, fmt.Errorf("can't create a new message: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1687,7 +1687,7 @@ func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message,
 	err := c.sendRequest(req.PUT, getURL("/messages/%d", messageID), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't modify message %d: %w", messageID, err)
+		return nil, fmt.Errorf("can't modify message %d: %w", messageID, err)
 	}
 
 	return resp.Data, nil
@@ -1707,7 +1707,7 @@ func (c *Client) DeleteMessage(messageID uint) error {
 	err := c.sendRequest(req.DELETE, getURL("/messages/%d", messageID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete message %d: %w", messageID, err)
+		return fmt.Errorf("can't delete message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1727,7 +1727,7 @@ func (c *Client) PinMessage(messageID uint) error {
 	err := c.sendRequest(req.POST, getURL("/messages/%d/pin", messageID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't pin message %d: %w", messageID, err)
+		return fmt.Errorf("can't pin message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1750,7 +1750,7 @@ func (c *Client) UnpinMessage(messageID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't unpin message %d: %w", messageID, err)
+		return fmt.Errorf("can't unpin message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1782,7 +1782,7 @@ func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add previews to message %d: %w", messageID, err)
+		return fmt.Errorf("can't add previews to message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1903,7 +1903,7 @@ func (c *Client) GetThread(threadID uint) (*Thread, error) {
 	err := c.sendRequest(req.GET, getURL("/threads/%d", threadID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch thread info: %w", err)
+		return nil, fmt.Errorf("can't fetch thread info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1930,7 +1930,7 @@ func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create thread for message %d: %w", messageID, err)
+		return nil, fmt.Errorf("can't create thread for message %d: %w", messageID, err)
 	}
 
 	return resp.Data, nil
@@ -1986,7 +1986,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	fd, err := os.Open(file)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't open file %q to upload: %w", file, err)
+		return nil, fmt.Errorf("can't open file %q to upload: %w", file, err)
 	}
 
 	defer fd.Close()
@@ -1994,18 +1994,18 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	stat, err := fd.Stat()
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't get file %q info: %w", file, err)
+		return nil, fmt.Errorf("can't get file %q info: %w", file, err)
 	}
 
 	if stat.Size() >= c.MaxFileSize {
-		return nil, fmt.Errorf("File size exceeds the limit (%d ≥ %d)", stat.Size(), c.MaxFileSize)
+		return nil, fmt.Errorf("file size exceeds the limit (%d ≥ %d)", stat.Size(), c.MaxFileSize)
 	}
 
 	upload := &Upload{}
 	err = c.sendRequest(req.POST, getURL("/uploads"), nil, nil, upload)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create upload for file %q: %w", file, err)
+		return nil, fmt.Errorf("can't create upload for file %q: %w", file, err)
 	}
 
 	fileName := path.Base(fd.Name())
@@ -2033,7 +2033,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		)
 
 		if !errs.IsEmpty() {
-			pw.CloseWithError(fmt.Errorf("Can't create multipart upload: %w", errs.First()))
+			pw.CloseWithError(fmt.Errorf("can't create multipart upload: %w", errs.First()))
 			return
 		}
 
@@ -2061,14 +2061,14 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't send request to API: %w", err)
+		return nil, fmt.Errorf("can't send request to API: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf(
-			"Can't upload file %q data (key: %s | status: %d): %w",
+			"can't upload file %q data (key: %s | status: %d): %w",
 			file, upload.Key, resp.StatusCode, extractS3Error(resp.String()),
 		)
 	}
@@ -2109,7 +2109,7 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	err := c.sendRequest(req.PUT, getURL("/bots/%d", botID), nil, &payload, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't update bot settings: %w", err)
+		return fmt.Errorf("can't update bot settings: %w", err)
 	}
 
 	return nil
@@ -2148,7 +2148,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 		err := c.sendRequest(req.GET, getURL("/webhooks/events"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch webhook events: %w", err)
+			return nil, fmt.Errorf("can't fetch webhook events: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -2183,7 +2183,7 @@ func (c *Client) DeleteWebhookEvent(eventID string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete webhook event with ID %s: %w", eventID, err)
+		return fmt.Errorf("can't delete webhook event with ID %s: %w", eventID, err)
 	}
 
 	return nil
@@ -2205,7 +2205,7 @@ func (c *Client) OpenView(view *ViewRequest) error {
 	case view.TriggerID == "":
 		return ErrEmptyTriggerID
 	case view.Type != VIEW_MODAL:
-		return fmt.Errorf("Unknown form type %q", view.Type)
+		return fmt.Errorf("unknown form type %q", view.Type)
 	case len(view.View.Blocks) == 0:
 		return ErrViewHasNoBlocks
 	}
@@ -2217,7 +2217,7 @@ func (c *Client) OpenView(view *ViewRequest) error {
 	err := c.sendRequest(req.POST, getURL("/views/open"), nil, view, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't open view: %w", err)
+		return fmt.Errorf("can't open view: %w", err)
 	}
 
 	return nil
@@ -2325,7 +2325,7 @@ func (p *Property) ToDate() (time.Time, error) {
 	case p.Value == "":
 		return time.Time{}, nil
 	case p.Type != PROP_TYPE_DATE:
-		return time.Time{}, fmt.Errorf("Invalid property type for date (%s)", p.Type)
+		return time.Time{}, fmt.Errorf("invalid property type for date (%s)", p.Type)
 	}
 
 	return parseDate(p.Value)
@@ -2345,7 +2345,7 @@ func (p *Property) ToInt() (int, error) {
 	case p.Value == "":
 		return 0, nil
 	case p.Type != PROP_TYPE_NUMBER:
-		return 0, fmt.Errorf("Invalid property type for date (%s)", p.Type)
+		return 0, fmt.Errorf("invalid property type for date (%s)", p.Type)
 	}
 
 	return strconv.Atoi(p.Value)
@@ -2790,7 +2790,7 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 	resp, err := c.engine.Do(r)
 
 	if err != nil {
-		return fmt.Errorf("Can't send request to API: %w", err)
+		return fmt.Errorf("can't send request to API: %w", err)
 	}
 
 	defer resp.Discard()
@@ -2815,7 +2815,7 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 		err = resp.JSON(response)
 
 		if err != nil {
-			return fmt.Errorf("Can't decode API response: %w", err)
+			return fmt.Errorf("can't decode API response: %w", err)
 		}
 	}
 
