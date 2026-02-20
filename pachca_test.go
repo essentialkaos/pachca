@@ -367,7 +367,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	err = cc.UpdateBot(0, "")
 	c.Assert(err, Equals, ErrInvalidBotID)
 	err = cc.UpdateBot(1, "")
-	c.Assert(err, Equals, ErrEmptyFilePath)
+	c.Assert(err, Equals, ErrEmptyWebhookURL)
 	_, err = cc.GetWebhookEvents(0)
 	c.Assert(err, Equals, ErrInvalidMaxPages)
 	err = cc.DeleteWebhookEvent("")

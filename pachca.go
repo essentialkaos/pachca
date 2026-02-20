@@ -74,7 +74,7 @@ const (
 	CHAT_ROLE_EDITOR ChatRole = "editor"
 	CHAT_ROLE_MEMBER ChatRole = "member"
 
-	CHAT_ROLE_ANY = "all"
+	CHAT_ROLE_ANY ChatRole = "all"
 )
 
 const (
