@@ -509,6 +509,7 @@ var (
 	ErrViewHasNoBlocks    = errors.New("view has no blocks")
 	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
 	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
+	ErrEmptyWebhookURL    = errors.New("webhook URL is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -2082,7 +2083,7 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	case botID == 0:
 		return ErrInvalidBotID
 	case webhookURL == "":
-		return ErrEmptyFilePath
+		return ErrEmptyWebhookURL
 	}
 
 	payload := struct {
