@@ -1,5 +1,11 @@
 ## Changelog
 
+### [0.22.1](https://kaos.sh/pachca/0.22.1)
+
+- Fixed using non-UTC time for chat filter
+- Fixed error for empty webhook URL
+- Code refactoring
+
 ### [0.22.0](https://kaos.sh/pachca/0.22.0)
 
 - Migrated to cursor-based pagination
