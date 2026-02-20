@@ -85,7 +85,7 @@ type Basic struct {
 
 // WebhookMessage contains payload of new message webhook
 //
-// https://crm.pachca.com/dev/getting-started/webhooks/#new-message
+// https://dev.pachca.com/guides/webhook#novye-soobscheniya
 type Message struct {
 	Basic
 	MessageID       uint              `json:"id"`
@@ -103,7 +103,7 @@ type Message struct {
 
 // Reaction contains payload of reaction webhook
 //
-// https://crm.pachca.com/dev/getting-started/webhooks/#reaction
+// https://dev.pachca.com/guides/webhook#dobavlenie-i-udalenie-reaktsiy
 type Reaction struct {
 	Basic
 	Event     WebhookEvent `json:"event"`
@@ -114,7 +114,7 @@ type Reaction struct {
 
 // Button contains payload of button webhook
 //
-// https://crm.pachca.com/dev/getting-started/webhooks/#button
+// https://dev.pachca.com/guides/webhook#nazhatie-knopok
 type Button struct {
 	Basic
 	Data      string `json:"data"`
@@ -125,7 +125,7 @@ type Button struct {
 
 // ChatMember contains payload of chat members changes webhook
 //
-// https://crm.pachca.com/dev/getting-started/webhooks/#chat-member
+// https://dev.pachca.com/guides/webhook#izmenenie-sostava-uchastnikov-chatov
 type ChatMember struct {
 	Basic
 	Event     WebhookEvent `json:"event"`
@@ -137,7 +137,7 @@ type ChatMember struct {
 
 // OrgMember contains payload of organization members changes webhook
 //
-// https://crm.pachca.com/dev/getting-started/webhooks/#company-member
+// https://dev.pachca.com/guides/webhook#izmenenie-sostava-uchastnikov-prostranstva
 type OrgMember struct {
 	Basic
 	Event     WebhookEvent `json:"event"`
@@ -146,6 +146,8 @@ type OrgMember struct {
 }
 
 // View contains payload from view form
+//
+// https://dev.pachca.com/guides/forms#otkrytie-predstavleniya
 type View struct {
 	Basic
 	Event      WebhookEvent    `json:"event"`

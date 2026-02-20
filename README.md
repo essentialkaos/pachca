@@ -12,7 +12,7 @@
 
 <br/>
 
-`pachca` is Go package for working with [Pachca](https://www.pachca.com) [API](https://crm.pachca.com/dev/getting-started/requests-and-responses/).
+`pachca` is Go package for working with [Pachca](https://www.pachca.com) [API](https://dev.pachca.com).
 
 ### CI Status
 

@@ -606,7 +606,7 @@ func (c *Client) Engine() *req.Engine {
 
 // GetProperties returns custom properties
 //
-// https://crm.pachca.com/dev/common/fields/
+// https://dev.pachca.com/common/list
 func (c *Client) GetProperties() (Properties, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -634,7 +634,7 @@ func (c *Client) GetProperties() (Properties, error) {
 
 // GetReactions returns slice with reactions added to given message
 //
-// https://crm.pachca.com/dev/reactions/list/
+// https://dev.pachca.com/reactions/list-reactions
 func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -676,7 +676,7 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 // AddReaction adds given emoji reaction to the message. To add custom reaction
 // add it name after amoji using ":" as separator. For example "😲:omg".
 //
-// https://crm.pachca.com/dev/reactions/new/
+// https://dev.pachca.com/reactions/add-reactions
 func (c *Client) AddReaction(messageID uint, reaction string) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -704,7 +704,7 @@ func (c *Client) AddReaction(messageID uint, reaction string) error {
 
 // DeleteReaction removes given emoji reaction from the message
 //
-// https://crm.pachca.com/dev/reactions/delete/
+// https://dev.pachca.com/reactions/remove-reactions
 func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 	switch {
 	case c == nil:
@@ -734,7 +734,7 @@ func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 
 // CurrentUser returns info about current user
 //
-// https://crm.pachca.com/dev/profile/get/
+// https://dev.pachca.com/profile/profile
 func (c *Client) CurrentUser() (*User, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -753,9 +753,9 @@ func (c *Client) CurrentUser() (*User, error) {
 	return resp.Data, nil
 }
 
-// GetUser returns info about user
+// GetUser returns info about specific user
 //
-// https://crm.pachca.com/dev/users/get/
+// https://dev.pachca.com/users/get
 func (c *Client) GetUser(userID uint) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -782,7 +782,7 @@ func (c *Client) GetUser(userID uint) (*User, error) {
 
 // GetUsers returns info about all users
 //
-// https://crm.pachca.com/dev/users/list/
+// https://dev.pachca.com/users/list
 func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -821,7 +821,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 // AddUser creates a new user
 //
-// https://crm.pachca.com/dev/users/new/
+// https://dev.pachca.com/users/create
 func (c *Client) AddUser(user *UserRequest) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -853,7 +853,7 @@ func (c *Client) AddUser(user *UserRequest) (*User, error) {
 
 // EditUser modifies an existing user
 //
-// https://crm.pachca.com/dev/users/update/
+// https://dev.pachca.com/users/update
 func (c *Client) EditUser(userID uint, user *UserRequest) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -885,7 +885,7 @@ func (c *Client) EditUser(userID uint, user *UserRequest) (*User, error) {
 
 // DeleteUser deletes an existing user
 //
-// https://crm.pachca.com/dev/users/delete/
+// https://dev.pachca.com/users/delete
 func (c *Client) DeleteUser(userID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -907,7 +907,7 @@ func (c *Client) DeleteUser(userID uint) error {
 
 // GetTags returns all group tags
 //
-// https://crm.pachca.com/dev/group_tags/list/
+// https://dev.pachca.com/group-tags/list
 func (c *Client) GetTags(names ...string) (Tags, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -943,7 +943,7 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 // GetTag returns info about group tag with given ID
 //
-// https://crm.pachca.com/dev/group_tags/get/
+// https://dev.pachca.com/group-tags/get
 func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -970,7 +970,7 @@ func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 
 // GetTagUsers returns slice with users with given tag
 //
-// https://crm.pachca.com/dev/group_tags/users/
+// https://dev.pachca.com/group-tags/list-users
 func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1011,7 +1011,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 // AddTag creates new group tag
 //
-// https://crm.pachca.com/dev/group_tags/new/
+// https://dev.pachca.com/group-tags/create
 func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1041,7 +1041,7 @@ func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 
 // EditTag changes name of given group tag
 //
-// https://crm.pachca.com/dev/group_tags/update/
+// http://dev.pachca.com/group-tags/update
 func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1076,7 +1076,7 @@ func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
 
 // DeleteTag removes group tag
 //
-// https://crm.pachca.com/dev/group_tags/delete/
+// https://dev.pachca.com/group-tags/delete
 func (c *Client) DeleteTag(groupTagID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1101,7 +1101,7 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // GetChats returns all chats and conversations
 //
-// https://crm.pachca.com/dev/chats/list/
+// https://dev.pachca.com/chats/list
 func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -1146,7 +1146,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 
 // GetChat returns info about specific channel
 //
-// https://crm.pachca.com/dev/chats/get/
+// https://dev.pachca.com/chats/get
 func (c *Client) GetChat(chatID uint) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1170,7 +1170,7 @@ func (c *Client) GetChat(chatID uint) (*Chat, error) {
 
 // AddChat creates new chat
 //
-// https://crm.pachca.com/dev/chats/new/
+// https://dev.pachca.com/chats/create
 func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1202,7 +1202,7 @@ func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 
 // EditChat modifies chat
 //
-// https://crm.pachca.com/dev/chats/new/
+// https://dev.pachca.com/chats/update
 func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1234,7 +1234,7 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 
 // GetChatUsers returns all users of given chat
 //
-// https://crm.pachca.com/dev/members/users/list/
+// https://dev.pachca.com/members/list-members
 func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1329,7 +1329,7 @@ func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error
 
 // AddChatTags adds group tags to the chat
 //
-// https://crm.pachca.com/dev/members/tags/new/
+// https://dev.pachca.com/members/add-group-tags
 func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1360,7 +1360,7 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 
 // SetChatUserRole sets user role in given chat
 //
-// https://crm.pachca.com/dev/members/users/update/
+// https://dev.pachca.com/members/update-members
 func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1398,7 +1398,7 @@ func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 
 // ExcludeChatUser excludes the user from the chat
 //
-// https://crm.pachca.com/dev/members/users/delete/
+// https://dev.pachca.com/members/remove-member
 func (c *Client) ExcludeChatUser(chatID, userID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1426,7 +1426,7 @@ func (c *Client) ExcludeChatUser(chatID, userID uint) error {
 
 // ExcludeChatTag excludes the group tag from the chat
 //
-// https://crm.pachca.com/dev/members/tags/delete/
+// https://dev.pachca.com/members/remove-group-tag
 func (c *Client) ExcludeChatTag(chatID, tagID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1454,7 +1454,7 @@ func (c *Client) ExcludeChatTag(chatID, tagID uint) error {
 
 // ArchiveChat sends chat to archive
 //
-// https://crm.pachca.com/dev/chats/archive/
+// https://dev.pachca.com/chats/update-archive
 func (c *Client) ArchiveChat(chatID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1477,7 +1477,7 @@ func (c *Client) ArchiveChat(chatID uint) error {
 
 // UnarchiveChat restores chat from archive
 //
-// https://crm.pachca.com/dev/chats/unarchive/
+// https://dev.pachca.com/chats/update-unarchive
 func (c *Client) UnarchiveChat(chatID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1502,7 +1502,7 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 
 // GetMessages returns messages from given chat
 //
-// https://crm.pachca.com/dev/messages/list/
+// https://dev.pachca.com/messages/list
 func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1566,7 +1566,7 @@ func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, erro
 
 // GetMessage returns info about message
 //
-// https://crm.pachca.com/dev/messages/get/
+// https://dev.pachca.com/messages/get
 func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1590,7 +1590,7 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 
 // GetMessageReads returns a slice with IDs of users who have read the message
 //
-// https://crm.pachca.com/dev/read_members/list/
+// https://dev.pachca.com/read-member/list-read-member-ids
 func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1631,7 +1631,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 // AddMessage creates new message to user or chat
 //
-// https://crm.pachca.com/dev/messages/new/
+// https://dev.pachca.com/messages/create
 func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1663,7 +1663,7 @@ func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 
 // EditMessage modifies message
 //
-// https://crm.pachca.com/dev/messages/update/
+// https://dev.pachca.com/messages/update
 func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1695,7 +1695,7 @@ func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message,
 
 // DeleteMessage deletes message with given ID
 //
-// https://crm.pachca.com/dev/messages/delete/
+// https://dev.pachca.com/messages/delete
 func (c *Client) DeleteMessage(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1715,7 +1715,7 @@ func (c *Client) DeleteMessage(messageID uint) error {
 
 // PinMessage pins message to chat
 //
-// https://crm.pachca.com/dev/messages/pin/new/
+// https://dev.pachca.com/messages/pin
 func (c *Client) PinMessage(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1735,7 +1735,7 @@ func (c *Client) PinMessage(messageID uint) error {
 
 // UnpinMessage unpins message from chat
 //
-// https://crm.pachca.com/dev/messages/pin/new/
+// https://dev.pachca.com/messages/unpin
 func (c *Client) UnpinMessage(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1758,7 +1758,7 @@ func (c *Client) UnpinMessage(messageID uint) error {
 
 // AddLinkPreview adds link previews to message with given ID
 //
-// https://crm.pachca.com/dev/messages/link_previews/
+// https://dev.pachca.com/link-previews/add-link-previews
 func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1887,7 +1887,7 @@ func (c *Client) DeleteMessageButtons(messageID uint) error {
 
 // GetThread returns info about thread
 //
-// https://crm.pachca.com/dev/threads/get/
+// https://dev.pachca.com/thread/get
 func (c *Client) GetThread(threadID uint) (*Thread, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1911,7 +1911,7 @@ func (c *Client) GetThread(threadID uint) (*Thread, error) {
 
 // NewThread creates a new tread
 //
-// https://crm.pachca.com/dev/threads/new/
+// https://dev.pachca.com/thread/add-thread
 func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1974,7 +1974,7 @@ func (c *Client) AddThreadMessageText(messageID uint, text string) (*Thread, *Me
 
 // UploadFile uploads new file and returns key of it
 //
-// https://crm.pachca.com/dev/common/files/
+// https://dev.pachca.com/common/direct-url
 func (c *Client) UploadFile(file string) (*File, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2085,7 +2085,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 // UpdateBot updates bot webhook URL
 //
-// https://crm.pachca.com/dev/bots/update/
+// https://dev.pachca.com/bots/update
 func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2127,7 +2127,7 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 //	    // Handle webhook based on type
 //	}
 //
-// https://crm.pachca.com/dev/webhooks/events/get/
+// https://dev.pachca.com/bots/list-events
 func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2168,7 +2168,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 
 // DeleteWebhookEvent deletes webhook event with given ID
 //
-// https://crm.pachca.com/dev/webhooks/events/delete/
+// https://dev.pachca.com/bots/remove-event
 func (c *Client) DeleteWebhookEvent(eventID string) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2193,7 +2193,7 @@ func (c *Client) DeleteWebhookEvent(eventID string) error {
 
 // OpenView opens view with form
 //
-// https://crm.pachca.com/dev/forms/views/open/
+// https://dev.pachca.com/views/create-open
 func (c *Client) OpenView(view *ViewRequest) error {
 	switch {
 	case c == nil || c.engine == nil:
