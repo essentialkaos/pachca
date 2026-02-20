@@ -231,7 +231,7 @@ type Message struct {
 	EntityID        uint        `json:"entity_id"`
 	ChatID          uint        `json:"chat_id"`
 	ParentMessageID uint        `json:"parent_message_id"`
-	UsedID          uint        `json:"user_id"`
+	UserID          uint        `json:"user_id"`
 	EntityType      EntityType  `json:"entity_type"`
 	Content         string      `json:"content"`
 	CreatedAt       Date        `json:"created_at"`
