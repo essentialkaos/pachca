@@ -1,5 +1,11 @@
 ## Changelog
 
+### [0.22.0](https://kaos.sh/pachca/0.22.0)
+
+- Migrated to cursor-based pagination
+- Removed helper `GetLatestMessages` due to API changes
+- Code refactoring
+
 ### [0.21.1](https://kaos.sh/pachca/0.21.1)
 
 - Code refactoring

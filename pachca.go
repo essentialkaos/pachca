@@ -95,7 +95,7 @@ const (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // MAX_PAGES is the maximum number of pages using for listing items
-const MAX_PAGES = 100_000
+const MAX_PAGES = 1_000
 
 // MAX_PER_PAGE is the maximum number of entities per page
 const MAX_PER_PAGE = 50
@@ -479,38 +479,36 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilClient          = errors.New("Client is nil")
-	ErrNilUserRequest     = errors.New("User request is nil")
-	ErrNilChatRequest     = errors.New("Chat request is nil")
-	ErrNilMessageRequest  = errors.New("Message request is nil")
-	ErrNilPropertyRequest = errors.New("Property request is nil")
-	ErrNilViewRequest     = errors.New("View request is nil")
-	ErrNilView            = errors.New("View data is nil")
-	ErrEmptyToken         = errors.New("Token is empty")
-	ErrEmptyTag           = errors.New("Group tag is empty")
-	ErrEmptyMessage       = errors.New("Message text is empty")
-	ErrEmptyUserEmail     = errors.New("User email is required for creating user account")
-	ErrEmptyChatName      = errors.New("Name is required for creating new chat")
-	ErrEmptyUsersIDS      = errors.New("Users IDs are empty")
-	ErrEmptyTagsIDS       = errors.New("Tags IDs are empty")
-	ErrEmptyFilePath      = errors.New("Path to file is empty")
-	ErrInvalidToken       = errors.New("Token has wrong format")
-	ErrInvalidMessageID   = errors.New("Message ID must be greater than 0")
-	ErrInvalidChatID      = errors.New("Chat ID must be greater than 0")
-	ErrInvalidUserID      = errors.New("User ID must be greater than 0")
-	ErrInvalidThreadID    = errors.New("Thread ID must be greater than 0")
-	ErrInvalidTagID       = errors.New("Group tag ID must be greater than 0")
-	ErrInvalidEntityID    = errors.New("Entity ID must be greater than 0")
-	ErrInvalidBotID       = errors.New("Bot ID must be greater than 0")
-	ErrInvalidEventID     = errors.New("Invalid event ID")
-	ErrBlankReaction      = errors.New("Non-blank emoji is required")
-	ErrEmptyPreviews      = errors.New("Previews map has no data")
-	ErrInvalidPageNum     = errors.New("Page number must be greater than 0")
-	ErrInvalidMessageNum  = errors.New("Number of messages must be greater than 0")
-	ErrInvalidPerPageNum  = errors.New("Per page number must be between 1 and 50")
-	ErrViewHasNoBlocks    = errors.New("View has no blocks")
-	ErrEmptyTriggerID     = errors.New("View has empty trigger ID")
-	ErrInvalidMaxPages    = errors.New("Minimum number of result pages must be greater than 0")
+	ErrNilClient          = errors.New("client is nil")
+	ErrNilUserRequest     = errors.New("user request is nil")
+	ErrNilChatRequest     = errors.New("chat request is nil")
+	ErrNilMessageRequest  = errors.New("message request is nil")
+	ErrNilPropertyRequest = errors.New("property request is nil")
+	ErrNilViewRequest     = errors.New("view request is nil")
+	ErrNilView            = errors.New("view data is nil")
+	ErrEmptyToken         = errors.New("token is empty")
+	ErrEmptyTag           = errors.New("group tag is empty")
+	ErrEmptyMessage       = errors.New("message text is empty")
+	ErrEmptyUserEmail     = errors.New("user email is required for creating user account")
+	ErrEmptyChatName      = errors.New("name is required for creating new chat")
+	ErrEmptyUsersIDS      = errors.New("users IDs are empty")
+	ErrEmptyTagsIDS       = errors.New("tags IDs are empty")
+	ErrEmptyFilePath      = errors.New("path to file is empty")
+	ErrInvalidToken       = errors.New("token has wrong format")
+	ErrInvalidMessageID   = errors.New("message ID must be greater than 0")
+	ErrInvalidChatID      = errors.New("chat ID must be greater than 0")
+	ErrInvalidUserID      = errors.New("user ID must be greater than 0")
+	ErrInvalidThreadID    = errors.New("thread ID must be greater than 0")
+	ErrInvalidTagID       = errors.New("group tag ID must be greater than 0")
+	ErrInvalidEntityID    = errors.New("entity ID must be greater than 0")
+	ErrInvalidBotID       = errors.New("bot ID must be greater than 0")
+	ErrInvalidEventID     = errors.New("invalid event ID")
+	ErrBlankReaction      = errors.New("non-blank emoji is required")
+	ErrEmptyPreviews      = errors.New("previews map has no data")
+	ErrInvalidMessageNum  = errors.New("number of messages must be greater than 0")
+	ErrViewHasNoBlocks    = errors.New("view has no blocks")
+	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
+	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -606,7 +604,7 @@ func (c *Client) Engine() *req.Engine {
 
 // GetProperties returns custom properties
 //
-// https://crm.pachca.com/dev/common/fields/
+// https://dev.pachca.com/common/list
 func (c *Client) GetProperties() (Properties, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -624,7 +622,7 @@ func (c *Client) GetProperties() (Properties, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch custom properties: %w", err)
+		return nil, fmt.Errorf("can't fetch custom properties: %w", err)
 	}
 
 	return resp.Data, nil
@@ -634,7 +632,7 @@ func (c *Client) GetProperties() (Properties, error) {
 
 // GetReactions returns slice with reactions added to given message
 //
-// https://crm.pachca.com/dev/reactions/list/
+// https://dev.pachca.com/reactions/list-reactions
 func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -645,13 +643,12 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 
 	var result Reactions
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
 
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
 			Data Reactions `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -660,14 +657,19 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch reactions for message %d: %w", messageID, err)
+			return nil, fmt.Errorf("can't fetch reactions for message %d: %w", messageID, err)
 		}
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -676,7 +678,7 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 // AddReaction adds given emoji reaction to the message. To add custom reaction
 // add it name after amoji using ":" as separator. For example "😲:omg".
 //
-// https://crm.pachca.com/dev/reactions/new/
+// https://dev.pachca.com/reactions/add-reactions
 func (c *Client) AddReaction(messageID uint, reaction string) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -696,7 +698,7 @@ func (c *Client) AddReaction(messageID uint, reaction string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add reaction %q to message %d: %w", reaction, messageID, err)
+		return fmt.Errorf("can't add reaction %q to message %d: %w", reaction, messageID, err)
 	}
 
 	return nil
@@ -704,7 +706,7 @@ func (c *Client) AddReaction(messageID uint, reaction string) error {
 
 // DeleteReaction removes given emoji reaction from the message
 //
-// https://crm.pachca.com/dev/reactions/delete/
+// https://dev.pachca.com/reactions/remove-reactions
 func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 	switch {
 	case c == nil:
@@ -724,7 +726,7 @@ func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't remove reaction %q from message %d: %w", reaction, messageID, err)
+		return fmt.Errorf("can't remove reaction %q from message %d: %w", reaction, messageID, err)
 	}
 
 	return nil
@@ -734,7 +736,7 @@ func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 
 // CurrentUser returns info about current user
 //
-// https://crm.pachca.com/dev/profile/get/
+// https://dev.pachca.com/profile/profile
 func (c *Client) CurrentUser() (*User, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -747,15 +749,15 @@ func (c *Client) CurrentUser() (*User, error) {
 	err := c.sendRequest(req.GET, getURL("/profile"), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch current user info: %w", err)
+		return nil, fmt.Errorf("can't fetch current user info: %w", err)
 	}
 
 	return resp.Data, nil
 }
 
-// GetUser returns info about user
+// GetUser returns info about specific user
 //
-// https://crm.pachca.com/dev/users/get/
+// https://dev.pachca.com/users/get
 func (c *Client) GetUser(userID uint) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -774,7 +776,7 @@ func (c *Client) GetUser(userID uint) (*User, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch user info: %w", err)
+		return nil, fmt.Errorf("can't fetch user info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -782,7 +784,7 @@ func (c *Client) GetUser(userID uint) (*User, error) {
 
 // GetUsers returns info about all users
 //
-// https://crm.pachca.com/dev/users/list/
+// https://dev.pachca.com/users/list
 func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -790,30 +792,31 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 	var result Users
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
+	query.SetIf(len(searchQuery) != 0, "query", searchQuery[0])
 
-	if len(searchQuery) != 0 {
-		query["query"] = searchQuery[0]
-	}
-
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
-			Data Users `json:"data"`
+			Data Users     `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/users"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch users: %w", err)
+			return nil, fmt.Errorf("can't fetch users: %w", err)
 		}
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -821,7 +824,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 // AddUser creates a new user
 //
-// https://crm.pachca.com/dev/users/new/
+// https://dev.pachca.com/users/create
 func (c *Client) AddUser(user *UserRequest) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -845,7 +848,7 @@ func (c *Client) AddUser(user *UserRequest) (*User, error) {
 	err := c.sendRequest(req.POST, getURL("/users"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create a new user: %w", err)
+		return nil, fmt.Errorf("can't create a new user: %w", err)
 	}
 
 	return resp.Data, nil
@@ -853,7 +856,7 @@ func (c *Client) AddUser(user *UserRequest) (*User, error) {
 
 // EditUser modifies an existing user
 //
-// https://crm.pachca.com/dev/users/update/
+// https://dev.pachca.com/users/update
 func (c *Client) EditUser(userID uint, user *UserRequest) (*User, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -877,7 +880,7 @@ func (c *Client) EditUser(userID uint, user *UserRequest) (*User, error) {
 	err := c.sendRequest(req.PUT, getURL("/users/%d", userID), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't edit user %d: %w", userID, err)
+		return nil, fmt.Errorf("can't edit user %d: %w", userID, err)
 	}
 
 	return resp.Data, nil
@@ -885,7 +888,7 @@ func (c *Client) EditUser(userID uint, user *UserRequest) (*User, error) {
 
 // DeleteUser deletes an existing user
 //
-// https://crm.pachca.com/dev/users/delete/
+// https://dev.pachca.com/users/delete
 func (c *Client) DeleteUser(userID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -897,7 +900,7 @@ func (c *Client) DeleteUser(userID uint) error {
 	err := c.sendRequest(req.DELETE, getURL("/users/%d", userID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete user %d: %w", userID, err)
+		return fmt.Errorf("can't delete user %d: %w", userID, err)
 	}
 
 	return nil
@@ -907,7 +910,7 @@ func (c *Client) DeleteUser(userID uint) error {
 
 // GetTags returns all group tags
 //
-// https://crm.pachca.com/dev/group_tags/list/
+// https://dev.pachca.com/group-tags/list
 func (c *Client) GetTags(names ...string) (Tags, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -915,27 +918,31 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 	var result Tags
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
 	query.SetIf(len(names) > 0, "names[]", names)
 
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
-			Data Tags `json:"data"`
+			Data Tags      `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/group_tags"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch group tags: %w", err)
+			return nil, fmt.Errorf("can't fetch group tags: %w", err)
 		}
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -943,7 +950,7 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 // GetTag returns info about group tag with given ID
 //
-// https://crm.pachca.com/dev/group_tags/get/
+// https://dev.pachca.com/group-tags/get
 func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -962,7 +969,7 @@ func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch group tag: %w", err)
+		return nil, fmt.Errorf("can't fetch group tag: %w", err)
 	}
 
 	return resp.Data, nil
@@ -970,7 +977,7 @@ func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 
 // GetTagUsers returns slice with users with given tag
 //
-// https://crm.pachca.com/dev/group_tags/users/
+// https://dev.pachca.com/group-tags/list-users
 func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -981,13 +988,12 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 	var result Users
 
-	query := req.Query{"per": c.getBatchSize()}
+	query := req.Query{"limit": c.getBatchSize()}
 
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
-
+	for range MAX_PAGES {
 		resp := &struct {
-			Data Users `json:"data"`
+			Data Users     `json:"data"`
+			Meta *Metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -996,14 +1002,19 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch group tag users: %w", err)
+			return nil, fmt.Errorf("can't fetch group tag users: %w", err)
 		}
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -1011,7 +1022,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 // AddTag creates new group tag
 //
-// https://crm.pachca.com/dev/group_tags/new/
+// https://dev.pachca.com/group-tags/create
 func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1033,7 +1044,7 @@ func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 	err := c.sendRequest(req.POST, getURL("/group_tags"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create new group tag %q: %w", groupTagName, err)
+		return nil, fmt.Errorf("can't create new group tag %q: %w", groupTagName, err)
 	}
 
 	return resp.Data, nil
@@ -1041,7 +1052,7 @@ func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 
 // EditTag changes name of given group tag
 //
-// https://crm.pachca.com/dev/group_tags/update/
+// http://dev.pachca.com/group-tags/update
 func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1068,7 +1079,7 @@ func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't edit group tag %d: %w", groupTagID, err)
+		return nil, fmt.Errorf("can't edit group tag %d: %w", groupTagID, err)
 	}
 
 	return resp.Data, nil
@@ -1076,7 +1087,7 @@ func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
 
 // DeleteTag removes group tag
 //
-// https://crm.pachca.com/dev/group_tags/delete/
+// https://dev.pachca.com/group-tags/delete
 func (c *Client) DeleteTag(groupTagID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1091,7 +1102,7 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete group tag %d: %w", groupTagID, err)
+		return fmt.Errorf("can't delete group tag %d: %w", groupTagID, err)
 	}
 
 	return nil
@@ -1101,7 +1112,7 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // GetChats returns all chats and conversations
 //
-// https://crm.pachca.com/dev/chats/list/
+// https://dev.pachca.com/chats/list
 func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	if c == nil || c.engine == nil {
 		return nil, ErrNilClient
@@ -1117,7 +1128,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		query["limit"] = c.getBatchSize()
 	}
 
-	for i := 0; i < MAX_PAGES; i++ {
+	for range MAX_PAGES {
 		resp := &struct {
 			Data Chats     `json:"data"`
 			Meta *Metadata `json:"meta"`
@@ -1126,12 +1137,12 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch chats: %w", err)
+			return nil, fmt.Errorf("can't fetch chats: %w", err)
 		}
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 
@@ -1146,7 +1157,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 
 // GetChat returns info about specific channel
 //
-// https://crm.pachca.com/dev/chats/get/
+// https://dev.pachca.com/chats/get
 func (c *Client) GetChat(chatID uint) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1162,7 +1173,7 @@ func (c *Client) GetChat(chatID uint) (*Chat, error) {
 	err := c.sendRequest(req.GET, getURL("/chats/%d", chatID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch chat info: %w", err)
+		return nil, fmt.Errorf("can't fetch chat info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1170,7 +1181,7 @@ func (c *Client) GetChat(chatID uint) (*Chat, error) {
 
 // AddChat creates new chat
 //
-// https://crm.pachca.com/dev/chats/new/
+// https://dev.pachca.com/chats/create
 func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1194,7 +1205,7 @@ func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 	err := c.sendRequest(req.POST, getURL("/chats"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create a new chat %q: %w", chat.Name, err)
+		return nil, fmt.Errorf("can't create a new chat %q: %w", chat.Name, err)
 	}
 
 	return resp.Data, nil
@@ -1202,7 +1213,7 @@ func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 
 // EditChat modifies chat
 //
-// https://crm.pachca.com/dev/chats/new/
+// https://dev.pachca.com/chats/update
 func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1226,7 +1237,7 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	err := c.sendRequest(req.PUT, getURL("/chats/%d", chatID), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't modify chat %d: %w", chatID, err)
+		return nil, fmt.Errorf("can't modify chat %d: %w", chatID, err)
 	}
 
 	return resp.Data, nil
@@ -1234,7 +1245,7 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 
 // GetChatUsers returns all users of given chat
 //
-// https://crm.pachca.com/dev/members/users/list/
+// https://dev.pachca.com/members/list-members
 func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1250,7 +1261,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER:
 		// okay
 	default:
-		return nil, fmt.Errorf("Unknown chat users role %q", memberRole)
+		return nil, fmt.Errorf("unknown chat users role %q", memberRole)
 	}
 
 	query := req.Query{
@@ -1260,7 +1271,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 	var users Users
 
-	for i := 0; i < MAX_PAGES; i++ {
+	for range MAX_PAGES {
 		resp := &struct {
 			Data Users     `json:"data"`
 			Meta *Metadata `json:"meta"`
@@ -1272,12 +1283,12 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch chat users info: %w", err)
+			return nil, fmt.Errorf("can't fetch chat users info: %w", err)
 		}
 
 		users = append(users, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 
@@ -1290,9 +1301,9 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	return users, nil
 }
 
-// AddChatUsers adds users with given IDs to the chat
+// AddChatUsers adds users with given IDs to the chat, channel or thread
 //
-// https://crm.pachca.com/dev/members/users/new/
+// https://dev.pachca.com/members/add-members
 func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1321,7 +1332,7 @@ func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add users to chat %d: %w", chatID, err)
+		return fmt.Errorf("can't add users to chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1329,7 +1340,7 @@ func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error
 
 // AddChatTags adds group tags to the chat
 //
-// https://crm.pachca.com/dev/members/tags/new/
+// https://dev.pachca.com/members/add-group-tags
 func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1352,7 +1363,7 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add group tags to chat %d: %w", chatID, err)
+		return fmt.Errorf("can't add group tags to chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1360,7 +1371,7 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 
 // SetChatUserRole sets user role in given chat
 //
-// https://crm.pachca.com/dev/members/users/update/
+// https://dev.pachca.com/members/update-members
 func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1376,7 +1387,7 @@ func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 		// okay
 	default:
 		return fmt.Errorf(
-			"Invalid chat role %q (must be %s, %s or %s)",
+			"invalid chat role %q (must be %s, %s or %s)",
 			role, CHAT_ROLE_ADMIN, CHAT_ROLE_EDITOR, CHAT_ROLE_MEMBER,
 		)
 	}
@@ -1388,7 +1399,7 @@ func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 
 	if err != nil {
 		return fmt.Errorf(
-			"Can't set role to %q for user with ID %d in chat %d: %w",
+			"can't set role to %q for user with ID %d in chat %d: %w",
 			role, userID, chatID, err,
 		)
 	}
@@ -1398,7 +1409,7 @@ func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
 
 // ExcludeChatUser excludes the user from the chat
 //
-// https://crm.pachca.com/dev/members/users/delete/
+// https://dev.pachca.com/members/remove-member
 func (c *Client) ExcludeChatUser(chatID, userID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1416,7 +1427,7 @@ func (c *Client) ExcludeChatUser(chatID, userID uint) error {
 
 	if err != nil {
 		return fmt.Errorf(
-			"Can't exclude user %d from chat %d: %w",
+			"can't exclude user %d from chat %d: %w",
 			userID, chatID, err,
 		)
 	}
@@ -1426,7 +1437,7 @@ func (c *Client) ExcludeChatUser(chatID, userID uint) error {
 
 // ExcludeChatTag excludes the group tag from the chat
 //
-// https://crm.pachca.com/dev/members/tags/delete/
+// https://dev.pachca.com/members/remove-group-tag
 func (c *Client) ExcludeChatTag(chatID, tagID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1444,7 +1455,7 @@ func (c *Client) ExcludeChatTag(chatID, tagID uint) error {
 
 	if err != nil {
 		return fmt.Errorf(
-			"Can't exclude group tag %d from chat %d: %w",
+			"can't exclude group tag %d from chat %d: %w",
 			tagID, chatID, err,
 		)
 	}
@@ -1454,7 +1465,7 @@ func (c *Client) ExcludeChatTag(chatID, tagID uint) error {
 
 // ArchiveChat sends chat to archive
 //
-// https://crm.pachca.com/dev/chats/archive/
+// https://dev.pachca.com/chats/update-archive
 func (c *Client) ArchiveChat(chatID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1469,7 +1480,7 @@ func (c *Client) ArchiveChat(chatID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't archive chat %d: %w", chatID, err)
+		return fmt.Errorf("can't archive chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1477,7 +1488,7 @@ func (c *Client) ArchiveChat(chatID uint) error {
 
 // UnarchiveChat restores chat from archive
 //
-// https://crm.pachca.com/dev/chats/unarchive/
+// https://dev.pachca.com/chats/update-unarchive
 func (c *Client) UnarchiveChat(chatID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1492,7 +1503,7 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't unarchive chat %d: %w", chatID, err)
+		return fmt.Errorf("can't unarchive chat %d: %w", chatID, err)
 	}
 
 	return nil
@@ -1502,63 +1513,45 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 
 // GetMessages returns messages from given chat
 //
-// https://crm.pachca.com/dev/messages/list/
-func (c *Client) GetMessages(chatID uint, page, perPage int) (Messages, error) {
+// https://dev.pachca.com/messages/list
+func (c *Client) GetMessages(chatID uint, minLastMessages int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
 	case chatID == 0:
 		return nil, ErrInvalidChatID
-	case page < 1:
-		return nil, ErrInvalidPageNum
-	case perPage < 1 || perPage > MAX_PER_PAGE:
-		return nil, ErrInvalidPerPageNum
-	}
-
-	resp := &struct {
-		Data Messages `json:"data"`
-	}{}
-
-	query := req.Query{"chat_id": chatID, "page": page, "per": perPage}
-	err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't get messages of chat with ID %d: %w", chatID, err)
-	}
-
-	return resp.Data, nil
-}
-
-// GetLatestMessages returns specified number of the latest messages from the chat
-func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, error) {
-	switch {
-	case c == nil || c.engine == nil:
-		return nil, ErrNilClient
-	case chatID == 0:
-		return nil, ErrInvalidChatID
-	case numMessages < 1:
+	case minLastMessages < 1:
 		return nil, ErrInvalidMessageNum
 	}
 
-	result := make(Messages, 0, numMessages)
+	var result Messages
 
-	var perPage int
+	batchSize := c.getBatchSize()
+	limit := min(minLastMessages, batchSize)
+	query := req.Query{"chat_id": chatID, "limit": limit}
 
-	for page := 1; page < MAX_PAGES; page++ {
-		perPage = min(MAX_PER_PAGE, numMessages)
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
 
-		messages, err := c.GetMessages(chatID, page, perPage)
+		err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't get messages of chat with ID %d: %w", chatID, err)
 		}
 
-		result = append(result, messages...)
-		numMessages -= len(messages)
+		result = append(result, resp.Data...)
 
-		if perPage < MAX_PER_PAGE || len(messages) < MAX_PER_PAGE {
+		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= minLastMessages {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -1566,7 +1559,7 @@ func (c *Client) GetLatestMessages(chatID uint, numMessages int) (Messages, erro
 
 // GetMessage returns info about message
 //
-// https://crm.pachca.com/dev/messages/get/
+// https://dev.pachca.com/messages/get
 func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1582,7 +1575,7 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	err := c.sendRequest(req.GET, getURL("/messages/%d", messageID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch message info: %w", err)
+		return nil, fmt.Errorf("can't fetch message info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1590,7 +1583,7 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 
 // GetMessageReads returns a slice with IDs of users who have read the message
 //
-// https://crm.pachca.com/dev/read_members/list/
+// https://dev.pachca.com/read-member/list-read-member-ids
 func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1601,14 +1594,13 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 	var result []uint
 
-	resp := &struct {
-		Data []uint `json:"data"`
-	}{}
+	query := req.Query{"limit": 300}
 
-	query := req.Query{"per": 300}
-
-	for i := 1; i < MAX_PAGES; i++ {
-		query["page"] = i
+	for range MAX_PAGES {
+		resp := &struct {
+			Data []uint    `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
 
 		err := c.sendRequest(
 			req.GET, getURL("/messages/%d/read_member_ids", messageID),
@@ -1616,7 +1608,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch message reads info: %w", err)
+			return nil, fmt.Errorf("can't fetch message reads info: %w", err)
 		}
 
 		result = append(result, resp.Data...)
@@ -1624,6 +1616,11 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 		if len(resp.Data) != 300 {
 			break
 		}
+
+		query.SetIf(
+			resp.Meta != nil && resp.Meta.Paginate != nil,
+			"cursor", resp.Meta.Paginate.NextPage,
+		)
 	}
 
 	return result, nil
@@ -1631,7 +1628,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 // AddMessage creates new message to user or chat
 //
-// https://crm.pachca.com/dev/messages/new/
+// https://dev.pachca.com/messages/create
 func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1655,7 +1652,7 @@ func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 	err := c.sendRequest(req.POST, getURL("/messages"), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create a new message: %w", err)
+		return nil, fmt.Errorf("can't create a new message: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1663,7 +1660,7 @@ func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 
 // EditMessage modifies message
 //
-// https://crm.pachca.com/dev/messages/update/
+// https://dev.pachca.com/messages/update
 func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1687,7 +1684,7 @@ func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message,
 	err := c.sendRequest(req.PUT, getURL("/messages/%d", messageID), nil, payload, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't modify message %d: %w", messageID, err)
+		return nil, fmt.Errorf("can't modify message %d: %w", messageID, err)
 	}
 
 	return resp.Data, nil
@@ -1695,7 +1692,7 @@ func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message,
 
 // DeleteMessage deletes message with given ID
 //
-// https://crm.pachca.com/dev/messages/delete/
+// https://dev.pachca.com/messages/delete
 func (c *Client) DeleteMessage(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1707,7 +1704,7 @@ func (c *Client) DeleteMessage(messageID uint) error {
 	err := c.sendRequest(req.DELETE, getURL("/messages/%d", messageID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete message %d: %w", messageID, err)
+		return fmt.Errorf("can't delete message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1715,7 +1712,7 @@ func (c *Client) DeleteMessage(messageID uint) error {
 
 // PinMessage pins message to chat
 //
-// https://crm.pachca.com/dev/messages/pin/new/
+// https://dev.pachca.com/messages/pin
 func (c *Client) PinMessage(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1727,7 +1724,7 @@ func (c *Client) PinMessage(messageID uint) error {
 	err := c.sendRequest(req.POST, getURL("/messages/%d/pin", messageID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't pin message %d: %w", messageID, err)
+		return fmt.Errorf("can't pin message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1735,7 +1732,7 @@ func (c *Client) PinMessage(messageID uint) error {
 
 // UnpinMessage unpins message from chat
 //
-// https://crm.pachca.com/dev/messages/pin/new/
+// https://dev.pachca.com/messages/unpin
 func (c *Client) UnpinMessage(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1750,7 +1747,7 @@ func (c *Client) UnpinMessage(messageID uint) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't unpin message %d: %w", messageID, err)
+		return fmt.Errorf("can't unpin message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1758,7 +1755,7 @@ func (c *Client) UnpinMessage(messageID uint) error {
 
 // AddLinkPreview adds link previews to message with given ID
 //
-// https://crm.pachca.com/dev/messages/link_previews/
+// https://dev.pachca.com/link-previews/add-link-previews
 func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1782,7 +1779,7 @@ func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't add previews to message %d: %w", messageID, err)
+		return fmt.Errorf("can't add previews to message %d: %w", messageID, err)
 	}
 
 	return nil
@@ -1887,7 +1884,7 @@ func (c *Client) DeleteMessageButtons(messageID uint) error {
 
 // GetThread returns info about thread
 //
-// https://crm.pachca.com/dev/threads/get/
+// https://dev.pachca.com/thread/get
 func (c *Client) GetThread(threadID uint) (*Thread, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1903,7 +1900,7 @@ func (c *Client) GetThread(threadID uint) (*Thread, error) {
 	err := c.sendRequest(req.GET, getURL("/threads/%d", threadID), nil, nil, resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch thread info: %w", err)
+		return nil, fmt.Errorf("can't fetch thread info: %w", err)
 	}
 
 	return resp.Data, nil
@@ -1911,7 +1908,7 @@ func (c *Client) GetThread(threadID uint) (*Thread, error) {
 
 // NewThread creates a new tread
 //
-// https://crm.pachca.com/dev/threads/new/
+// https://dev.pachca.com/thread/add-thread
 func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1930,7 +1927,7 @@ func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create thread for message %d: %w", messageID, err)
+		return nil, fmt.Errorf("can't create thread for message %d: %w", messageID, err)
 	}
 
 	return resp.Data, nil
@@ -1974,7 +1971,7 @@ func (c *Client) AddThreadMessageText(messageID uint, text string) (*Thread, *Me
 
 // UploadFile uploads new file and returns key of it
 //
-// https://crm.pachca.com/dev/common/files/
+// https://dev.pachca.com/common/direct-url
 func (c *Client) UploadFile(file string) (*File, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -1986,7 +1983,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	fd, err := os.Open(file)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't open file %q to upload: %w", file, err)
+		return nil, fmt.Errorf("can't open file %q to upload: %w", file, err)
 	}
 
 	defer fd.Close()
@@ -1994,18 +1991,18 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	stat, err := fd.Stat()
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't get file %q info: %w", file, err)
+		return nil, fmt.Errorf("can't get file %q info: %w", file, err)
 	}
 
 	if stat.Size() >= c.MaxFileSize {
-		return nil, fmt.Errorf("File size exceeds the limit (%d ≥ %d)", stat.Size(), c.MaxFileSize)
+		return nil, fmt.Errorf("file size exceeds the limit (%d ≥ %d)", stat.Size(), c.MaxFileSize)
 	}
 
 	upload := &Upload{}
 	err = c.sendRequest(req.POST, getURL("/uploads"), nil, nil, upload)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't create upload for file %q: %w", file, err)
+		return nil, fmt.Errorf("can't create upload for file %q: %w", file, err)
 	}
 
 	fileName := path.Base(fd.Name())
@@ -2033,7 +2030,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 		)
 
 		if !errs.IsEmpty() {
-			pw.CloseWithError(fmt.Errorf("Can't create multipart upload: %w", errs.First()))
+			pw.CloseWithError(fmt.Errorf("can't create multipart upload: %w", errs.First()))
 			return
 		}
 
@@ -2061,14 +2058,14 @@ func (c *Client) UploadFile(file string) (*File, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't send request to API: %w", err)
+		return nil, fmt.Errorf("can't send request to API: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf(
-			"Can't upload file %q data (key: %s | status: %d): %w",
+			"can't upload file %q data (key: %s | status: %d): %w",
 			file, upload.Key, resp.StatusCode, extractS3Error(resp.String()),
 		)
 	}
@@ -2085,7 +2082,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 // UpdateBot updates bot webhook URL
 //
-// https://crm.pachca.com/dev/bots/update/
+// https://dev.pachca.com/bots/update
 func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2109,7 +2106,7 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	err := c.sendRequest(req.PUT, getURL("/bots/%d", botID), nil, &payload, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't update bot settings: %w", err)
+		return fmt.Errorf("can't update bot settings: %w", err)
 	}
 
 	return nil
@@ -2127,7 +2124,7 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 //	    // Handle webhook based on type
 //	}
 //
-// https://crm.pachca.com/dev/webhooks/events/get/
+// https://dev.pachca.com/bots/list-events
 func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2148,12 +2145,12 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 		err := c.sendRequest(req.GET, getURL("/webhooks/events"), query, nil, resp)
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't fetch webhook events: %w", err)
+			return nil, fmt.Errorf("can't fetch webhook events: %w", err)
 		}
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != c.getBatchSize() {
+		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
 			break
 		}
 
@@ -2168,7 +2165,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 
 // DeleteWebhookEvent deletes webhook event with given ID
 //
-// https://crm.pachca.com/dev/webhooks/events/delete/
+// https://dev.pachca.com/bots/remove-event
 func (c *Client) DeleteWebhookEvent(eventID string) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2183,7 +2180,7 @@ func (c *Client) DeleteWebhookEvent(eventID string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Can't delete webhook event with ID %s: %w", eventID, err)
+		return fmt.Errorf("can't delete webhook event with ID %s: %w", eventID, err)
 	}
 
 	return nil
@@ -2193,7 +2190,7 @@ func (c *Client) DeleteWebhookEvent(eventID string) error {
 
 // OpenView opens view with form
 //
-// https://crm.pachca.com/dev/forms/views/open/
+// https://dev.pachca.com/views/create-open
 func (c *Client) OpenView(view *ViewRequest) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2205,7 +2202,7 @@ func (c *Client) OpenView(view *ViewRequest) error {
 	case view.TriggerID == "":
 		return ErrEmptyTriggerID
 	case view.Type != VIEW_MODAL:
-		return fmt.Errorf("Unknown form type %q", view.Type)
+		return fmt.Errorf("unknown form type %q", view.Type)
 	case len(view.View.Blocks) == 0:
 		return ErrViewHasNoBlocks
 	}
@@ -2217,7 +2214,7 @@ func (c *Client) OpenView(view *ViewRequest) error {
 	err := c.sendRequest(req.POST, getURL("/views/open"), nil, view, nil)
 
 	if err != nil {
-		return fmt.Errorf("Can't open view: %w", err)
+		return fmt.Errorf("can't open view: %w", err)
 	}
 
 	return nil
@@ -2325,7 +2322,7 @@ func (p *Property) ToDate() (time.Time, error) {
 	case p.Value == "":
 		return time.Time{}, nil
 	case p.Type != PROP_TYPE_DATE:
-		return time.Time{}, fmt.Errorf("Invalid property type for date (%s)", p.Type)
+		return time.Time{}, fmt.Errorf("invalid property type for date (%s)", p.Type)
 	}
 
 	return parseDate(p.Value)
@@ -2345,7 +2342,7 @@ func (p *Property) ToInt() (int, error) {
 	case p.Value == "":
 		return 0, nil
 	case p.Type != PROP_TYPE_NUMBER:
-		return 0, fmt.Errorf("Invalid property type for date (%s)", p.Type)
+		return 0, fmt.Errorf("invalid property type for date (%s)", p.Type)
 	}
 
 	return strconv.Atoi(p.Value)
@@ -2790,7 +2787,7 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 	resp, err := c.engine.Do(r)
 
 	if err != nil {
-		return fmt.Errorf("Can't send request to API: %w", err)
+		return fmt.Errorf("can't send request to API: %w", err)
 	}
 
 	defer resp.Discard()
@@ -2815,7 +2812,7 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 		err = resp.JSON(response)
 
 		if err != nil {
-			return fmt.Errorf("Can't decode API response: %w", err)
+			return fmt.Errorf("can't decode API response: %w", err)
 		}
 	}
 

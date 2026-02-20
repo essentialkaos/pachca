@@ -22,7 +22,7 @@ type Block interface {
 
 // Header is a header block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-header
+// https://dev.pachca.com/guides/forms#zagolovok-header
 type Header struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
@@ -30,7 +30,7 @@ type Header struct {
 
 // PlainText is a plain text block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-plaintext
+// https://dev.pachca.com/guides/forms#obychnyy-tekst-plaintext
 type PlainText struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
@@ -38,7 +38,7 @@ type PlainText struct {
 
 // Markdown is a text block with markdown formatting
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-markdown
+// https://dev.pachca.com/guides/forms#formatirovannyy-tekst-markdown
 type Markdown struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
@@ -46,14 +46,14 @@ type Markdown struct {
 
 // Divider is a divider block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-divider
+// https://dev.pachca.com/guides/forms#razdelitel-divider
 type Divider struct {
 	Type string `json:"type"`
 }
 
 // Input is text input block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-input
+// https://dev.pachca.com/guides/forms#tekstovoe-pole-input
 type Input struct {
 	Type         string `json:"type"`
 	Name         string `json:"name"`
@@ -69,7 +69,7 @@ type Input struct {
 
 // Select is select list block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-select
+// https://dev.pachca.com/guides/forms#vypadayuschiy-spisok-select
 type Select struct {
 	Type       string  `json:"type"`
 	Name       string  `json:"name"`
@@ -81,7 +81,7 @@ type Select struct {
 
 // Radio is radio buttons block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-radio
+// https://dev.pachca.com/guides/forms#radioknopki-radio
 type Radio struct {
 	Type       string  `json:"type"`
 	Name       string  `json:"name"`
@@ -93,7 +93,7 @@ type Radio struct {
 
 // Checkbox is checkboxes block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-checkbox
+// https://dev.pachca.com/guides/forms#chekboksy-checkbox
 type Checkbox struct {
 	Type       string  `json:"type"`
 	Name       string  `json:"name"`
@@ -105,7 +105,7 @@ type Checkbox struct {
 
 // Date is date selection block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-date
+// https://dev.pachca.com/guides/forms#vybor-daty-date
 type Date struct {
 	Type         string `json:"type"`
 	Name         string `json:"name"`
@@ -117,7 +117,7 @@ type Date struct {
 
 // Time is time selection block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-time
+// https://dev.pachca.com/guides/forms#vybor-vremeni-time
 type Time struct {
 	Type         string `json:"type"`
 	Name         string `json:"name"`
@@ -129,7 +129,7 @@ type Time struct {
 
 // Files is file attachment block
 //
-// https://crm.pachca.com/dev/forms/views/blocks/#title-files
+// https://dev.pachca.com/guides/forms#zagruzka-faylov-fileinput
 type Files struct {
 	Type       string   `json:"type"`
 	Name       string   `json:"name"`
