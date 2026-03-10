@@ -230,11 +230,14 @@ type Message struct {
 	ID              uint        `json:"id"`
 	EntityID        uint        `json:"entity_id"`
 	ChatID          uint        `json:"chat_id"`
+	RootChatID      uint        `json:"root_chat_id"`
 	ParentMessageID uint        `json:"parent_message_id"`
 	UserID          uint        `json:"user_id"`
 	EntityType      EntityType  `json:"entity_type"`
 	Content         string      `json:"content"`
 	CreatedAt       Date        `json:"created_at"`
+	ChangedAt       Date        `json:"changed_at"`
+	DeletedAt       Date        `json:"deleted_at"`
 	Thread          *Thread     `json:"thread"`
 	Files           Files       `json:"files"`
 	Buttons         Buttons     `json:"buttons"`
