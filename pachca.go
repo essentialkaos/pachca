@@ -145,11 +145,11 @@ type SortType string
 
 // TokenInfo contains OAuth token info
 type TokenInfo struct {
-	ID         string   `json:"id"`
+	ID         uint     `json:"id"`
 	Token      string   `json:"token"`
 	Name       string   `json:"name"`
 	UserID     uint     `json:"user_id"`
-	ExpiresIn  int      `json:"expires_in"`
+	ExpiresIn  int      `json:"expires_in"` // seconds until expiration
 	CreatedAt  Date     `json:"created_at"`
 	RevokedAt  Date     `json:"revoked_at"`
 	LastUsedAt Date     `json:"last_used_at"`
@@ -552,7 +552,7 @@ var (
 	ErrNilPropertyRequest = errors.New("property request is nil")
 	ErrNilViewRequest     = errors.New("view request is nil")
 	ErrNilView            = errors.New("view data is nil")
-	ErrNilStatus          = errors.New("Status is nil")
+	ErrNilStatus          = errors.New("status is nil")
 	ErrEmptyToken         = errors.New("token is empty")
 	ErrEmptyTag           = errors.New("group tag is empty")
 	ErrEmptyMessage       = errors.New("message text is empty")
@@ -1123,7 +1123,7 @@ func (c *Client) DeleteStatus(userID uint) error {
 	err := c.sendRequest(req.DELETE, getURL("/users/%d/status", userID), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("can't delete user %d: %w", userID, err)
+		return fmt.Errorf("can't delete user %d status: %w", userID, err)
 	}
 
 	return nil
