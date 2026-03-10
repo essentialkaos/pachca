@@ -545,6 +545,7 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
+	// Nil guards
 	ErrNilClient          = errors.New("client is nil")
 	ErrNilUserRequest     = errors.New("user request is nil")
 	ErrNilChatRequest     = errors.New("chat request is nil")
@@ -553,30 +554,36 @@ var (
 	ErrNilViewRequest     = errors.New("view request is nil")
 	ErrNilView            = errors.New("view data is nil")
 	ErrNilStatus          = errors.New("status is nil")
-	ErrEmptyToken         = errors.New("token is empty")
-	ErrEmptyTag           = errors.New("group tag is empty")
-	ErrEmptyMessage       = errors.New("message text is empty")
-	ErrEmptyUserEmail     = errors.New("user email is required for creating user account")
-	ErrEmptyChatName      = errors.New("name is required for creating new chat")
-	ErrEmptyUsersIDS      = errors.New("users IDs are empty")
-	ErrEmptyTagsIDS       = errors.New("tags IDs are empty")
-	ErrEmptyFilePath      = errors.New("path to file is empty")
-	ErrInvalidToken       = errors.New("token has wrong format")
-	ErrInvalidMessageID   = errors.New("message ID must be greater than 0")
-	ErrInvalidChatID      = errors.New("chat ID must be greater than 0")
-	ErrInvalidUserID      = errors.New("user ID must be greater than 0")
-	ErrInvalidThreadID    = errors.New("thread ID must be greater than 0")
-	ErrInvalidTagID       = errors.New("group tag ID must be greater than 0")
-	ErrInvalidEntityID    = errors.New("entity ID must be greater than 0")
-	ErrInvalidBotID       = errors.New("bot ID must be greater than 0")
-	ErrInvalidEventID     = errors.New("invalid event ID")
-	ErrBlankReaction      = errors.New("non-blank emoji is required")
-	ErrEmptyPreviews      = errors.New("previews map has no data")
-	ErrInvalidMinResults  = errors.New("minimum results must be greater than 0")
-	ErrViewHasNoBlocks    = errors.New("view has no blocks")
-	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
-	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
-	ErrEmptyWebhookURL    = errors.New("webhook URL is empty")
+
+	// Empty value guards
+	ErrEmptyToken     = errors.New("token is empty")
+	ErrEmptyTag       = errors.New("group tag is empty")
+	ErrEmptyMessage   = errors.New("message text is empty")
+	ErrEmptyUserEmail = errors.New("user email is empty")
+	ErrEmptyChatName  = errors.New("chat name is empty")
+	ErrEmptyUsersIDS  = errors.New("users IDs list is empty")
+	ErrEmptyTagsIDS   = errors.New("tags IDs list is empty")
+	ErrEmptyFilePath  = errors.New("file path is empty")
+	ErrEmptyPreviews  = errors.New("link previews map is empty")
+	ErrEmptyTriggerID = errors.New("view trigger ID is empty")
+
+	// Invalid value guards
+	ErrInvalidToken      = errors.New("token format is invalid")
+	ErrInvalidMessageID  = errors.New("message ID must be greater than 0")
+	ErrInvalidChatID     = errors.New("chat ID must be greater than 0")
+	ErrInvalidUserID     = errors.New("user ID must be greater than 0")
+	ErrInvalidThreadID   = errors.New("thread ID must be greater than 0")
+	ErrInvalidTagID      = errors.New("group tag ID must be greater than 0")
+	ErrInvalidEntityID   = errors.New("entity ID must be greater than 0")
+	ErrInvalidBotID      = errors.New("bot ID must be greater than 0")
+	ErrInvalidEventID    = errors.New("event ID is invalid")
+	ErrInvalidMinResults = errors.New("results limit must be greater than 0")
+	ErrInvalidMaxPages   = errors.New("max pages must be greater than 0")
+
+	// Other
+	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
+	ErrViewHasNoBlocks = errors.New("view has no blocks")
+	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
