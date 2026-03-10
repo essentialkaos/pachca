@@ -53,9 +53,14 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	c.Assert(cc.Engine(), IsNil)
 
+	// TOKEN
+
+	_, err := cc.GetTokenInfo()
+	c.Assert(err, Equals, ErrNilClient)
+
 	// CUSTOM PROPS
 
-	_, err := cc.GetProperties()
+	_, err = cc.GetProperties()
 	c.Assert(err, Equals, ErrNilClient)
 
 	// REACTIONS

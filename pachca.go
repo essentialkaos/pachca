@@ -132,6 +132,19 @@ type ViewType string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// TokenInfo contains OAuth token info
+type TokenInfo struct {
+	ID         string   `json:"id"`
+	Token      string   `json:"token"`
+	Name       string   `json:"name"`
+	UserID     uint     `json:"user_id"`
+	ExpiresIn  int      `json:"expires_in"`
+	CreatedAt  Date     `json:"created_at"`
+	RevokedAt  Date     `json:"revoked_at"`
+	LastUsedAt Date     `json:"last_used_at"`
+	Scopes     []string `json:"scopes"`
+}
+
 // Chats is slice of chats
 type Chats []*Chat
 
@@ -602,6 +615,32 @@ func (c *Client) Engine() *req.Engine {
 	}
 
 	return c.engine
+}
+
+// TOKENS /////////////////////////////////////////////////////////////////////////// //
+
+// GetTokenInfo returns info about used token
+//
+// https://dev.pachca.com/profile/get-info
+func (c *Client) GetTokenInfo() (*TokenInfo, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *TokenInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.GET, getURL("/oauth/token/info"),
+		nil, nil, resp,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't fetch token info: %w", err)
+	}
+
+	return resp.Data, nil
 }
 
 // CUSTOM PROPERTIES //////////////////////////////////////////////////////////////// //
@@ -2213,6 +2252,11 @@ func (c *Client) OpenView(view *ViewRequest) error {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// HasScope returns true if token has given scope
+func (t *TokenInfo) HasScope(scope string) bool {
+	return t != nil && slices.Contains(t.Scopes, scope)
+}
 
 // Get returns custom property with given ID
 func (p Properties) Get(id uint) *Property {
