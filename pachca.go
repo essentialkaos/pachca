@@ -572,7 +572,7 @@ var (
 	ErrInvalidEventID     = errors.New("invalid event ID")
 	ErrBlankReaction      = errors.New("non-blank emoji is required")
 	ErrEmptyPreviews      = errors.New("previews map has no data")
-	ErrInvalidResultLimit = errors.New("limit must be greater than 0")
+	ErrInvalidMinResults  = errors.New("minimum results must be greater than 0")
 	ErrViewHasNoBlocks    = errors.New("view has no blocks")
 	ErrEmptyTriggerID     = errors.New("view has empty trigger ID")
 	ErrInvalidMaxPages    = errors.New("minimum number of result pages must be greater than 0")
@@ -917,12 +917,12 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 // SearchUsers searches users
 //
 // https://dev.pachca.com/search/list-users
-func (c *Client) SearchUsers(searchRequest UserSearchRequest, limit int) (Users, error) {
+func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (Users, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
-	case limit < 1:
-		return nil, ErrInvalidResultLimit
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
 	}
 
 	err := searchRequest.Validate()
@@ -933,7 +933,7 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, limit int) (Users,
 
 	var result Users
 
-	reqLimit := min(limit, 200)
+	reqLimit := min(minResults, 200)
 	query := searchRequest.ToQuery()
 
 	query.Set("limit", reqLimit)
@@ -952,7 +952,7 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, limit int) (Users,
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= reqLimit {
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 
@@ -1378,12 +1378,12 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 // SearchChats searches chats
 //
 // https://dev.pachca.com/search/list-chats
-func (c *Client) SearchChats(searchRequest ChatSearchRequest, limit int) (Chats, error) {
+func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (Chats, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
-	case limit < 1:
-		return nil, ErrInvalidResultLimit
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
 	}
 
 	err := searchRequest.Validate()
@@ -1394,7 +1394,7 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, limit int) (Chats,
 
 	var result Chats
 
-	reqLimit := min(limit, 100)
+	reqLimit := min(minResults, 100)
 	query := searchRequest.ToQuery()
 
 	query.Set("limit", reqLimit)
@@ -1413,7 +1413,7 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, limit int) (Chats,
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= reqLimit {
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 
@@ -1780,20 +1780,19 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 // GetMessages returns messages from given chat
 //
 // https://dev.pachca.com/messages/list
-func (c *Client) GetMessages(chatID uint, limit int) (Messages, error) {
+func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
 	case chatID == 0:
 		return nil, ErrInvalidChatID
-	case limit < 1:
-		return nil, ErrInvalidResultLimit
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
 	}
 
 	var result Messages
 
-	batchSize := c.getBatchSize()
-	reqLimit := min(limit, batchSize)
+	reqLimit := min(minResults, c.getBatchSize())
 	query := req.Query{"chat_id": chatID, "limit": reqLimit}
 
 	for range MAX_PAGES {
@@ -1810,7 +1809,7 @@ func (c *Client) GetMessages(chatID uint, limit int) (Messages, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= reqLimit {
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 
@@ -1825,12 +1824,12 @@ func (c *Client) GetMessages(chatID uint, limit int) (Messages, error) {
 // SearchMessages searches messages
 //
 // https://dev.pachca.com/search/list-messages
-func (c *Client) SearchMessages(searchRequest MessageSearchRequest, limit int) (Messages, error) {
+func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
-	case limit < 1:
-		return nil, ErrInvalidResultLimit
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
 	}
 
 	err := searchRequest.Validate()
@@ -1841,7 +1840,7 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, limit int) (
 
 	var result Messages
 
-	reqLimit := min(limit, 200)
+	reqLimit := min(minResults, 200)
 	query := searchRequest.ToQuery()
 
 	query.Set("limit", reqLimit)
@@ -1860,7 +1859,7 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, limit int) (
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= reqLimit {
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 

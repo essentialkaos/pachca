@@ -253,7 +253,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidUserID)
 
 	_, err = cc.SearchUsers(UserSearchRequest{}, 0)
-	c.Assert(err, Equals, ErrInvalidResultLimit)
+	c.Assert(err, Equals, ErrInvalidMinResults)
 
 	_, err = cc.AddUser(nil)
 	c.Assert(err, Equals, ErrNilUserRequest)
@@ -305,7 +305,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidChatID)
 
 	_, err = cc.SearchChats(ChatSearchRequest{}, 0)
-	c.Assert(err, Equals, ErrInvalidResultLimit)
+	c.Assert(err, Equals, ErrInvalidMinResults)
 
 	_, err = cc.AddChat(nil)
 	c.Assert(err, Equals, ErrNilChatRequest)
@@ -343,10 +343,10 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.GetMessages(0, 1)
 	c.Assert(err, Equals, ErrInvalidChatID)
 	_, err = cc.GetMessages(1, -1)
-	c.Assert(err, Equals, ErrInvalidResultLimit)
+	c.Assert(err, Equals, ErrInvalidMinResults)
 
 	_, err = cc.SearchMessages(MessageSearchRequest{}, 0)
-	c.Assert(err, Equals, ErrInvalidResultLimit)
+	c.Assert(err, Equals, ErrInvalidMinResults)
 
 	_, err = cc.GetMessage(0)
 	c.Assert(err, Equals, ErrInvalidMessageID)
