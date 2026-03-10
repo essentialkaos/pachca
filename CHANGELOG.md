@@ -1,5 +1,16 @@
 ## Changelog
 
+### [0.23.0](https://kaos.sh/pachca/0.23.0)
+
+- Added method `GetStatus`
+- Added method `UpdateStatus`
+- Added method `DeleteStatus`
+- Added method `GetTokenInfo`
+- Added method `SearchUsers`
+- Added method `SearchChats`
+- Added method `SearchMessages`
+- Added fields `RootChatID`, `ChangedAt`, `DeletedAt` and  to `Message` struct
+
 ### [0.22.1](https://kaos.sh/pachca/0.22.1)
 
 - Fixed using non-UTC time for chat filter
