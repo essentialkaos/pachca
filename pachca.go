@@ -192,9 +192,16 @@ type User struct {
 
 // Status is user status
 type Status struct {
-	Emoji     string `json:"emoji"`
-	Title     string `json:"title"`
-	ExpiresAt Date   `json:"expires_at"`
+	Emoji       string       `json:"emoji"`
+	Title       string       `json:"title"`
+	ExpiresAt   Date         `json:"expires_at"`
+	IsAway      bool         `json:"is_away"`
+	AwayMessage *AwayMessage `json:"away_message"`
+}
+
+// AwayMessage contains away message data
+type AwayMessage struct {
+	Text string `json:"text"`
 }
 
 // Properties is a slice of properties
@@ -502,6 +509,7 @@ var (
 	ErrNilPropertyRequest  = errors.New("property request is nil")
 	ErrNilViewRequest      = errors.New("view request is nil")
 	ErrNilView             = errors.New("view data is nil")
+	ErrNilStatus           = errors.New("Status is nil")
 	ErrEmptyToken          = errors.New("token is empty")
 	ErrEmptyTag            = errors.New("group tag is empty")
 	ErrEmptyMessage        = errors.New("message text is empty")
@@ -939,6 +947,87 @@ func (c *Client) DeleteUser(userID uint) error {
 	}
 
 	err := c.sendRequest(req.DELETE, getURL("/users/%d", userID), nil, nil, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't delete user %d: %w", userID, err)
+	}
+
+	return nil
+}
+
+// STATUS /////////////////////////////////////////////////////////////////////////// //
+
+// GetStatus returns status of user with given ID
+//
+// https://dev.pachca.com/users/get-status
+func (c *Client) GetStatus(userID uint) (*Status, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case userID == 0:
+		return nil, ErrInvalidUserID
+	}
+
+	resp := &struct {
+		Data *Status `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/users/%d/status", userID), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't get user %d status: %w", userID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// UpdateStatus updates status of user with given ID
+//
+// https://dev.pachca.com/users/update-status
+func (c *Client) UpdateStatus(userID uint, status *Status) (*Status, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case userID == 0:
+		return nil, ErrInvalidUserID
+	case status == nil:
+		return nil, ErrNilStatus
+	}
+
+	payload := &struct {
+		Status *Status `json:"status"`
+	}{
+		Status: status,
+	}
+
+	resp := &struct {
+		Data *Status `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.PUT, getURL("/users/%d/status", userID),
+		nil, payload, resp,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't update user %d status: %w", userID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// DeleteStatus removes status of user with given ID
+//
+// https://dev.pachca.com/users/remove-status
+func (c *Client) DeleteStatus(userID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case userID == 0:
+		return ErrInvalidUserID
+	}
+
+	err := c.sendRequest(req.DELETE, getURL("/users/%d/status", userID), nil, nil, nil)
 
 	if err != nil {
 		return fmt.Errorf("can't delete user %d: %w", userID, err)
@@ -2723,6 +2812,15 @@ func (t *Thread) URL() string {
 		"%s/chats?thread_message_id=%d&sidebar_message=%d",
 		APP_URL, t.MessageID, t.ID,
 	)
+}
+
+// AwayMessageText returns away message text (if set)
+func (s *Status) AwayMessageText() string {
+	if s != nil && s.AwayMessage != nil {
+		return s.AwayMessage.Text
+	}
+
+	return ""
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

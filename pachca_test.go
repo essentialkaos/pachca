@@ -91,6 +91,17 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	c.Assert(cc.DeleteUser(1), Equals, ErrNilClient)
 
+	// STATUS
+
+	_, err = cc.GetStatus(1)
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.UpdateStatus(1, nil)
+	c.Assert(err, Equals, ErrNilClient)
+
+	err = cc.DeleteStatus(1)
+	c.Assert(err, Equals, ErrNilClient)
+
 	// TAGS
 
 	_, err = cc.GetTags("test1", "test2")
@@ -243,6 +254,20 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrNilUserRequest)
 
 	c.Assert(cc.DeleteUser(0), Equals, ErrInvalidUserID)
+
+	// STATUS
+
+	_, err = cc.GetStatus(0)
+	c.Assert(err, Equals, ErrInvalidUserID)
+
+	_, err = cc.UpdateStatus(0, nil)
+	c.Assert(err, Equals, ErrInvalidUserID)
+
+	_, err = cc.UpdateStatus(1, nil)
+	c.Assert(err, Equals, ErrNilStatus)
+
+	err = cc.DeleteStatus(0)
+	c.Assert(err, Equals, ErrInvalidUserID)
 
 	// TAGS
 
@@ -597,6 +622,26 @@ func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
 	c.Assert(q["availability"], Equals, "public")
 	c.Assert(q["last_message_at_before"], Not(Equals), "")
 	c.Assert(q["last_message_at_after"], Not(Equals), "")
+}
+
+func (s *PachcaSuite) TestTokenHelpers(c *C) {
+	var token *TokenInfo
+
+	c.Assert(token.HasScope("test"), Equals, false)
+
+	token = &TokenInfo{Scopes: []string{"search:chats"}}
+
+	c.Assert(token.HasScope("search:chats"), Equals, true)
+}
+
+func (s *PachcaSuite) TestStatusHelpers(c *C) {
+	var status *Status
+
+	c.Assert(status.AwayMessageText(), Equals, "")
+
+	status = &Status{AwayMessage: &AwayMessage{Text: "Test status text"}}
+
+	c.Assert(status.AwayMessageText(), Equals, "Test status text")
 }
 
 func (s *PachcaSuite) TestViewHelpers(c *C) {
