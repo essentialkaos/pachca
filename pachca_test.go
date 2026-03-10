@@ -77,6 +77,9 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.CurrentUser()
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.SearchUsers(UserSearchRequest{}, 100)
+	c.Assert(err, Equals, ErrNilClient)
+
 	_, err = cc.GetUser(1)
 	c.Assert(err, Equals, ErrNilClient)
 
@@ -126,6 +129,9 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.GetChats()
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.SearchChats(ChatSearchRequest{}, 100)
+	c.Assert(err, Equals, ErrNilClient)
+
 	_, err = cc.GetChat(1)
 	c.Assert(err, Equals, ErrNilClient)
 
@@ -147,6 +153,9 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	// MESSAGES
 
 	_, err = cc.GetMessages(1, 25)
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.SearchMessages(MessageSearchRequest{}, 100)
 	c.Assert(err, Equals, ErrNilClient)
 
 	_, err = cc.GetMessage(1)
@@ -243,6 +252,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.GetUser(0)
 	c.Assert(err, Equals, ErrInvalidUserID)
 
+	_, err = cc.SearchUsers(UserSearchRequest{}, 0)
+	c.Assert(err, Equals, ErrInvalidResultLimit)
+
 	_, err = cc.AddUser(nil)
 	c.Assert(err, Equals, ErrNilUserRequest)
 	_, err = cc.AddUser(&UserRequest{})
@@ -292,6 +304,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.GetChat(0)
 	c.Assert(err, Equals, ErrInvalidChatID)
 
+	_, err = cc.SearchChats(ChatSearchRequest{}, 0)
+	c.Assert(err, Equals, ErrInvalidResultLimit)
+
 	_, err = cc.AddChat(nil)
 	c.Assert(err, Equals, ErrNilChatRequest)
 	_, err = cc.AddChat(&ChatRequest{})
@@ -328,7 +343,10 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.GetMessages(0, 1)
 	c.Assert(err, Equals, ErrInvalidChatID)
 	_, err = cc.GetMessages(1, -1)
-	c.Assert(err, Equals, ErrInvalidMessageLimit)
+	c.Assert(err, Equals, ErrInvalidResultLimit)
+
+	_, err = cc.SearchMessages(MessageSearchRequest{}, 0)
+	c.Assert(err, Equals, ErrInvalidResultLimit)
 
 	_, err = cc.GetMessage(0)
 	c.Assert(err, Equals, ErrInvalidMessageID)
@@ -610,7 +628,7 @@ func (s *PachcaSuite) TestURLHelpers(c *C) {
 
 func (s *PachcaSuite) TestChatFilterToQuery(c *C) {
 	cf := ChatFilter{
-		Sort:              map[string]string{SORT_FIELD_ID: SORT_ORDER_DESC},
+		Sort:              map[string]SortOrder{SORT_FIELD_ID: SORT_ORDER_DESC},
 		Public:            true,
 		LastMessageAfter:  time.Now(),
 		LastMessageBefore: time.Now().AddDate(0, 0, 1),
@@ -657,7 +675,89 @@ func (s *PachcaSuite) TestViewHelpers(c *C) {
 	c.Assert(v.Blocks, HasLen, 0)
 
 	c.Assert(v.AddBlocksIf(true, &block.PlainText{Text: "Some text"}), NotNil)
+	c.Assert(v.AddBlocksIf(false, &block.PlainText{Text: "Some text"}), NotNil)
 	c.Assert(v.Blocks, HasLen, 1)
+}
+
+func (s *PachcaSuite) TestSearchRequests(c *C) {
+	cr := ChatSearchRequest{
+		Query:       "Test",
+		Order:       SORT_ORDER_ASC,
+		ChatType:    ENTITY_TYPE_DISCUSSION,
+		Active:      true,
+		Personal:    true,
+		CreatedFrom: time.Date(2020, 6, 15, 15, 0, 0, 0, time.UTC),
+		CreatedTo:   time.Date(2020, 6, 15, 18, 0, 0, 0, time.UTC),
+	}
+
+	crq := cr.ToQuery()
+
+	c.Assert(cr.Validate(), IsNil)
+	c.Assert(crq["query"], Equals, "Test")
+	c.Assert(crq["order"], Equals, "asc")
+	c.Assert(crq["chat_subtype"], Equals, "discussion")
+	c.Assert(crq["active"], Equals, "true")
+	c.Assert(crq["personal"], Equals, "true")
+	c.Assert(crq["created_from"], Equals, "2020-06-15T15:00:00Z")
+	c.Assert(crq["created_to"], Equals, "2020-06-15T18:00:00Z")
+
+	cr = ChatSearchRequest{Order: SortOrder("test")}
+	c.Assert(cr.Validate(), NotNil)
+	c.Assert(cr.Validate().Error(), Equals, `unsupported sort order "test"`)
+
+	cr = ChatSearchRequest{ChatType: EntityType("test")}
+	c.Assert(cr.Validate(), NotNil)
+	c.Assert(cr.Validate().Error(), Equals, `unsupported chat type "test"`)
+
+	ur := UserSearchRequest{
+		Query:       "Test",
+		Order:       SORT_ORDER_ASC,
+		Sort:        SORT_TYPE_SCORE,
+		Roles:       []UserRole{ROLE_REGULAR, ROLE_MULTI_GUEST},
+		CreatedFrom: time.Date(2020, 6, 15, 15, 0, 0, 0, time.UTC),
+		CreatedTo:   time.Date(2020, 6, 15, 18, 0, 0, 0, time.UTC),
+	}
+
+	urq := ur.ToQuery()
+
+	c.Assert(ur.Validate(), IsNil)
+	c.Assert(urq["query"], Equals, "Test")
+	c.Assert(urq["order"], Equals, "asc")
+	c.Assert(urq["sort"], Equals, "by_score")
+	c.Assert(urq["company_roles[]"], Equals, "user,multi_guest")
+	c.Assert(urq["created_from"], Equals, "2020-06-15T15:00:00Z")
+	c.Assert(urq["created_to"], Equals, "2020-06-15T18:00:00Z")
+
+	ur = UserSearchRequest{Order: SortOrder("test")}
+	c.Assert(ur.Validate(), NotNil)
+	c.Assert(ur.Validate().Error(), Equals, `unsupported sort order "test"`)
+
+	ur = UserSearchRequest{Sort: SortType("test")}
+	c.Assert(ur.Validate(), NotNil)
+	c.Assert(ur.Validate().Error(), Equals, `unsupported sort type "test"`)
+
+	mr := MessageSearchRequest{
+		Query:       "Test",
+		Order:       SORT_ORDER_ASC,
+		ChatIDs:     []uint{100, 200, 300},
+		UserIDs:     []uint{10, 20, 30},
+		CreatedFrom: time.Date(2020, 6, 15, 15, 0, 0, 0, time.UTC),
+		CreatedTo:   time.Date(2020, 6, 15, 18, 0, 0, 0, time.UTC),
+	}
+
+	mrq := mr.ToQuery()
+
+	c.Assert(mr.Validate(), IsNil)
+	c.Assert(mrq["query"], Equals, "Test")
+	c.Assert(mrq["order"], Equals, "asc")
+	c.Assert(mrq["chat_ids[]"], Equals, "100,200,300")
+	c.Assert(mrq["user_ids[]"], Equals, "10,20,30")
+	c.Assert(mrq["created_from"], Equals, "2020-06-15T15:00:00Z")
+	c.Assert(mrq["created_to"], Equals, "2020-06-15T18:00:00Z")
+
+	mr = MessageSearchRequest{Order: SortOrder("test")}
+	c.Assert(mr.Validate(), NotNil)
+	c.Assert(mr.Validate().Error(), Equals, `unsupported sort order "test"`)
 }
 
 func (s *PachcaSuite) TestAux(c *C) {
