@@ -893,7 +893,10 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	var result Users
 
 	query := req.Query{"limit": c.getBatchSize()}
-	query.SetIf(len(searchQuery) != 0, "query", searchQuery[0])
+
+	if len(searchQuery) != 0 {
+		query.Set("query", searchQuery[0])
+	}
 
 	for range MAX_PAGES {
 		resp := &struct {
