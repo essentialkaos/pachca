@@ -45,8 +45,13 @@ const (
 )
 
 const (
-	SORT_ORDER_ASC  = "asc"
-	SORT_ORDER_DESC = "desc"
+	SORT_ORDER_ASC  SortOrder = "asc"
+	SORT_ORDER_DESC SortOrder = "desc"
+)
+
+const (
+	SORT_TYPE_SCORE SortType = "by_score"
+	SORT_TYPE_ALPHA SortType = "alphabetical"
 )
 
 const (
@@ -130,7 +135,26 @@ type FileType string
 // ViewType is type for view
 type ViewType string
 
+// SortOrder is type for sort order
+type SortOrder string
+
+// SortType is type for sort type
+type SortType string
+
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// TokenInfo contains OAuth token info
+type TokenInfo struct {
+	ID         uint     `json:"id"`
+	Token      string   `json:"token"`
+	Name       string   `json:"name"`
+	UserID     uint     `json:"user_id"`
+	ExpiresIn  int      `json:"expires_in"` // seconds until expiration
+	CreatedAt  Date     `json:"created_at"`
+	RevokedAt  Date     `json:"revoked_at"`
+	LastUsedAt Date     `json:"last_used_at"`
+	Scopes     []string `json:"scopes"`
+}
 
 // Chats is slice of chats
 type Chats []*Chat
@@ -179,9 +203,16 @@ type User struct {
 
 // Status is user status
 type Status struct {
-	Emoji     string `json:"emoji"`
-	Title     string `json:"title"`
-	ExpiresAt Date   `json:"expires_at"`
+	Emoji       string       `json:"emoji"`
+	Title       string       `json:"title"`
+	ExpiresAt   Date         `json:"expires_at"`
+	IsAway      bool         `json:"is_away"`
+	AwayMessage *AwayMessage `json:"away_message"`
+}
+
+// AwayMessage contains away message data
+type AwayMessage struct {
+	Text string `json:"text"`
 }
 
 // Properties is a slice of properties
@@ -230,11 +261,14 @@ type Message struct {
 	ID              uint        `json:"id"`
 	EntityID        uint        `json:"entity_id"`
 	ChatID          uint        `json:"chat_id"`
+	RootChatID      uint        `json:"root_chat_id"`
 	ParentMessageID uint        `json:"parent_message_id"`
 	UserID          uint        `json:"user_id"`
 	EntityType      EntityType  `json:"entity_type"`
 	Content         string      `json:"content"`
 	CreatedAt       Date        `json:"created_at"`
+	ChangedAt       Date        `json:"changed_at"`
+	DeletedAt       Date        `json:"deleted_at"`
 	Thread          *Thread     `json:"thread"`
 	Files           Files       `json:"files"`
 	Buttons         Buttons     `json:"buttons"`
@@ -347,7 +381,7 @@ type uploadInfo struct {
 
 // ChatFilter is configuration for filtering chats
 type ChatFilter struct {
-	Sort              map[string]string
+	Sort              map[string]SortOrder
 	LastMessageAfter  time.Time
 	LastMessageBefore time.Time
 	Public            bool
@@ -427,6 +461,38 @@ type LinkPreview struct {
 // LinkPreviews is map (url → preview data) with link previews
 type LinkPreviews map[string]*LinkPreview
 
+// ChatSearchRequest contains data for chats search
+type ChatSearchRequest struct {
+	Query       string
+	Order       SortOrder
+	ChatType    EntityType
+	CreatedFrom time.Time
+	CreatedTo   time.Time
+	Active      bool
+	Personal    bool
+}
+
+// UserSearchRequest contains data for users search
+type UserSearchRequest struct {
+	Query       string
+	Sort        SortType
+	Order       SortOrder
+	CreatedFrom time.Time
+	CreatedTo   time.Time
+	Roles       []UserRole
+}
+
+// MessageSearchRequest contains data for messages search
+type MessageSearchRequest struct {
+	Query       string
+	Order       SortOrder
+	CreatedFrom time.Time
+	CreatedTo   time.Time
+	ChatIDs     []uint
+	UserIDs     []uint
+	Active      bool
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // ViewErrors is a map with view errors
@@ -479,37 +545,45 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilClient           = errors.New("client is nil")
-	ErrNilUserRequest      = errors.New("user request is nil")
-	ErrNilChatRequest      = errors.New("chat request is nil")
-	ErrNilMessageRequest   = errors.New("message request is nil")
-	ErrNilPropertyRequest  = errors.New("property request is nil")
-	ErrNilViewRequest      = errors.New("view request is nil")
-	ErrNilView             = errors.New("view data is nil")
-	ErrEmptyToken          = errors.New("token is empty")
-	ErrEmptyTag            = errors.New("group tag is empty")
-	ErrEmptyMessage        = errors.New("message text is empty")
-	ErrEmptyUserEmail      = errors.New("user email is required for creating user account")
-	ErrEmptyChatName       = errors.New("name is required for creating new chat")
-	ErrEmptyUsersIDS       = errors.New("users IDs are empty")
-	ErrEmptyTagsIDS        = errors.New("tags IDs are empty")
-	ErrEmptyFilePath       = errors.New("path to file is empty")
-	ErrInvalidToken        = errors.New("token has wrong format")
-	ErrInvalidMessageID    = errors.New("message ID must be greater than 0")
-	ErrInvalidChatID       = errors.New("chat ID must be greater than 0")
-	ErrInvalidUserID       = errors.New("user ID must be greater than 0")
-	ErrInvalidThreadID     = errors.New("thread ID must be greater than 0")
-	ErrInvalidTagID        = errors.New("group tag ID must be greater than 0")
-	ErrInvalidEntityID     = errors.New("entity ID must be greater than 0")
-	ErrInvalidBotID        = errors.New("bot ID must be greater than 0")
-	ErrInvalidEventID      = errors.New("invalid event ID")
-	ErrBlankReaction       = errors.New("non-blank emoji is required")
-	ErrEmptyPreviews       = errors.New("previews map has no data")
-	ErrInvalidMessageLimit = errors.New("number of messages must be greater than 0")
-	ErrViewHasNoBlocks     = errors.New("view has no blocks")
-	ErrEmptyTriggerID      = errors.New("view has empty trigger ID")
-	ErrInvalidMaxPages     = errors.New("minimum number of result pages must be greater than 0")
-	ErrEmptyWebhookURL     = errors.New("webhook URL is empty")
+	// Nil guards
+	ErrNilClient          = errors.New("client is nil")
+	ErrNilUserRequest     = errors.New("user request is nil")
+	ErrNilChatRequest     = errors.New("chat request is nil")
+	ErrNilMessageRequest  = errors.New("message request is nil")
+	ErrNilPropertyRequest = errors.New("property request is nil")
+	ErrNilViewRequest     = errors.New("view request is nil")
+	ErrNilView            = errors.New("view data is nil")
+	ErrNilStatus          = errors.New("status is nil")
+
+	// Empty value guards
+	ErrEmptyToken     = errors.New("token is empty")
+	ErrEmptyTag       = errors.New("group tag is empty")
+	ErrEmptyMessage   = errors.New("message text is empty")
+	ErrEmptyUserEmail = errors.New("user email is empty")
+	ErrEmptyChatName  = errors.New("chat name is empty")
+	ErrEmptyUsersIDS  = errors.New("users IDs list is empty")
+	ErrEmptyTagsIDS   = errors.New("tags IDs list is empty")
+	ErrEmptyFilePath  = errors.New("file path is empty")
+	ErrEmptyPreviews  = errors.New("link previews map is empty")
+	ErrEmptyTriggerID = errors.New("view trigger ID is empty")
+
+	// Invalid value guards
+	ErrInvalidToken      = errors.New("token format is invalid")
+	ErrInvalidMessageID  = errors.New("message ID must be greater than 0")
+	ErrInvalidChatID     = errors.New("chat ID must be greater than 0")
+	ErrInvalidUserID     = errors.New("user ID must be greater than 0")
+	ErrInvalidThreadID   = errors.New("thread ID must be greater than 0")
+	ErrInvalidTagID      = errors.New("group tag ID must be greater than 0")
+	ErrInvalidEntityID   = errors.New("entity ID must be greater than 0")
+	ErrInvalidBotID      = errors.New("bot ID must be greater than 0")
+	ErrInvalidEventID    = errors.New("event ID is invalid")
+	ErrInvalidMinResults = errors.New("results limit must be greater than 0")
+	ErrInvalidMaxPages   = errors.New("max pages must be greater than 0")
+
+	// Other
+	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
+	ErrViewHasNoBlocks = errors.New("view has no blocks")
+	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -599,6 +673,32 @@ func (c *Client) Engine() *req.Engine {
 	}
 
 	return c.engine
+}
+
+// TOKENS /////////////////////////////////////////////////////////////////////////// //
+
+// GetTokenInfo returns info about used token
+//
+// https://dev.pachca.com/profile/get-info
+func (c *Client) GetTokenInfo() (*TokenInfo, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *TokenInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.GET, getURL("/oauth/token/info"),
+		nil, nil, resp,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't fetch token info: %w", err)
+	}
+
+	return resp.Data, nil
 }
 
 // CUSTOM PROPERTIES //////////////////////////////////////////////////////////////// //
@@ -793,7 +893,10 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	var result Users
 
 	query := req.Query{"limit": c.getBatchSize()}
-	query.SetIf(len(searchQuery) != 0, "query", searchQuery[0])
+
+	if len(searchQuery) != 0 {
+		query.Set("query", searchQuery[0])
+	}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -810,6 +913,56 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 		result = append(result, resp.Data...)
 
 		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+			break
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
+	}
+
+	return result, nil
+}
+
+// SearchUsers searches users
+//
+// https://dev.pachca.com/search/list-users
+func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (Users, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
+	}
+
+	err := searchRequest.Validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid search request: %w", err)
+	}
+
+	var result Users
+
+	reqLimit := min(minResults, 200)
+	query := searchRequest.ToQuery()
+
+	query.Set("limit", reqLimit)
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Users     `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/search/users"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't find users: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 
@@ -900,6 +1053,87 @@ func (c *Client) DeleteUser(userID uint) error {
 
 	if err != nil {
 		return fmt.Errorf("can't delete user %d: %w", userID, err)
+	}
+
+	return nil
+}
+
+// STATUS /////////////////////////////////////////////////////////////////////////// //
+
+// GetStatus returns status of user with given ID
+//
+// https://dev.pachca.com/users/get-status
+func (c *Client) GetStatus(userID uint) (*Status, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case userID == 0:
+		return nil, ErrInvalidUserID
+	}
+
+	resp := &struct {
+		Data *Status `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/users/%d/status", userID), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't get user %d status: %w", userID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// UpdateStatus updates status of user with given ID
+//
+// https://dev.pachca.com/users/update-status
+func (c *Client) UpdateStatus(userID uint, status *Status) (*Status, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case userID == 0:
+		return nil, ErrInvalidUserID
+	case status == nil:
+		return nil, ErrNilStatus
+	}
+
+	payload := &struct {
+		Status *Status `json:"status"`
+	}{
+		Status: status,
+	}
+
+	resp := &struct {
+		Data *Status `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.PUT, getURL("/users/%d/status", userID),
+		nil, payload, resp,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't update user %d status: %w", userID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// DeleteStatus removes status of user with given ID
+//
+// https://dev.pachca.com/users/remove-status
+func (c *Client) DeleteStatus(userID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case userID == 0:
+		return ErrInvalidUserID
+	}
+
+	err := c.sendRequest(req.DELETE, getURL("/users/%d/status", userID), nil, nil, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't delete user %d status: %w", userID, err)
 	}
 
 	return nil
@@ -1140,6 +1374,56 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		result = append(result, resp.Data...)
 
 		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+			break
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
+	}
+
+	return result, nil
+}
+
+// SearchChats searches chats
+//
+// https://dev.pachca.com/search/list-chats
+func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (Chats, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
+	}
+
+	err := searchRequest.Validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid search request: %w", err)
+	}
+
+	var result Chats
+
+	reqLimit := min(minResults, 100)
+	query := searchRequest.ToQuery()
+
+	query.Set("limit", reqLimit)
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Chats     `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/search/chats"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't find chats: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 
@@ -1506,20 +1790,19 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 // GetMessages returns messages from given chat
 //
 // https://dev.pachca.com/messages/list
-func (c *Client) GetMessages(chatID uint, limit int) (Messages, error) {
+func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
 	case chatID == 0:
 		return nil, ErrInvalidChatID
-	case limit < 1:
-		return nil, ErrInvalidMessageLimit
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
 	}
 
 	var result Messages
 
-	batchSize := c.getBatchSize()
-	reqLimit := min(limit, batchSize)
+	reqLimit := min(minResults, c.getBatchSize())
 	query := req.Query{"chat_id": chatID, "limit": reqLimit}
 
 	for range MAX_PAGES {
@@ -1536,7 +1819,57 @@ func (c *Client) GetMessages(chatID uint, limit int) (Messages, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < limit || len(result) >= reqLimit {
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
+			break
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		}
+	}
+
+	return result, nil
+}
+
+// SearchMessages searches messages
+//
+// https://dev.pachca.com/search/list-messages
+func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults int) (Messages, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
+	}
+
+	err := searchRequest.Validate()
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid search request: %w", err)
+	}
+
+	var result Messages
+
+	reqLimit := min(minResults, 200)
+	query := searchRequest.ToQuery()
+
+	query.Set("limit", reqLimit)
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *Metadata `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/search/messages"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't find messages: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
 			break
 		}
 
@@ -2211,6 +2544,11 @@ func (c *Client) OpenView(view *ViewRequest) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// HasScope returns true if token has given scope
+func (t *TokenInfo) HasScope(scope string) bool {
+	return t != nil && slices.Contains(t.Scopes, scope)
+}
+
 // Get returns custom property with given ID
 func (p Properties) Get(id uint) *Property {
 	for _, pp := range p {
@@ -2678,6 +3016,15 @@ func (t *Thread) URL() string {
 	)
 }
 
+// AwayMessageText returns away message text (if set)
+func (s *Status) AwayMessageText() string {
+	if s != nil && s.AwayMessage != nil {
+		return s.AwayMessage.Text
+	}
+
+	return ""
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // AddBlocks adds new blocks to the view
@@ -2747,6 +3094,119 @@ func (f ChatFilter) ToQuery() req.Query {
 			query["sort["+k+"]"] = v
 		}
 	}
+
+	return query
+}
+
+// Validate validates chats search request
+func (r ChatSearchRequest) Validate() error {
+	if r.Order != "" &&
+		r.Order != SORT_ORDER_ASC &&
+		r.Order != SORT_ORDER_DESC {
+		return fmt.Errorf("unsupported sort order %q", r.Order)
+	}
+
+	if r.ChatType != "" &&
+		r.ChatType != ENTITY_TYPE_DISCUSSION &&
+		r.ChatType != ENTITY_TYPE_THREAD {
+		return fmt.Errorf("unsupported chat type %q", r.ChatType)
+	}
+
+	return nil
+}
+
+// ToQuery converts chats search request to request query
+func (r ChatSearchRequest) ToQuery() req.Query {
+	query := req.Query{}
+
+	query.SetIf(r.Query != "", "query", r.Query)
+	query.SetIf(r.Order != "", "order", string(r.Order))
+	query.SetIf(r.ChatType != "", "chat_subtype", string(r.ChatType))
+	query.SetIf(r.Active, "active", "true")
+	query.SetIf(r.Personal, "personal", "true")
+
+	query.SetIf(
+		!r.CreatedFrom.IsZero(), "created_from",
+		r.CreatedFrom.Format("2006-01-02T15:04:05Z"),
+	)
+
+	query.SetIf(
+		!r.CreatedTo.IsZero(), "created_to",
+		r.CreatedTo.Format("2006-01-02T15:04:05Z"),
+	)
+
+	return query
+}
+
+// Validate validates users search request
+func (r UserSearchRequest) Validate() error {
+	if r.Order != "" &&
+		r.Order != SORT_ORDER_ASC &&
+		r.Order != SORT_ORDER_DESC {
+		return fmt.Errorf("unsupported sort order %q", r.Order)
+	}
+
+	if r.Sort != "" &&
+		r.Sort != SORT_TYPE_ALPHA &&
+		r.Sort != SORT_TYPE_SCORE {
+		return fmt.Errorf("unsupported sort type %q", r.Sort)
+	}
+
+	return nil
+}
+
+// ToQuery converts users search request to request query
+func (r UserSearchRequest) ToQuery() req.Query {
+	query := req.Query{}
+
+	query.SetIf(r.Query != "", "query", r.Query)
+	query.SetIf(r.Order != "", "order", string(r.Order))
+	query.SetIf(r.Sort != "", "sort", string(r.Sort))
+	query.SetIf(len(r.Roles) != 0, "company_roles[]", sliceutil.Join(r.Roles, ","))
+
+	query.SetIf(
+		!r.CreatedFrom.IsZero(), "created_from",
+		r.CreatedFrom.Format("2006-01-02T15:04:05Z"),
+	)
+
+	query.SetIf(
+		!r.CreatedTo.IsZero(), "created_to",
+		r.CreatedTo.Format("2006-01-02T15:04:05Z"),
+	)
+
+	return query
+}
+
+// Validate validates messages search request
+func (r MessageSearchRequest) Validate() error {
+	if r.Order != "" &&
+		r.Order != SORT_ORDER_ASC &&
+		r.Order != SORT_ORDER_DESC {
+		return fmt.Errorf("unsupported sort order %q", r.Order)
+	}
+
+	return nil
+}
+
+// ToQuery converts messages search request to request query
+func (r MessageSearchRequest) ToQuery() req.Query {
+	query := req.Query{}
+
+	query.SetIf(r.Query != "", "query", r.Query)
+	query.SetIf(r.Order != "", "order", string(r.Order))
+	query.SetIf(len(r.ChatIDs) != 0, "chat_ids[]", sliceutil.Join(r.ChatIDs, ","))
+	query.SetIf(len(r.UserIDs) != 0, "user_ids[]", sliceutil.Join(r.UserIDs, ","))
+	query.SetIf(r.Active, "active", "true")
+
+	query.SetIf(
+		!r.CreatedFrom.IsZero(), "created_from",
+		r.CreatedFrom.Format("2006-01-02T15:04:05Z"),
+	)
+
+	query.SetIf(
+		!r.CreatedTo.IsZero(), "created_to",
+		r.CreatedTo.Format("2006-01-02T15:04:05Z"),
+	)
 
 	return query
 }
