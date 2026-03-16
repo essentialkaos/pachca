@@ -526,6 +526,15 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// MarshalJSON converts date into JSON format
+func (d Date) MarshalJSON() ([]byte, error) {
+	if d.Time.IsZero() {
+		return []byte("null"), nil
+	}
+
+	return json.Marshal(d.Time.UTC().Format("2006-01-02T15:04:05.999Z"))
+}
+
 // Error returns error text
 func (e APIError) Error() string {
 	return fmt.Sprintf(
@@ -1097,10 +1106,27 @@ func (c *Client) UpdateStatus(userID uint, status *Status) (*Status, error) {
 		return nil, ErrNilStatus
 	}
 
+	type statusPayload struct {
+		Emoji       string `json:"emoji"`
+		Title       string `json:"title"`
+		ExpiresAt   Date   `json:"expires_at,omitzero"`
+		IsAway      bool   `json:"is_away"`
+		AwayMessage string `json:"away_message,omitempty"`
+	}
+
 	payload := &struct {
-		Status *Status `json:"status"`
+		Status *statusPayload `json:"status"`
 	}{
-		Status: status,
+		Status: &statusPayload{
+			Emoji:     status.Emoji,
+			Title:     status.Title,
+			ExpiresAt: status.ExpiresAt,
+			IsAway:    status.IsAway,
+		},
+	}
+
+	if status.AwayMessage != nil {
+		payload.Status.AwayMessage = status.AwayMessageText()
 	}
 
 	resp := &struct {

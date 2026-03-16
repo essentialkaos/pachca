@@ -1,5 +1,10 @@
 ## Changelog
 
+### [0.23.1](https://kaos.sh/pachca/0.23.1)
+
+- Fixed away message encoding for `UpdateStatus`
+- Fixed format of `Date` in JSON payload
+
 ### [0.23.0](https://kaos.sh/pachca/0.23.0)
 
 - Added method `GetStatus`
