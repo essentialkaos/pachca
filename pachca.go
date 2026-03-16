@@ -1111,7 +1111,7 @@ func (c *Client) UpdateStatus(userID uint, status *Status) (*Status, error) {
 		Title       string `json:"title"`
 		ExpiresAt   Date   `json:"expires_at,omitzero"`
 		IsAway      bool   `json:"is_away"`
-		AwayMessage string `json:"away_message"`
+		AwayMessage string `json:"away_message,omitempty"`
 	}
 
 	payload := &struct {
