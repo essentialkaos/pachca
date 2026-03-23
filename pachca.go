@@ -1978,7 +1978,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 // AddMessage creates new message to user or chat
 //
 // https://dev.pachca.com/messages/create
-func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
+func (c *Client) AddMessage(message *MessageRequest, withPreview ...bool) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
 		return nil, ErrNilClient
@@ -1989,9 +1989,14 @@ func (c *Client) AddMessage(message *MessageRequest) (*Message, error) {
 	}
 
 	payload := &struct {
-		Message *MessageRequest `json:"message"`
+		Message     *MessageRequest `json:"message"`
+		WithPreview bool            `json:"link_preview"`
 	}{
 		Message: message,
+	}
+
+	if len(withPreview) > 0 && withPreview[0] {
+		payload.WithPreview = true
 	}
 
 	resp := &struct {
