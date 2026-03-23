@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.23.2](https://kaos.sh/pachca/0.23.2)
+
+- Added support for a flag in `AddMessage` to display link preview
+
 ### [0.23.1](https://kaos.sh/pachca/0.23.1)
 
 - Fixed away message encoding for `UpdateStatus`
