@@ -1,6 +1,6 @@
 ## Changelog
 
-### [0.23.3](https://kaos.sh/pachca/0.23.2)
+### [0.23.3](https://kaos.sh/pachca/0.23.3)
 
 - Improved all methods with pagination
 

@@ -751,9 +751,9 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 		return nil, ErrInvalidMessageID
 	}
 
-	var result Reactions
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Reactions, 0, limit)
+	query := req.Query{"limit": limit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -899,9 +899,9 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 		return nil, ErrNilClient
 	}
 
-	var result Users
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	query := req.Query{"limit": limit}
+	result := make(Users, 0, limit)
 
 	if len(searchQuery) != 0 {
 		query.Set("query", searchQuery[0])
@@ -950,8 +950,7 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (U
 		return nil, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	var result Users
-
+	result := make(Users, 0, minResults)
 	query := searchRequest.ToQuery()
 
 	query.Set("limit", min(minResults, 200))
@@ -1174,9 +1173,9 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 		return nil, ErrNilClient
 	}
 
-	var result Tags
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Tags, 0, limit)
+	query := req.Query{"limit": limit}
 	query.SetIf(len(names) > 0, "names[]", names)
 
 	for range MAX_PAGES {
@@ -1243,9 +1242,9 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 		return nil, ErrInvalidTagID
 	}
 
-	var result Users
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Users, 0, limit)
+	query := req.Query{"limit": limit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1374,15 +1373,18 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		return nil, ErrNilClient
 	}
 
-	var result Chats
 	var query req.Query
 
+	limit := c.getBatchSize()
+
 	if len(filter) == 0 {
-		query = req.Query{"limit": c.getBatchSize()}
+		query = req.Query{"limit": limit}
 	} else {
 		query = filter[0].ToQuery()
-		query["limit"] = c.getBatchSize()
+		query["limit"] = limit
 	}
+
+	result := make(Chats, 0, limit)
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1427,8 +1429,7 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (C
 		return nil, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	var result Chats
-
+	result := make(Chats, 0, minResults)
 	query := searchRequest.ToQuery()
 
 	query.Set("limit", min(minResults, 100))
@@ -1568,9 +1569,9 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		return nil, fmt.Errorf("unknown chat users role %q", memberRole)
 	}
 
-	var result Users
-
-	query := req.Query{"role": memberRole, "limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Users, 0, limit)
+	query := req.Query{"role": memberRole, "limit": limit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1824,7 +1825,7 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 		return nil, ErrInvalidMinResults
 	}
 
-	var result Messages
+	result := make(Messages, 0, minResults)
 
 	query := req.Query{
 		"chat_id": chatID,
@@ -1874,8 +1875,7 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults i
 		return nil, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	var result Messages
-
+	result := make(Messages, 0, minResults)
 	query := searchRequest.ToQuery()
 
 	query.Set("limit", min(minResults, 200))
@@ -1941,8 +1941,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 		return nil, ErrInvalidMessageID
 	}
 
-	var result []uint
-
+	result := make([]uint, 0, 300)
 	query := req.Query{"limit": 300}
 
 	for range MAX_PAGES {
