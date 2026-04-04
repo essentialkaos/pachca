@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.23.3](https://kaos.sh/pachca/0.23.3)
+
+- Improved all methods with pagination
+
 ### [0.23.2](https://kaos.sh/pachca/0.23.2)
 
 - Added support for a flag in `AddMessage` to display link preview

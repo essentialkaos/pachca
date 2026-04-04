@@ -751,9 +751,9 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 		return nil, ErrInvalidMessageID
 	}
 
-	var result Reactions
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Reactions, 0, limit)
+	query := req.Query{"limit": limit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -772,7 +772,7 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -899,9 +899,9 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 		return nil, ErrNilClient
 	}
 
-	var result Users
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	query := req.Query{"limit": limit}
+	result := make(Users, 0, limit)
 
 	if len(searchQuery) != 0 {
 		query.Set("query", searchQuery[0])
@@ -921,7 +921,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -950,12 +950,10 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (U
 		return nil, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	var result Users
-
-	reqLimit := min(minResults, 200)
+	result := make(Users, 0, minResults)
 	query := searchRequest.ToQuery()
 
-	query.Set("limit", reqLimit)
+	query.Set("limit", min(minResults, 200))
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -971,7 +969,7 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (U
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
+		if len(resp.Data) == 0 || len(result) >= minResults {
 			break
 		}
 
@@ -1175,9 +1173,9 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 		return nil, ErrNilClient
 	}
 
-	var result Tags
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Tags, 0, limit)
+	query := req.Query{"limit": limit}
 	query.SetIf(len(names) > 0, "names[]", names)
 
 	for range MAX_PAGES {
@@ -1194,7 +1192,7 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -1244,9 +1242,9 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 		return nil, ErrInvalidTagID
 	}
 
-	var result Users
-
-	query := req.Query{"limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Users, 0, limit)
+	query := req.Query{"limit": limit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1265,7 +1263,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -1375,15 +1373,18 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 		return nil, ErrNilClient
 	}
 
-	var result Chats
 	var query req.Query
 
+	limit := c.getBatchSize()
+
 	if len(filter) == 0 {
-		query = req.Query{"limit": c.getBatchSize()}
+		query = req.Query{"limit": limit}
 	} else {
 		query = filter[0].ToQuery()
-		query["limit"] = c.getBatchSize()
+		query["limit"] = limit
 	}
+
+	result := make(Chats, 0, limit)
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1399,7 +1400,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -1428,12 +1429,10 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (C
 		return nil, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	var result Chats
-
-	reqLimit := min(minResults, 100)
+	result := make(Chats, 0, minResults)
 	query := searchRequest.ToQuery()
 
-	query.Set("limit", reqLimit)
+	query.Set("limit", min(minResults, 100))
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1449,7 +1448,7 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (C
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
+		if len(resp.Data) == 0 || len(result) >= minResults {
 			break
 		}
 
@@ -1570,9 +1569,9 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 		return nil, fmt.Errorf("unknown chat users role %q", memberRole)
 	}
 
-	var result Users
-
-	query := req.Query{"role": memberRole, "limit": c.getBatchSize()}
+	limit := c.getBatchSize()
+	result := make(Users, 0, limit)
+	query := req.Query{"role": memberRole, "limit": limit}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1591,7 +1590,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -1826,10 +1825,12 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 		return nil, ErrInvalidMinResults
 	}
 
-	var result Messages
+	result := make(Messages, 0, minResults)
 
-	reqLimit := min(minResults, c.getBatchSize())
-	query := req.Query{"chat_id": chatID, "limit": reqLimit}
+	query := req.Query{
+		"chat_id": chatID,
+		"limit":   min(minResults, c.getBatchSize()),
+	}
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1845,7 +1846,7 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
+		if len(resp.Data) == 0 || len(result) >= minResults {
 			break
 		}
 
@@ -1874,12 +1875,10 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults i
 		return nil, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	var result Messages
-
-	reqLimit := min(minResults, 200)
+	result := make(Messages, 0, minResults)
 	query := searchRequest.ToQuery()
 
-	query.Set("limit", reqLimit)
+	query.Set("limit", min(minResults, 200))
 
 	for range MAX_PAGES {
 		resp := &struct {
@@ -1895,7 +1894,7 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults i
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < reqLimit || len(result) >= minResults {
+		if len(resp.Data) == 0 || len(result) >= minResults {
 			break
 		}
 
@@ -1942,8 +1941,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 		return nil, ErrInvalidMessageID
 	}
 
-	var result []uint
-
+	result := make([]uint, 0, 300)
 	query := req.Query{"limit": 300}
 
 	for range MAX_PAGES {
@@ -1963,7 +1961,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) != 300 {
+		if len(resp.Data) == 0 {
 			break
 		}
 
@@ -2504,7 +2502,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
