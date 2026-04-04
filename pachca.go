@@ -1264,7 +1264,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(resp.Data) < c.getBatchSize() {
+		if len(resp.Data) == 0 {
 			break
 		}
 
