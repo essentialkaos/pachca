@@ -347,22 +347,27 @@ type WebhookEvent struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// APIError contains API error info
-type APIError struct {
-	Key        string `json:"key"`
-	Value      string `json:"value"`
-	Message    string `json:"message"`
-	Code       string `json:"code"`
-	StatusCode int
+// apiDetailedError contains info about detailed API error
+type apiDetailedError struct {
+	Key     string `json:"key"`
+	Value   string `json:"value"`
+	Message string `json:"message"`
+	Code    string `json:"code"`
 }
 
-// Metadata is listing metadata
-type Metadata struct {
-	Paginate *Paginate `json:"paginate"`
+// apiBasicError contains info about basic API error
+type apiBasicError struct {
+	Code string `json:"error"`
+	Desc string `json:"error_description"`
 }
 
-// Paginate contains cursor to the next page
-type Paginate struct {
+// metadata is listing metadata
+type metadata struct {
+	Paginate *paginate `json:"paginate"`
+}
+
+// paginate contains cursor to the next page
+type paginate struct {
 	NextPage string `json:"next_page"`
 }
 
@@ -535,14 +540,6 @@ func (d Date) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Time.UTC().Format("2006-01-02T15:04:05.999Z"))
 }
 
-// Error returns error text
-func (e APIError) Error() string {
-	return fmt.Sprintf(
-		"(%s) %s [%s:%s]",
-		e.Code, e.Message, e.Key, strutil.Q(e.Value, "-"),
-	)
-}
-
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // tokenValidationRegex is regex pattern for token validation
@@ -593,6 +590,9 @@ var (
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
 	ErrViewHasNoBlocks = errors.New("view has no blocks")
 	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
+
+	// Rate-limit
+	ErrRateLimited = errors.New("rate limit exceeded")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -758,7 +758,7 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Reactions `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -910,7 +910,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Users     `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/users"), query, nil, resp)
@@ -958,7 +958,7 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (U
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Users     `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/search/users"), query, nil, resp)
@@ -1181,7 +1181,7 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Tags      `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/group_tags"), query, nil, resp)
@@ -1249,7 +1249,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Users     `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -1389,7 +1389,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Chats     `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/chats"), query, nil, resp)
@@ -1437,7 +1437,7 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (C
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Chats     `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/search/chats"), query, nil, resp)
@@ -1576,7 +1576,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Users     `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -1835,7 +1835,7 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Messages  `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
@@ -1883,7 +1883,7 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults i
 	for range MAX_PAGES {
 		resp := &struct {
 			Data Messages  `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/search/messages"), query, nil, resp)
@@ -1947,7 +1947,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 	for range MAX_PAGES {
 		resp := &struct {
 			Data []uint    `json:"data"`
-			Meta *Metadata `json:"meta"`
+			Meta *metadata `json:"meta"`
 		}{}
 
 		err := c.sendRequest(
@@ -2491,7 +2491,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 	for i := 0; i < min(maxPages, MAX_PAGES); i++ {
 		resp := &struct {
 			Data []*WebhookEvent `json:"data"`
-			Meta *Metadata       `json:"meta"`
+			Meta *metadata       `json:"meta"`
 		}{}
 
 		err := c.sendRequest(req.GET, getURL("/webhooks/events"), query, nil, resp)
@@ -3271,19 +3271,7 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 	defer resp.Discard()
 
 	if resp.StatusCode >= 400 {
-		errResp := &struct {
-			Errors []APIError `json:"errors"`
-		}{}
-
-		err = resp.JSON(errResp)
-
-		if err != nil || len(errResp.Errors) == 0 {
-			return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
-		}
-
-		errResp.Errors[0].StatusCode = resp.StatusCode
-
-		return errResp.Errors[0]
+		return unmarshalError(resp)
 	}
 
 	if response != nil {
@@ -3298,6 +3286,58 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// unmarshalError decodes error from Pachca API
+func unmarshalError(resp *req.Response) error {
+	switch resp.StatusCode {
+	case 401, 403:
+		return unmarshalBasicError(resp)
+
+	case 400, 402, 404, 409, 410, 422:
+		return unmarshalDetailedError(resp)
+
+	case 429:
+		retryAfter := resp.Response.Header.Get("Retry-After")
+		return fmt.Errorf("%w (retry-after: %s)", ErrRateLimited, retryAfter)
+	}
+
+	return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
+}
+
+// unmarshalBasicError decodes very basic API error
+func unmarshalBasicError(resp *req.Response) error {
+	apiErr := &apiBasicError{}
+	err := resp.JSON(apiErr)
+
+	if err != nil || (apiErr.Code == "" && apiErr.Desc == "") {
+		return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
+	}
+
+	return fmt.Errorf("(%s) %s", apiErr.Code, apiErr.Desc)
+}
+
+// unmarshalDetailedError decodes detailed API error
+func unmarshalDetailedError(resp *req.Response) error {
+	apiErrs := &struct {
+		Errors []*apiDetailedError `json:"errors"`
+	}{}
+
+	err := resp.JSON(apiErrs)
+
+	if err != nil || len(apiErrs.Errors) == 0 {
+		return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
+	}
+
+	errs := make([]error, 0, len(apiErrs.Errors))
+
+	for _, e := range apiErrs.Errors {
+		errs = append(errs, fmt.Errorf(
+			"(%s) %s [%s:%s]", e.Code, e.Message, e.Key, strutil.Q(e.Value, "-"),
+		))
+	}
+
+	return errors.Join(errs...)
+}
 
 // getURL returns full URL of API endpoint
 func getURL(endpoint string, args ...any) string {
