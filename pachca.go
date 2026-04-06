@@ -349,14 +349,13 @@ type WebhookEvent struct {
 
 // apiDetailedError contains info about detailed API error
 type apiDetailedError struct {
-	Key        string `json:"key"`
-	Value      string `json:"value"`
-	Message    string `json:"message"`
-	Code       string `json:"code"`
-	StatusCode int
+	Key     string `json:"key"`
+	Value   string `json:"value"`
+	Message string `json:"message"`
+	Code    string `json:"code"`
 }
 
-// apiDetailedError contains info about basic API error
+// apiBasicError contains info about basic API error
 type apiBasicError struct {
 	Code string `json:"error"`
 	Desc string `json:"error_description"`
@@ -3296,7 +3295,7 @@ func unmarshalError(resp *req.Response) error {
 
 	case 429:
 		retryAfter := resp.Response.Header.Get("Retry-After")
-		return fmt.Errorf("rate-limit exceed (retry-after: %s)", retryAfter)
+		return fmt.Errorf("rate-limit exceeded (retry-after: %s)", retryAfter)
 	}
 
 	return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
@@ -3307,7 +3306,7 @@ func unmarshalBasicError(resp *req.Response) error {
 	apiErr := &apiBasicError{}
 	err := resp.JSON(apiErr)
 
-	if err != nil {
+	if err != nil || (apiErr.Code == "" && apiErr.Desc == "") {
 		return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
 	}
 
@@ -3326,7 +3325,7 @@ func unmarshalDetailedError(resp *req.Response) error {
 		return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
 	}
 
-	var errs []error
+	errs := make([]error, 0, len(apiErrs.Errors))
 
 	for _, e := range apiErrs.Errors {
 		errs = append(errs, fmt.Errorf(
