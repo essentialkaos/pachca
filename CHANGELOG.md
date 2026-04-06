@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.23.4](https://kaos.sh/pachca/0.23.4)
+
+- Improved API errors handling
+
 ### [0.23.3](https://kaos.sh/pachca/0.23.3)
 
 - Improved all methods with pagination

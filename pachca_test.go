@@ -790,16 +790,6 @@ func (s *PachcaSuite) TestAPIErrorToString(c *C) {
 	var s3Err *S3Error
 
 	c.Assert(s3Err.Error(), Equals, "<nil>")
-
-	err := APIError{
-		Key:        "system",
-		Value:      "",
-		Message:    "Ошибка выполнения запроса",
-		Code:       "unhandled",
-		StatusCode: 400,
-	}
-
-	c.Assert(err.Error(), Equals, "(unhandled) Ошибка выполнения запроса [system:-]")
 }
 
 func (s *PachcaSuite) TestIsZero(c *C) {
