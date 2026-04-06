@@ -1,6 +1,6 @@
 ## Changelog
 
-### [0.23.4](https://kaos.sh/pachca/0.23.4)
+### [0.24.0](https://kaos.sh/pachca/0.24.0)
 
 - Improved API errors handling
 

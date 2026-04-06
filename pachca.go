@@ -590,6 +590,9 @@ var (
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
 	ErrViewHasNoBlocks = errors.New("view has no blocks")
 	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
+
+	// Rate-limit
+	ErrRateLimited = errors.New("rate limit exceeded")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -3295,7 +3298,7 @@ func unmarshalError(resp *req.Response) error {
 
 	case 429:
 		retryAfter := resp.Response.Header.Get("Retry-After")
-		return fmt.Errorf("rate-limit exceeded (retry-after: %s)", retryAfter)
+		return fmt.Errorf("%w (retry-after: %s)", ErrRateLimited, retryAfter)
 	}
 
 	return fmt.Errorf("API returned non-ok status code %d", resp.StatusCode)
