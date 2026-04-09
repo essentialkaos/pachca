@@ -2769,6 +2769,15 @@ func (u *User) IsRegular() bool {
 	return u != nil && u.Role == ROLE_REGULAR
 }
 
+// Mention returns user mention for messages
+func (u *User) Mention() string {
+	if u == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("<@%d>", u.ID)
+}
+
 // Get returns user with given ID or nil
 func (u Users) Get(id uint) *User {
 	for _, uu := range u {

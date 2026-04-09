@@ -502,6 +502,7 @@ func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
 func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	var u *User
 	c.Assert(u.FullName(), Equals, "")
+	c.Assert(u.Mention(), Equals, "")
 
 	u = &User{ID: 1234, FirstName: "John", LastName: "Doe", Nickname: "j.doe", ImageURL: "http//domain.com/image.png", Tags: []string{"developers"}}
 	c.Assert(u.FullName(), Equals, "John Doe")
@@ -516,6 +517,7 @@ func (s *PachcaSuite) TestUsersHelpers(c *C) {
 	c.Assert(u.IsInvited(), Equals, true)
 	u = &User{ID: 1234, IsSuspended: false, InviteStatus: INVITE_CONFIRMED}
 	c.Assert(u.IsActive(), Equals, true)
+	c.Assert(u.Mention(), Equals, "<@1234>")
 
 	uu := Users{
 		{ID: 1, IsSuspended: false, InviteStatus: INVITE_SENT, IsBot: false, Role: ROLE_REGULAR, Tags: []string{"developers"}},
