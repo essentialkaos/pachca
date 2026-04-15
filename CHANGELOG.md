@@ -1,15 +1,12 @@
 ## Changelog
 
-### [0.26.0](https://kaos.sh/pachca/0.26.0)
+### [0.25.0](https://kaos.sh/pachca/0.25.0)
 
+- Added helper `User.Mention`
 - Added method `UpdateAvatar`
 - Added method `DeleteAvatar`
 - Added method `UpdateUserAvatar`
 - Added method `DeleteUserAvatar`
-
-### [0.25.0](https://kaos.sh/pachca/0.25.0)
-
-- Added helper `User.Mention`
 
 ### [0.24.0](https://kaos.sh/pachca/0.24.0)
 
