@@ -3399,10 +3399,9 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 // uploadFile uploads given file using multipart upload
 func (c *Client) uploadFile(method, url, file string, response any) error {
 	r := req.Request{
-		Method:      method,
-		URL:         url,
-		ContentType: req.CONTENT_TYPE_FORM_DATA,
-		Auth:        req.AuthBearer{c.token},
+		Method: method,
+		URL:    url,
+		Auth:   req.AuthBearer{c.token},
 	}
 
 	resp, err := c.engine.SendFile(r, file, "image", nil)
