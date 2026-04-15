@@ -94,6 +94,20 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	c.Assert(cc.DeleteUser(1), Equals, ErrNilClient)
 
+	// AVATAR
+
+	_, err = cc.UpdateAvatar("test")
+	c.Assert(err, Equals, ErrNilClient)
+
+	err = cc.DeleteAvatar()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.UpdateUserAvatar(1, "test")
+	c.Assert(err, Equals, ErrNilClient)
+
+	err = cc.DeleteUserAvatar(1)
+	c.Assert(err, Equals, ErrNilClient)
+
 	// STATUS
 
 	_, err = cc.GetStatus(1)
@@ -266,6 +280,20 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrNilUserRequest)
 
 	c.Assert(cc.DeleteUser(0), Equals, ErrInvalidUserID)
+
+	// AVATAR
+
+	_, err = cc.UpdateAvatar("")
+	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	_, err = cc.UpdateUserAvatar(0, "")
+	c.Assert(err, Equals, ErrInvalidUserID)
+
+	_, err = cc.UpdateUserAvatar(1, "")
+	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	err = cc.DeleteUserAvatar(0)
+	c.Assert(err, Equals, ErrInvalidUserID)
 
 	// STATUS
 

@@ -1065,6 +1065,108 @@ func (c *Client) DeleteUser(userID uint) error {
 	return nil
 }
 
+// AVATARS ////////////////////////////////////////////////////////////////////////// //
+
+// UpdateAvatar updates current user avatar to given file
+//
+// https://dev.pachca.com/api/profile/update-avatar
+func (c *Client) UpdateAvatar(file string) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case file == "":
+		return "", ErrEmptyFilePath
+	}
+
+	resp := &struct {
+		Data *struct {
+			ImageURL string `json:"image_url"`
+		} `json:"data"`
+	}{}
+
+	err := c.uploadFile(req.PUT, getURL("/profile/avatar"), file, resp)
+
+	if err != nil {
+		return "", fmt.Errorf("can't upload avatar: %w", err)
+	}
+
+	if resp != nil && resp.Data != nil {
+		return resp.Data.ImageURL, nil
+	}
+
+	return "", nil
+}
+
+// DeleteAvatar deletes current user avatar
+//
+// https://dev.pachca.com/api/profile/delete-avatar
+func (c *Client) DeleteAvatar() error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	}
+
+	err := c.sendRequest(req.DELETE, getURL("/profile/avatar"), nil, nil, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't current user avatar: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateUserAvatar updates specified user avatar to given file
+//
+// https://dev.pachca.com/api/users/update-avatar
+func (c *Client) UpdateUserAvatar(userID uint, file string) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case userID == 0:
+		return "", ErrInvalidUserID
+	case file == "":
+		return "", ErrEmptyFilePath
+	}
+
+	resp := &struct {
+		Data *struct {
+			ImageURL string `json:"image_url"`
+		} `json:"data"`
+	}{}
+
+	err := c.uploadFile(req.PUT, getURL("/users/%d/avatar", userID), file, resp)
+
+	if err != nil {
+		return "", fmt.Errorf("can't upload avatar: %w", err)
+	}
+
+	if resp != nil && resp.Data != nil {
+		return resp.Data.ImageURL, nil
+	}
+
+	return "", nil
+}
+
+// DeleteUserAvatar deletes specified user avatar
+//
+// https://dev.pachca.com/api/users/remove-avatar
+func (c *Client) DeleteUserAvatar(userID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case userID == 0:
+		return ErrInvalidUserID
+	}
+
+	err := c.sendRequest(req.DELETE, getURL("/users/%d/avatar", userID), nil, nil, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't delete user %d avatar: %w", userID, err)
+	}
+
+	return nil
+}
+
 // STATUS /////////////////////////////////////////////////////////////////////////// //
 
 // GetStatus returns status of user with given ID
@@ -3272,6 +3374,38 @@ func (c *Client) sendRequest(method, url string, query req.Query, payload any, r
 	}
 
 	resp, err := c.engine.Do(r)
+
+	if err != nil {
+		return fmt.Errorf("can't send request to API: %w", err)
+	}
+
+	defer resp.Discard()
+
+	if resp.StatusCode >= 400 {
+		return unmarshalError(resp)
+	}
+
+	if response != nil {
+		err = resp.JSON(response)
+
+		if err != nil {
+			return fmt.Errorf("can't decode API response: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// uploadFile uploads given file using multipart upload
+func (c *Client) uploadFile(method, url, file string, response any) error {
+	r := req.Request{
+		Method:      method,
+		URL:         url,
+		ContentType: req.CONTENT_TYPE_FORM_DATA,
+		Auth:        req.AuthBearer{c.token},
+	}
+
+	resp, err := c.engine.SendFile(r, file, "image", nil)
 
 	if err != nil {
 		return fmt.Errorf("can't send request to API: %w", err)
