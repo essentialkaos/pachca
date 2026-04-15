@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/essentialkaos/ek/v13/hashutil"
-	"github.com/essentialkaos/ek/v13/strutil"
+	"github.com/essentialkaos/ek/v14/hashutil"
+	"github.com/essentialkaos/ek/v14/strutil"
 
 	"github.com/essentialkaos/pachca"
 )
