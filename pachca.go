@@ -1087,7 +1087,7 @@ func (c *Client) UpdateAvatar(file string) (string, error) {
 	err := c.uploadFile(req.PUT, getURL("/profile/avatar"), file, resp)
 
 	if err != nil {
-		return "", fmt.Errorf("can't upload avatar: %w", err)
+		return "", fmt.Errorf("can't upload user avatar: %w", err)
 	}
 
 	if resp != nil && resp.Data != nil {
@@ -1109,7 +1109,7 @@ func (c *Client) DeleteAvatar() error {
 	err := c.sendRequest(req.DELETE, getURL("/profile/avatar"), nil, nil, nil)
 
 	if err != nil {
-		return fmt.Errorf("can't current user avatar: %w", err)
+		return fmt.Errorf("can't delete current user avatar: %w", err)
 	}
 
 	return nil
@@ -1137,7 +1137,7 @@ func (c *Client) UpdateUserAvatar(userID uint, file string) (string, error) {
 	err := c.uploadFile(req.PUT, getURL("/users/%d/avatar", userID), file, resp)
 
 	if err != nil {
-		return "", fmt.Errorf("can't upload avatar: %w", err)
+		return "", fmt.Errorf("can't upload avatar for user %d: %w", userID, err)
 	}
 
 	if resp != nil && resp.Data != nil {
