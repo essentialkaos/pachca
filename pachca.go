@@ -370,6 +370,7 @@ type metadata struct {
 // paginate contains cursor to the next page
 type paginate struct {
 	NextPage string `json:"next_page"`
+	HasNext  bool   `json:"has_next"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -773,12 +774,10 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -922,12 +921,10 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -970,12 +967,14 @@ func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (U
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(result) >= minResults {
+		if len(result) >= minResults {
 			break
 		}
 
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1295,12 +1294,10 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1366,12 +1363,10 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1503,12 +1498,10 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1551,12 +1544,14 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (C
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(result) >= minResults {
+		if len(result) >= minResults {
 			break
 		}
 
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1693,12 +1688,10 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1949,12 +1942,14 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(result) >= minResults {
+		if len(result) >= minResults {
 			break
 		}
 
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -1997,12 +1992,14 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults i
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 || len(result) >= minResults {
+		if len(result) >= minResults {
 			break
 		}
 
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -2064,12 +2061,10 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
@@ -2605,12 +2600,10 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 
 		result = append(result, resp.Data...)
 
-		if len(resp.Data) == 0 {
-			break
-		}
-
-		if resp.Meta != nil && resp.Meta.Paginate != nil {
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
 			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
 		}
 	}
 
