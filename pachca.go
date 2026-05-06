@@ -192,6 +192,7 @@ type User struct {
 	TimeZone       string       `json:"time_zone"`
 	Title          string       `json:"title"`
 	InviteStatus   InviteStatus `json:"invite_status"`
+	InviterID      uint         `json:"inviter_id"`
 	Department     string       `json:"department"`
 	Properties     Properties   `json:"custom_properties"`
 	Tags           []string     `json:"list_tags"`

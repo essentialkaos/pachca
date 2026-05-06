@@ -103,11 +103,12 @@ type Message struct {
 
 // Reaction contains payload of reaction webhook
 //
-// https://dev.pachca.com/guides/webhook#dobavlenie-i-udalenie-reaktsiy
+// https://dev.pachca.com/guides/webhook#reaktsii
 type Reaction struct {
 	Basic
 	Event     WebhookEvent `json:"event"`
 	UserID    uint         `json:"user_id"`
+	ChatID    uint         `json:"chat_id"`
 	MessageID uint         `json:"message_id"`
 	CreatedAt pachca.Date  `json:"created_at"`
 }
@@ -119,6 +120,7 @@ type Button struct {
 	Basic
 	Data      string `json:"data"`
 	UserID    uint   `json:"user_id"`
+	ChatID    uint   `json:"chat_id"`
 	MessageID uint   `json:"message_id"`
 	TriggerID string `json:"trigger_id"`
 }
@@ -147,12 +149,13 @@ type OrgMember struct {
 
 // View contains payload from view form
 //
-// https://dev.pachca.com/guides/forms#otkrytie-predstavleniya
+// https://dev.pachca.com/guides/webhook#zapolnenie-formy
 type View struct {
 	Basic
 	Event      WebhookEvent    `json:"event"`
 	Metadata   string          `json:"private_metadata"`
 	CallbackID string          `json:"callback_id"`
+	ChatID     uint            `json:"chat_id"`
 	UserID     uint            `json:"user_id"`
 	Data       json.RawMessage `json:"data"`
 }
