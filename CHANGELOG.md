@@ -1,5 +1,11 @@
 ## Changelog
 
+### [0.26.0](https://kaos.sh/pachca/0.25.0)
+
+- Added field `InviterID` to `User`
+- **`[webhook]`** Added field `ChatID` to `Reaction`, `Button`, and `View`
+- Added using marker of the next page presence while working with pagination
+
 ### [0.25.0](https://kaos.sh/pachca/0.25.0)
 
 - Added helper `User.Mention`
