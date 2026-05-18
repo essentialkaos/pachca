@@ -1,6 +1,10 @@
 ## Changelog
 
-### [0.26.0](https://kaos.sh/pachca/0.25.0)
+### [0.26.1](https://kaos.sh/pachca/0.26.1)
+
+- Added field `Chats` to `UserRequest`
+
+### [0.26.0](https://kaos.sh/pachca/0.26.0)
 
 - Added field `InviterID` to `User`
 - **`[webhook]`** Added field `ChatID` to `Reaction`, `Button`, and `View`
