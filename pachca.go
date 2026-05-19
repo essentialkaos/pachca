@@ -405,6 +405,7 @@ type UserRequest struct {
 	Title           string           `json:"title,omitempty"`
 	Department      string           `json:"department,omitempty"`
 	Properties      PropertyRequests `json:"custom_properties,omitempty"`
+	Chats           []uint           `json:"chat_ids,omitempty"`
 	Tags            []string         `json:"list_tags,omitempty"`
 	IsSuspended     bool             `json:"suspended,omitempty"`
 	SkipEmailNotify bool             `json:"skip_email_notify,omitempty"`
