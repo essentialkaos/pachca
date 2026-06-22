@@ -96,6 +96,11 @@ const (
 )
 
 const (
+	MESSAGE_SORT_BY_CREATED_AT = "created_at"
+	MESSAGE_SORT_BY_RELEVANCE  = "relevance"
+)
+
+const (
 	VIEW_MODAL ViewType = "modal"
 )
 
@@ -142,6 +147,9 @@ type SortOrder string
 
 // SortType is type for sort type
 type SortType string
+
+// MessageSort is type for message sort
+type MessageSort string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -521,6 +529,7 @@ type UserSearchRequest struct {
 type MessageSearchRequest struct {
 	Query       string
 	Order       SortOrder
+	Sort        MessageSort
 	CreatedFrom time.Time
 	CreatedTo   time.Time
 	ChatIDs     []uint
@@ -3430,10 +3439,18 @@ func (r UserSearchRequest) ToQuery() req.Query {
 
 // Validate validates messages search request
 func (r MessageSearchRequest) Validate() error {
-	if r.Order != "" &&
-		r.Order != SORT_ORDER_ASC &&
-		r.Order != SORT_ORDER_DESC {
+	switch r.Order {
+	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
+		// okay
+	default:
 		return fmt.Errorf("unsupported sort order %q", r.Order)
+	}
+
+	switch r.Sort {
+	case "", MESSAGE_SORT_BY_CREATED_AT, MESSAGE_SORT_BY_RELEVANCE:
+	// okay
+	default:
+		return fmt.Errorf("unsupported result sort %q", r.Sort)
 	}
 
 	return nil
@@ -3445,6 +3462,7 @@ func (r MessageSearchRequest) ToQuery() req.Query {
 
 	query.SetIf(r.Query != "", "query", r.Query)
 	query.SetIf(r.Order != "", "order", string(r.Order))
+	query.SetIf(r.Sort != "", "sort", string(r.Sort))
 	query.SetIf(len(r.ChatIDs) != 0, "chat_ids[]", sliceutil.Join(r.ChatIDs, ","))
 	query.SetIf(len(r.UserIDs) != 0, "user_ids[]", sliceutil.Join(r.UserIDs, ","))
 	query.SetIf(r.Active, "active", "true")
