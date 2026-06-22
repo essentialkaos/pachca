@@ -347,7 +347,30 @@ type View struct {
 type WebhookEvent struct {
 	ID        string          `json:"id"`
 	EventType string          `json:"event_type"`
+	CreatedAt Date            `json:"created_at"`
 	Payload   json.RawMessage `json:"payload"`
+}
+
+// BotWebhook contains bot webhook configuration
+type BotWebhook struct {
+	Name                 string   `json:"name"`
+	Nickname             string   `json:"nickname,omitempty"`
+	OutgoingURL          string   `json:"outgoing_url,omitempty"`
+	TriggerOn            string   `json:"trigger_on,omitempty"`
+	Template             string   `json:"template,omitempty"`
+	TemplateEngine       string   `json:"template_engine,omitempty"`
+	ChallengeKey         string   `json:"challenge_key"`
+	Events               []string `json:"events"`
+	Commands             []string `json:"commands"`
+	Scopes               []string `json:"scopes"`
+	IsLinkPreviewEnabled bool     `json:"link_preview_enabled"`
+}
+
+// BotInfo contains info about bot
+type BotInfo struct {
+	ID          uint        `json:"id"`
+	Webhook     *BotWebhook `json:"webhook"`
+	AccessToken string      `json:"access_token"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -559,14 +582,15 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 
 var (
 	// Nil guards
-	ErrNilClient          = errors.New("client is nil")
-	ErrNilUserRequest     = errors.New("user request is nil")
-	ErrNilChatRequest     = errors.New("chat request is nil")
-	ErrNilMessageRequest  = errors.New("message request is nil")
-	ErrNilPropertyRequest = errors.New("property request is nil")
-	ErrNilViewRequest     = errors.New("view request is nil")
-	ErrNilView            = errors.New("view data is nil")
-	ErrNilStatus          = errors.New("status is nil")
+	ErrNilClient           = errors.New("client is nil")
+	ErrNilUserRequest      = errors.New("user request is nil")
+	ErrNilChatRequest      = errors.New("chat request is nil")
+	ErrNilMessageRequest   = errors.New("message request is nil")
+	ErrNilPropertyRequest  = errors.New("property request is nil")
+	ErrNilViewRequest      = errors.New("view request is nil")
+	ErrNilView             = errors.New("view data is nil")
+	ErrNilStatus           = errors.New("status is nil")
+	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
 
 	// Empty value guards
 	ErrEmptyToken     = errors.New("token is empty")
@@ -1068,6 +1092,94 @@ func (c *Client) DeleteUser(userID uint) error {
 	}
 
 	return nil
+}
+
+// BOTS ///////////////////////////////////////////////////////////////////////////// //
+
+// AddBot creates a new bot
+//
+// https://dev.pachca.com/api/bots/create
+func (c *Client) AddBot(webhook *BotWebhook) (*BotInfo, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case webhook == nil:
+		return nil, ErrNilBotConfiguration
+	}
+
+	payload := &struct {
+		Webhook *BotWebhook `json:"webhook"`
+	}{
+		Webhook: webhook,
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.POST, getURL("/bots"), nil, payload, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't create a new bot: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// GetBot returns info about specific bot
+//
+// https://dev.pachca.com/api/bots/get
+func (c *Client) GetBot(botID uint) (*BotInfo, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case botID == 0:
+		return nil, ErrInvalidBotID
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/users/%d", botID), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't get bot %d info: %w", botID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// EditBot modifies an existing bot
+//
+// https://dev.pachca.com/api/bots/update
+func (c *Client) EditBot(botID uint, webhook *BotWebhook) (*BotInfo, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case botID == 0:
+		return nil, ErrInvalidBotID
+	case webhook == nil:
+		return nil, ErrNilBotConfiguration
+	}
+
+	payload := &struct {
+		Webhook *BotWebhook `json:"webhook"`
+	}{
+		Webhook: webhook,
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.PUT, getURL("/bots/%d", botID), nil, payload, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't edit bot %d: %w", botID, err)
+	}
+
+	return resp.Data, nil
 }
 
 // AVATARS ////////////////////////////////////////////////////////////////////////// //

@@ -3,6 +3,10 @@
 ### [0.27.0](https://kaos.sh/pachca/0.27.0)
 
 - Added fields for audio and voice messages
+- Added field `CreatedAt` to `WebhookEvent`
+- Added method `AddBot`
+- Added method `GetBot`
+- Added method `EditBot`
 
 ### [0.26.1](https://kaos.sh/pachca/0.26.1)
 
