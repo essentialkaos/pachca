@@ -1,5 +1,9 @@
 ## Changelog
 
+### [0.27.0](https://kaos.sh/pachca/0.27.0)
+
+- Added fields for audio and voice messages
+
 ### [0.26.1](https://kaos.sh/pachca/0.26.1)
 
 - Added field `Chats` to `UserRequest`
