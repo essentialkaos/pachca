@@ -85,6 +85,8 @@ const (
 const (
 	FILE_TYPE_FILE  FileType = "file"
 	FILE_TYPE_IMAGE FileType = "image"
+	FILE_TYPE_AUDIO FileType = "audio"
+	FILE_TYPE_VOICE FileType = "voice"
 )
 
 const (
@@ -292,14 +294,16 @@ type Forwarding struct {
 
 // File contains info about message attachment
 type File struct {
-	ID     uint     `json:"id,omitempty"`
-	Key    string   `json:"key"`
-	Name   string   `json:"name"`
-	Type   FileType `json:"file_type,omitempty"`
-	URL    string   `json:"url,omitempty"`
-	Size   int64    `json:"size"`
-	Width  int      `json:"width,omitzero"`
-	Height int      `json:"height,omitzero"`
+	ID         uint     `json:"id,omitempty"`
+	Key        string   `json:"key"`
+	Name       string   `json:"name"`
+	Type       FileType `json:"file_type,omitempty"`
+	URL        string   `json:"url,omitempty"`
+	Size       int64    `json:"size"`
+	Width      int      `json:"width,omitzero"`
+	Height     int      `json:"height,omitzero"`
+	DurationMS int      `json:"duration_ms,omitzero"`
+	Waveform   string   `json:"waveform,omitempty"`
 }
 
 // Files is a slice of attachments
