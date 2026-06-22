@@ -50,11 +50,6 @@ const (
 )
 
 const (
-	SORT_TYPE_SCORE SortType = "by_score"
-	SORT_TYPE_ALPHA SortType = "alphabetical"
-)
-
-const (
 	PROP_TYPE_DATE   PropertyType = "date"
 	PROP_TYPE_LINK   PropertyType = "link"
 	PROP_TYPE_NUMBER PropertyType = "number"
@@ -96,8 +91,13 @@ const (
 )
 
 const (
-	MESSAGE_SORT_BY_CREATED_AT = "created_at"
-	MESSAGE_SORT_BY_RELEVANCE  = "relevance"
+	MESSAGE_SORT_BY_CREATED_AT MessageSort = "created_at"
+	MESSAGE_SORT_BY_RELEVANCE  MessageSort = "relevance"
+)
+
+const (
+	USER_SORT_BY_SCORE UserSort = "by_score"
+	USER_SORT_BY_ALPHA UserSort = "alphabetical"
 )
 
 const (
@@ -145,8 +145,8 @@ type ViewType string
 // SortOrder is type for sort order
 type SortOrder string
 
-// SortType is type for sort type
-type SortType string
+// UserSort is type for user sort
+type UserSort string
 
 // MessageSort is type for message sort
 type MessageSort string
@@ -518,7 +518,7 @@ type ChatSearchRequest struct {
 // UserSearchRequest contains data for users search
 type UserSearchRequest struct {
 	Query       string
-	Sort        SortType
+	Sort        UserSort
 	Order       SortOrder
 	CreatedFrom time.Time
 	CreatedTo   time.Time
@@ -3360,15 +3360,17 @@ func (f ChatFilter) ToQuery() req.Query {
 
 // Validate validates chats search request
 func (r ChatSearchRequest) Validate() error {
-	if r.Order != "" &&
-		r.Order != SORT_ORDER_ASC &&
-		r.Order != SORT_ORDER_DESC {
+	switch r.Order {
+	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
+		// okay
+	default:
 		return fmt.Errorf("unsupported sort order %q", r.Order)
 	}
 
-	if r.ChatType != "" &&
-		r.ChatType != ENTITY_TYPE_DISCUSSION &&
-		r.ChatType != ENTITY_TYPE_THREAD {
+	switch r.ChatType {
+	case "", ENTITY_TYPE_DISCUSSION, ENTITY_TYPE_THREAD:
+		// okay
+	default:
 		return fmt.Errorf("unsupported chat type %q", r.ChatType)
 	}
 
@@ -3400,16 +3402,18 @@ func (r ChatSearchRequest) ToQuery() req.Query {
 
 // Validate validates users search request
 func (r UserSearchRequest) Validate() error {
-	if r.Order != "" &&
-		r.Order != SORT_ORDER_ASC &&
-		r.Order != SORT_ORDER_DESC {
+	switch r.Order {
+	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
+		// okay
+	default:
 		return fmt.Errorf("unsupported sort order %q", r.Order)
 	}
 
-	if r.Sort != "" &&
-		r.Sort != SORT_TYPE_ALPHA &&
-		r.Sort != SORT_TYPE_SCORE {
-		return fmt.Errorf("unsupported sort type %q", r.Sort)
+	switch r.Sort {
+	case "", USER_SORT_BY_ALPHA, USER_SORT_BY_SCORE:
+		// okay
+	default:
+		return fmt.Errorf("unsupported result sort %q", r.Sort)
 	}
 
 	return nil

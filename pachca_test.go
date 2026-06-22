@@ -766,7 +766,7 @@ func (s *PachcaSuite) TestSearchRequests(c *C) {
 	ur := UserSearchRequest{
 		Query:       "Test",
 		Order:       SORT_ORDER_ASC,
-		Sort:        SORT_TYPE_SCORE,
+		Sort:        USER_SORT_BY_SCORE,
 		Roles:       []UserRole{ROLE_REGULAR, ROLE_MULTI_GUEST},
 		CreatedFrom: time.Date(2020, 6, 15, 15, 0, 0, 0, time.UTC),
 		CreatedTo:   time.Date(2020, 6, 15, 18, 0, 0, 0, time.UTC),
@@ -786,13 +786,14 @@ func (s *PachcaSuite) TestSearchRequests(c *C) {
 	c.Assert(ur.Validate(), NotNil)
 	c.Assert(ur.Validate().Error(), Equals, `unsupported sort order "test"`)
 
-	ur = UserSearchRequest{Sort: SortType("test")}
+	ur = UserSearchRequest{Sort: UserSort("test")}
 	c.Assert(ur.Validate(), NotNil)
-	c.Assert(ur.Validate().Error(), Equals, `unsupported sort type "test"`)
+	c.Assert(ur.Validate().Error(), Equals, `unsupported result sort "test"`)
 
 	mr := MessageSearchRequest{
 		Query:       "Test",
 		Order:       SORT_ORDER_ASC,
+		Sort:        MESSAGE_SORT_BY_RELEVANCE,
 		ChatIDs:     []uint{100, 200, 300},
 		UserIDs:     []uint{10, 20, 30},
 		CreatedFrom: time.Date(2020, 6, 15, 15, 0, 0, 0, time.UTC),
@@ -804,6 +805,7 @@ func (s *PachcaSuite) TestSearchRequests(c *C) {
 	c.Assert(mr.Validate(), IsNil)
 	c.Assert(mrq["query"], Equals, "Test")
 	c.Assert(mrq["order"], Equals, "asc")
+	c.Assert(mrq["sort"], Equals, "relevance")
 	c.Assert(mrq["chat_ids[]"], Equals, "100,200,300")
 	c.Assert(mrq["user_ids[]"], Equals, "10,20,30")
 	c.Assert(mrq["created_from"], Equals, "2020-06-15T15:00:00Z")
@@ -812,6 +814,10 @@ func (s *PachcaSuite) TestSearchRequests(c *C) {
 	mr = MessageSearchRequest{Order: SortOrder("test")}
 	c.Assert(mr.Validate(), NotNil)
 	c.Assert(mr.Validate().Error(), Equals, `unsupported sort order "test"`)
+
+	mr = MessageSearchRequest{Sort: MessageSort("test")}
+	c.Assert(mr.Validate(), NotNil)
+	c.Assert(mr.Validate().Error(), Equals, `unsupported result sort "test"`)
 }
 
 func (s *PachcaSuite) TestAux(c *C) {
