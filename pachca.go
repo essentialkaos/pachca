@@ -50,11 +50,6 @@ const (
 )
 
 const (
-	SORT_TYPE_SCORE SortType = "by_score"
-	SORT_TYPE_ALPHA SortType = "alphabetical"
-)
-
-const (
 	PROP_TYPE_DATE   PropertyType = "date"
 	PROP_TYPE_LINK   PropertyType = "link"
 	PROP_TYPE_NUMBER PropertyType = "number"
@@ -85,12 +80,29 @@ const (
 const (
 	FILE_TYPE_FILE  FileType = "file"
 	FILE_TYPE_IMAGE FileType = "image"
+	FILE_TYPE_AUDIO FileType = "audio"
+	FILE_TYPE_VOICE FileType = "voice"
 )
 
 const (
 	ENTITY_TYPE_DISCUSSION EntityType = "discussion"
 	ENTITY_TYPE_THREAD     EntityType = "thread"
 	ENTITY_TYPE_USER       EntityType = "user"
+)
+
+const (
+	MESSAGE_SORT_BY_CREATED_AT MessageSort = "created_at"
+	MESSAGE_SORT_BY_RELEVANCE  MessageSort = "relevance"
+)
+
+const (
+	USER_SORT_BY_SCORE UserSort = "by_score"
+	USER_SORT_BY_ALPHA UserSort = "alphabetical"
+)
+
+const (
+	BOT_TEMPLATE_LIQUID   string = "liquid"
+	BOT_TEMPLATE_MUSTACHE string = "mustache"
 )
 
 const (
@@ -138,8 +150,11 @@ type ViewType string
 // SortOrder is type for sort order
 type SortOrder string
 
-// SortType is type for sort type
-type SortType string
+// UserSort is type for user sort
+type UserSort string
+
+// MessageSort is type for message sort
+type MessageSort string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -292,14 +307,16 @@ type Forwarding struct {
 
 // File contains info about message attachment
 type File struct {
-	ID     uint     `json:"id,omitempty"`
-	Key    string   `json:"key"`
-	Name   string   `json:"name"`
-	Type   FileType `json:"file_type,omitempty"`
-	URL    string   `json:"url,omitempty"`
-	Size   int64    `json:"size"`
-	Width  int      `json:"width,omitzero"`
-	Height int      `json:"height,omitzero"`
+	ID         uint     `json:"id,omitempty"`
+	Key        string   `json:"key"`
+	Name       string   `json:"name"`
+	Type       FileType `json:"file_type,omitempty"`
+	URL        string   `json:"url,omitempty"`
+	Size       int64    `json:"size"`
+	Width      int      `json:"width,omitzero"`
+	Height     int      `json:"height,omitzero"`
+	DurationMS int      `json:"duration_ms,omitzero"`
+	Waveform   string   `json:"waveform,omitempty"`
 }
 
 // Files is a slice of attachments
@@ -343,7 +360,34 @@ type View struct {
 type WebhookEvent struct {
 	ID        string          `json:"id"`
 	EventType string          `json:"event_type"`
+	CreatedAt Date            `json:"created_at"`
 	Payload   json.RawMessage `json:"payload"`
+}
+
+// BotWebhook contains bot webhook configuration
+//
+// https://dev.pachca.com/api/bots/create#param-webhook
+type BotWebhook struct {
+	Name                 string   `json:"name"`
+	Nickname             string   `json:"nickname,omitempty"`
+	OutgoingURL          string   `json:"outgoing_url,omitempty"`
+	TriggerOn            string   `json:"trigger_on,omitempty"`
+	Template             string   `json:"template,omitempty"`
+	TemplateEngine       string   `json:"template_engine,omitempty"`
+	ChallengeKey         string   `json:"challenge_key"`
+	Events               []string `json:"events"`
+	Commands             []string `json:"commands"`
+	Scopes               []string `json:"scopes"`
+	LinkPreviewEnabled   bool     `json:"link_preview_enabled"`
+	EventsHistoryEnabled bool     `json:"events_history_enabled"`
+	IgnoreSelfMessages   bool     `json:"ignore_self_messages"`
+}
+
+// BotInfo contains info about bot
+type BotInfo struct {
+	ID          uint        `json:"id"`
+	Webhook     *BotWebhook `json:"webhook"`
+	AccessToken string      `json:"access_token"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -483,7 +527,7 @@ type ChatSearchRequest struct {
 // UserSearchRequest contains data for users search
 type UserSearchRequest struct {
 	Query       string
-	Sort        SortType
+	Sort        UserSort
 	Order       SortOrder
 	CreatedFrom time.Time
 	CreatedTo   time.Time
@@ -494,6 +538,7 @@ type UserSearchRequest struct {
 type MessageSearchRequest struct {
 	Query       string
 	Order       SortOrder
+	Sort        MessageSort
 	CreatedFrom time.Time
 	CreatedTo   time.Time
 	ChatIDs     []uint
@@ -555,14 +600,15 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 
 var (
 	// Nil guards
-	ErrNilClient          = errors.New("client is nil")
-	ErrNilUserRequest     = errors.New("user request is nil")
-	ErrNilChatRequest     = errors.New("chat request is nil")
-	ErrNilMessageRequest  = errors.New("message request is nil")
-	ErrNilPropertyRequest = errors.New("property request is nil")
-	ErrNilViewRequest     = errors.New("view request is nil")
-	ErrNilView            = errors.New("view data is nil")
-	ErrNilStatus          = errors.New("status is nil")
+	ErrNilClient           = errors.New("client is nil")
+	ErrNilUserRequest      = errors.New("user request is nil")
+	ErrNilChatRequest      = errors.New("chat request is nil")
+	ErrNilMessageRequest   = errors.New("message request is nil")
+	ErrNilPropertyRequest  = errors.New("property request is nil")
+	ErrNilViewRequest      = errors.New("view request is nil")
+	ErrNilView             = errors.New("view data is nil")
+	ErrNilStatus           = errors.New("status is nil")
+	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
 
 	// Empty value guards
 	ErrEmptyToken     = errors.New("token is empty")
@@ -593,6 +639,7 @@ var (
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
 	ErrViewHasNoBlocks = errors.New("view has no blocks")
 	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
+	ErrEmptyResponse   = errors.New("empty response from API endpoint")
 
 	// Rate-limit
 	ErrRateLimited = errors.New("rate limit exceeded")
@@ -1064,6 +1111,152 @@ func (c *Client) DeleteUser(userID uint) error {
 	}
 
 	return nil
+}
+
+// BOTS ///////////////////////////////////////////////////////////////////////////// //
+
+// AddBot creates a new bot
+//
+// https://dev.pachca.com/api/bots/create
+func (c *Client) AddBot(webhook *BotWebhook) (*BotInfo, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case webhook == nil:
+		return nil, ErrNilBotConfiguration
+	}
+
+	payload := &struct {
+		Webhook *BotWebhook `json:"webhook"`
+	}{
+		Webhook: webhook,
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.POST, getURL("/bots"), nil, payload, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't create a new bot: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// GetBot returns info about specific bot
+//
+// https://dev.pachca.com/api/bots/get
+func (c *Client) GetBot(botID uint) (*BotInfo, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case botID == 0:
+		return nil, ErrInvalidBotID
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/bots/%d", botID), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't get bot %d info: %w", botID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// EditBot modifies an existing bot
+//
+// https://dev.pachca.com/api/bots/update
+func (c *Client) EditBot(botID uint, webhook *BotWebhook) (*BotInfo, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case botID == 0:
+		return nil, ErrInvalidBotID
+	case webhook == nil:
+		return nil, ErrNilBotConfiguration
+	}
+
+	payload := &struct {
+		Webhook *BotWebhook `json:"webhook"`
+	}{
+		Webhook: webhook,
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.PUT, getURL("/bots/%d", botID), nil, payload, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't edit bot %d: %w", botID, err)
+	}
+
+	return resp.Data, nil
+}
+
+// RecreateBotToken generates new access token for bot
+//
+// https://dev.pachca.com/api/bots/recreate-token
+func (c *Client) RecreateBotToken(botID uint) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case botID == 0:
+		return "", ErrInvalidBotID
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.POST, getURL("/bots/%d/recreate_token", botID),
+		nil, nil, resp,
+	)
+
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("can't regenerate bot %d token: %w", botID, err)
+	case resp.Data == nil:
+		return "", ErrEmptyResponse
+	}
+
+	return resp.Data.AccessToken, nil
+}
+
+// RotateBotToken generates new access token for current bot and immediately
+// invalidates previous one
+//
+// https://dev.pachca.com/api/bots/recreate-token-self
+func (c *Client) RotateBotToken() (string, error) {
+	if c == nil || c.engine == nil {
+		return "", ErrNilClient
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.POST, getURL("/bot/recreate_token"),
+		nil, nil, resp,
+	)
+
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("can't rotate bot token: %w", err)
+	case resp.Data == nil:
+		return "", ErrEmptyResponse
+	}
+
+	return resp.Data.AccessToken, nil
 }
 
 // AVATARS ////////////////////////////////////////////////////////////////////////// //
@@ -3235,15 +3428,17 @@ func (f ChatFilter) ToQuery() req.Query {
 
 // Validate validates chats search request
 func (r ChatSearchRequest) Validate() error {
-	if r.Order != "" &&
-		r.Order != SORT_ORDER_ASC &&
-		r.Order != SORT_ORDER_DESC {
+	switch r.Order {
+	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
+		// okay
+	default:
 		return fmt.Errorf("unsupported sort order %q", r.Order)
 	}
 
-	if r.ChatType != "" &&
-		r.ChatType != ENTITY_TYPE_DISCUSSION &&
-		r.ChatType != ENTITY_TYPE_THREAD {
+	switch r.ChatType {
+	case "", ENTITY_TYPE_DISCUSSION, ENTITY_TYPE_THREAD:
+		// okay
+	default:
 		return fmt.Errorf("unsupported chat type %q", r.ChatType)
 	}
 
@@ -3275,16 +3470,18 @@ func (r ChatSearchRequest) ToQuery() req.Query {
 
 // Validate validates users search request
 func (r UserSearchRequest) Validate() error {
-	if r.Order != "" &&
-		r.Order != SORT_ORDER_ASC &&
-		r.Order != SORT_ORDER_DESC {
+	switch r.Order {
+	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
+		// okay
+	default:
 		return fmt.Errorf("unsupported sort order %q", r.Order)
 	}
 
-	if r.Sort != "" &&
-		r.Sort != SORT_TYPE_ALPHA &&
-		r.Sort != SORT_TYPE_SCORE {
-		return fmt.Errorf("unsupported sort type %q", r.Sort)
+	switch r.Sort {
+	case "", USER_SORT_BY_ALPHA, USER_SORT_BY_SCORE:
+		// okay
+	default:
+		return fmt.Errorf("unsupported result sort %q", r.Sort)
 	}
 
 	return nil
@@ -3314,10 +3511,18 @@ func (r UserSearchRequest) ToQuery() req.Query {
 
 // Validate validates messages search request
 func (r MessageSearchRequest) Validate() error {
-	if r.Order != "" &&
-		r.Order != SORT_ORDER_ASC &&
-		r.Order != SORT_ORDER_DESC {
+	switch r.Order {
+	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
+		// okay
+	default:
 		return fmt.Errorf("unsupported sort order %q", r.Order)
+	}
+
+	switch r.Sort {
+	case "", MESSAGE_SORT_BY_CREATED_AT, MESSAGE_SORT_BY_RELEVANCE:
+		// okay
+	default:
+		return fmt.Errorf("unsupported result sort %q", r.Sort)
 	}
 
 	return nil
@@ -3329,6 +3534,7 @@ func (r MessageSearchRequest) ToQuery() req.Query {
 
 	query.SetIf(r.Query != "", "query", r.Query)
 	query.SetIf(r.Order != "", "order", string(r.Order))
+	query.SetIf(r.Sort != "", "sort", string(r.Sort))
 	query.SetIf(len(r.ChatIDs) != 0, "chat_ids[]", sliceutil.Join(r.ChatIDs, ","))
 	query.SetIf(len(r.UserIDs) != 0, "user_ids[]", sliceutil.Join(r.UserIDs, ","))
 	query.SetIf(r.Active, "active", "true")
