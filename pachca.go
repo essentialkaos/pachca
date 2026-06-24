@@ -360,20 +360,22 @@ type WebhookEvent struct {
 }
 
 // BotWebhook contains bot webhook configuration
+//
+// https://dev.pachca.com/api/bots/create#param-webhook
 type BotWebhook struct {
-	Name                   string   `json:"name"`
-	Nickname               string   `json:"nickname,omitempty"`
-	OutgoingURL            string   `json:"outgoing_url,omitempty"`
-	TriggerOn              string   `json:"trigger_on,omitempty"`
-	Template               string   `json:"template,omitempty"`
-	TemplateEngine         string   `json:"template_engine,omitempty"`
-	ChallengeKey           string   `json:"challenge_key"`
-	Events                 []string `json:"events"`
-	Commands               []string `json:"commands"`
-	Scopes                 []string `json:"scopes"`
-	IsLinkPreviewEnabled   bool     `json:"link_preview_enabled"`
-	IsEventsHistoryEnabled bool     `json:"events_history_enabled"`
-	IgnoreSelfMessages     bool     `json:"ignore_self_messages"`
+	Name                 string   `json:"name"`
+	Nickname             string   `json:"nickname,omitempty"`
+	OutgoingURL          string   `json:"outgoing_url,omitempty"`
+	TriggerOn            string   `json:"trigger_on,omitempty"`
+	Template             string   `json:"template,omitempty"`
+	TemplateEngine       string   `json:"template_engine,omitempty"`
+	ChallengeKey         string   `json:"challenge_key"`
+	Events               []string `json:"events"`
+	Commands             []string `json:"commands"`
+	Scopes               []string `json:"scopes"`
+	LinkPreviewEnabled   bool     `json:"link_preview_enabled"`
+	EventsHistoryEnabled bool     `json:"events_history_enabled"`
+	IgnoreSelfMessages   bool     `json:"ignore_self_messages"`
 }
 
 // BotInfo contains info about bot
@@ -632,6 +634,7 @@ var (
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
 	ErrViewHasNoBlocks = errors.New("view has no blocks")
 	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
+	ErrEmptyResponse   = errors.New("empty response from API endpoint")
 
 	// Rate-limit
 	ErrRateLimited = errors.New("rate limit exceeded")
@@ -1213,8 +1216,11 @@ func (c *Client) RecreateBotToken(botID uint) (string, error) {
 		nil, nil, resp,
 	)
 
-	if err != nil {
+	switch {
+	case err != nil:
 		return "", fmt.Errorf("can't regenerate bot %d token: %w", botID, err)
+	case resp.Data == nil:
+		return "", ErrEmptyResponse
 	}
 
 	return resp.Data.AccessToken, nil
@@ -1222,6 +1228,8 @@ func (c *Client) RecreateBotToken(botID uint) (string, error) {
 
 // RotateBotToken generates new access token for current bot and immediately
 // invalidates previous one
+//
+// https://dev.pachca.com/api/bots/recreate-token-self
 func (c *Client) RotateBotToken() (string, error) {
 	if c == nil || c.engine == nil {
 		return "", ErrNilClient
@@ -1236,8 +1244,11 @@ func (c *Client) RotateBotToken() (string, error) {
 		nil, nil, resp,
 	)
 
-	if err != nil {
+	switch {
+	case err != nil:
 		return "", fmt.Errorf("can't rotate bot token: %w", err)
+	case resp.Data == nil:
+		return "", ErrEmptyResponse
 	}
 
 	return resp.Data.AccessToken, nil
@@ -3504,7 +3515,7 @@ func (r MessageSearchRequest) Validate() error {
 
 	switch r.Sort {
 	case "", MESSAGE_SORT_BY_CREATED_AT, MESSAGE_SORT_BY_RELEVANCE:
-	// okay
+		// okay
 	default:
 		return fmt.Errorf("unsupported result sort %q", r.Sort)
 	}
