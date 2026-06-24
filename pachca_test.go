@@ -105,6 +105,12 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.EditBot(1, &BotWebhook{})
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.RecreateBotToken(1)
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.RotateBotToken()
+	c.Assert(err, Equals, ErrNilClient)
+
 	// AVATAR
 
 	_, err = cc.UpdateAvatar("test")
@@ -304,6 +310,9 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidBotID)
 	_, err = cc.EditBot(1, nil)
 	c.Assert(err, Equals, ErrNilBotConfiguration)
+
+	_, err = cc.RecreateBotToken(0)
+	c.Assert(err, Equals, ErrInvalidBotID)
 
 	// AVATAR
 

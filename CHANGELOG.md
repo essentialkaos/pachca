@@ -7,6 +7,8 @@
 - Added method `AddBot`
 - Added method `GetBot`
 - Added method `EditBot`
+- Added method `RecreateBotToken`
+- Added method `RotateBotToken`
 - Added field `Sort` to define result sort order for message search
 
 ### [0.26.1](https://kaos.sh/pachca/0.26.1)

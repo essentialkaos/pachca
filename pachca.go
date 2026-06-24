@@ -361,17 +361,19 @@ type WebhookEvent struct {
 
 // BotWebhook contains bot webhook configuration
 type BotWebhook struct {
-	Name                 string   `json:"name"`
-	Nickname             string   `json:"nickname,omitempty"`
-	OutgoingURL          string   `json:"outgoing_url,omitempty"`
-	TriggerOn            string   `json:"trigger_on,omitempty"`
-	Template             string   `json:"template,omitempty"`
-	TemplateEngine       string   `json:"template_engine,omitempty"`
-	ChallengeKey         string   `json:"challenge_key"`
-	Events               []string `json:"events"`
-	Commands             []string `json:"commands"`
-	Scopes               []string `json:"scopes"`
-	IsLinkPreviewEnabled bool     `json:"link_preview_enabled"`
+	Name                   string   `json:"name"`
+	Nickname               string   `json:"nickname,omitempty"`
+	OutgoingURL            string   `json:"outgoing_url,omitempty"`
+	TriggerOn              string   `json:"trigger_on,omitempty"`
+	Template               string   `json:"template,omitempty"`
+	TemplateEngine         string   `json:"template_engine,omitempty"`
+	ChallengeKey           string   `json:"challenge_key"`
+	Events                 []string `json:"events"`
+	Commands               []string `json:"commands"`
+	Scopes                 []string `json:"scopes"`
+	IsLinkPreviewEnabled   bool     `json:"link_preview_enabled"`
+	IsEventsHistoryEnabled bool     `json:"events_history_enabled"`
+	IgnoreSelfMessages     bool     `json:"ignore_self_messages"`
 }
 
 // BotInfo contains info about bot
@@ -1150,7 +1152,7 @@ func (c *Client) GetBot(botID uint) (*BotInfo, error) {
 		Data *BotInfo `json:"data"`
 	}{}
 
-	err := c.sendRequest(req.GET, getURL("/users/%d", botID), nil, nil, resp)
+	err := c.sendRequest(req.GET, getURL("/bots/%d", botID), nil, nil, resp)
 
 	if err != nil {
 		return nil, fmt.Errorf("can't get bot %d info: %w", botID, err)
@@ -1189,6 +1191,56 @@ func (c *Client) EditBot(botID uint, webhook *BotWebhook) (*BotInfo, error) {
 	}
 
 	return resp.Data, nil
+}
+
+// RecreateBotToken generates new access token for bot
+//
+// https://dev.pachca.com/api/bots/recreate-token
+func (c *Client) RecreateBotToken(botID uint) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case botID == 0:
+		return "", ErrInvalidBotID
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.POST, getURL("/bots/%d/recreate_token", botID),
+		nil, nil, resp,
+	)
+
+	if err != nil {
+		return "", fmt.Errorf("can't regenerate bot %d token: %w", botID, err)
+	}
+
+	return resp.Data.AccessToken, nil
+}
+
+// RotateBotToken generates new access token for current bot and immediately
+// invalidates previous one
+func (c *Client) RotateBotToken() (string, error) {
+	if c == nil || c.engine == nil {
+		return "", ErrNilClient
+	}
+
+	resp := &struct {
+		Data *BotInfo `json:"data"`
+	}{}
+
+	err := c.sendRequest(
+		req.POST, getURL("/bot/recreate_token"),
+		nil, nil, resp,
+	)
+
+	if err != nil {
+		return "", fmt.Errorf("can't rotate bot token: %w", err)
+	}
+
+	return resp.Data.AccessToken, nil
 }
 
 // AVATARS ////////////////////////////////////////////////////////////////////////// //
