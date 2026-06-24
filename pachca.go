@@ -101,8 +101,8 @@ const (
 )
 
 const (
-	BOT_TEMPLATE_LIQUID   = "liquid"
-	BOT_TEMPLATE_MUSTACHE = "mustache"
+	BOT_TEMPLATE_LIQUID   string = "liquid"
+	BOT_TEMPLATE_MUSTACHE string = "mustache"
 )
 
 const (
