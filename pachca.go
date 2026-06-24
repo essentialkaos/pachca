@@ -101,6 +101,11 @@ const (
 )
 
 const (
+	BOT_TEMPLATE_LIQUID   = "liquid"
+	BOT_TEMPLATE_MUSTACHE = "mustache"
+)
+
+const (
 	VIEW_MODAL ViewType = "modal"
 )
 
