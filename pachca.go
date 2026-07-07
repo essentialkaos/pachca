@@ -629,6 +629,7 @@ var (
 	ErrNilView             = errors.New("view data is nil")
 	ErrNilStatus           = errors.New("status is nil")
 	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
+	ErrNilYieldFunc        = errors.New("nil yield function provided")
 
 	// Empty value guards
 	ErrEmptyToken     = errors.New("token is empty")
@@ -2985,9 +2986,15 @@ func (c *Client) OpenView(view *ViewRequest) error {
 
 // PAGINATORS /////////////////////////////////////////////////////////////////////// //
 
-// Pages iterates over pages
+// Pages is a range-over-func iterator that yields one page of messages at a time.
+// Iteration stops when all pages are consumed or the yield function returns false.
+// Any fetch error is stored and retrievable via Error.
 func (p *MessagePaginator) Pages(yield func(m Messages) bool) {
-	if p == nil || p.c == nil || p.chatID == 0 || yield == nil {
+	switch {
+	case p == nil || p.c == nil || p.chatID == 0:
+		return
+	case yield == nil:
+		p.err = ErrNilYieldFunc
 		return
 	}
 
@@ -3031,9 +3038,15 @@ func (p *MessagePaginator) Error() error {
 	return p.err
 }
 
-// Pages iterates over pages
+// Pages is a range-over-func iterator that yields one page of users at a time.
+// Iteration stops when all pages are consumed or the yield function returns false.
+// Any fetch error is stored and retrievable via Error.
 func (p *UserPaginator) Pages(yield func(u Users) bool) {
-	if p == nil || p.c == nil || yield == nil {
+	switch {
+	case p == nil || p.c == nil:
+		return
+	case yield == nil:
+		p.err = ErrNilYieldFunc
 		return
 	}
 

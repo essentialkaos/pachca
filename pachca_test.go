@@ -516,6 +516,14 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(cc.PaginateMessages(1, -100, SORT_ORDER_DESC).Error().Error(), Equals, `invalid limit (-100 < 1)`)
 	c.Assert(cc.PaginateUsers(100).Error().Error(), Equals, `invalid limit (100 > 50)`)
 	c.Assert(cc.PaginateUsers(-100).Error().Error(), Equals, `invalid limit (-100 < 1)`)
+
+	p1 := cc.PaginateMessages(1, 1, SORT_ORDER_DESC)
+	p1.Pages(nil)
+	c.Assert(p1.Error(), Equals, ErrNilYieldFunc)
+
+	p2 := cc.PaginateUsers(1)
+	p2.Pages(nil)
+	c.Assert(p2.Error(), Equals, ErrNilYieldFunc)
 }
 
 func (s *PachcaSuite) TestPaginators(c *C) {
@@ -528,7 +536,6 @@ func (s *PachcaSuite) TestPaginators(c *C) {
 
 	c.Assert(func() { m.Pages(nil) }, NotPanics)
 	c.Assert(func() { m.Error() }, NotPanics)
-
 }
 
 func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
