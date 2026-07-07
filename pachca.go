@@ -1281,6 +1281,8 @@ func (c *Client) EditBot(botID uint, webhook *BotWebhook) (*BotInfo, error) {
 }
 
 // DeleteBot deletes an existing bot and invalidates its access token
+//
+// https://dev.pachca.com/api/bots/delete
 func (c *Client) DeleteBot(botID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
