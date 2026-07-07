@@ -392,6 +392,26 @@ type BotInfo struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// MessagePaginator is messages paginator struct
+type MessagePaginator struct {
+	c   *Client
+	err error
+
+	chatID uint
+	limit  int
+	order  string
+}
+
+// UserPaginator is users paginator struct
+type UserPaginator struct {
+	c   *Client
+	err error
+
+	limit int
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // apiDetailedError contains info about detailed API error
 type apiDetailedError struct {
 	Key     string `json:"key"`
@@ -609,6 +629,7 @@ var (
 	ErrNilView             = errors.New("view data is nil")
 	ErrNilStatus           = errors.New("status is nil")
 	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
+	ErrNilYieldFunc        = errors.New("nil yield function provided")
 
 	// Empty value guards
 	ErrEmptyToken     = errors.New("token is empty")
@@ -979,6 +1000,25 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	return result, nil
 }
 
+// PaginateUsers returns paginator instance to fetch users page by page
+func (c *Client) PaginateUsers(limit int) *UserPaginator {
+	result := &UserPaginator{
+		c:     c,
+		limit: limit,
+	}
+
+	switch {
+	case c == nil || c.engine == nil:
+		result.err = ErrNilClient
+	case limit > 50:
+		result.err = fmt.Errorf("invalid limit (%d > 50)", limit)
+	case limit < 1:
+		result.err = fmt.Errorf("invalid limit (%d < 1)", limit)
+	}
+
+	return result
+}
+
 // SearchUsers searches users
 //
 // https://dev.pachca.com/search/list-users
@@ -1169,6 +1209,46 @@ func (c *Client) GetBot(botID uint) (*BotInfo, error) {
 	return resp.Data, nil
 }
 
+// GetBots returns a list of all the bots that are accessible to the current user
+//
+// https://dev.pachca.com/api/bots/list
+func (c *Client) GetBots(searchQuery ...string) ([]*BotInfo, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	limit := c.getBatchSize()
+	query := req.Query{"limit": limit}
+	result := make([]*BotInfo, 0, limit)
+
+	if len(searchQuery) != 0 {
+		query.Set("query", searchQuery[0])
+	}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data []*BotInfo `json:"data"`
+			Meta *metadata  `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/bots"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't fetch bots: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+
+	return result, nil
+}
+
 // EditBot modifies an existing bot
 //
 // https://dev.pachca.com/api/bots/update
@@ -1199,6 +1279,26 @@ func (c *Client) EditBot(botID uint, webhook *BotWebhook) (*BotInfo, error) {
 	}
 
 	return resp.Data, nil
+}
+
+// DeleteBot deletes an existing bot and invalidates its access token
+//
+// https://dev.pachca.com/api/bots/delete
+func (c *Client) DeleteBot(botID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case botID == 0:
+		return ErrInvalidBotID
+	}
+
+	err := c.sendRequest(req.DELETE, getURL("/bots/%d", botID), nil, nil, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't delete bot %d: %w", botID, err)
+	}
+
+	return nil
 }
 
 // RecreateBotToken generates new access token for bot
@@ -2150,6 +2250,29 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 	return result, nil
 }
 
+// PaginateMessages returns paginator instance to fetch messages page by page
+func (c *Client) PaginateMessages(chatID uint, limit int, order SortOrder) *MessagePaginator {
+	result := &MessagePaginator{
+		c:      c,
+		chatID: chatID,
+		limit:  limit,
+		order:  string(order),
+	}
+
+	switch {
+	case c == nil || c.engine == nil:
+		result.err = ErrNilClient
+	case chatID == 0:
+		result.err = ErrInvalidChatID
+	case limit > 50:
+		result.err = fmt.Errorf("invalid limit (%d > 50)", limit)
+	case limit < 1:
+		result.err = fmt.Errorf("invalid limit (%d < 1)", limit)
+	}
+
+	return result
+}
+
 // SearchMessages searches messages
 //
 // https://dev.pachca.com/search/list-messages
@@ -2859,6 +2982,108 @@ func (c *Client) OpenView(view *ViewRequest) error {
 	}
 
 	return nil
+}
+
+// PAGINATORS /////////////////////////////////////////////////////////////////////// //
+
+// Pages is a range-over-func iterator that yields one page of messages at a time.
+// Iteration stops when all pages are consumed or the yield function returns false.
+// Any fetch error is stored and retrievable via Error.
+func (p *MessagePaginator) Pages(yield func(m Messages) bool) {
+	switch {
+	case p == nil || p.c == nil || p.chatID == 0:
+		return
+	case yield == nil:
+		p.err = ErrNilYieldFunc
+		return
+	}
+
+	query := req.Query{
+		"chat_id": p.chatID,
+		"limit":   p.limit,
+		"order":   p.order,
+	}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *metadata `json:"meta"`
+		}{}
+
+		err := p.c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
+
+		if err != nil {
+			p.err = err
+			return
+		}
+
+		if !yield(resp.Data) {
+			return
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+}
+
+// Error returns the latest error
+func (p *MessagePaginator) Error() error {
+	if p == nil {
+		return nil
+	}
+
+	return p.err
+}
+
+// Pages is a range-over-func iterator that yields one page of users at a time.
+// Iteration stops when all pages are consumed or the yield function returns false.
+// Any fetch error is stored and retrievable via Error.
+func (p *UserPaginator) Pages(yield func(u Users) bool) {
+	switch {
+	case p == nil || p.c == nil:
+		return
+	case yield == nil:
+		p.err = ErrNilYieldFunc
+		return
+	}
+
+	query := req.Query{"limit": p.limit}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Users     `json:"data"`
+			Meta *metadata `json:"meta"`
+		}{}
+
+		err := p.c.sendRequest(req.GET, getURL("/users"), query, nil, resp)
+
+		if err != nil {
+			p.err = err
+			return
+		}
+
+		if !yield(resp.Data) {
+			return
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+}
+
+// Error returns the latest error
+func (p *UserPaginator) Error() error {
+	if p == nil {
+		return nil
+	}
+
+	return p.err
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

@@ -102,8 +102,13 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.GetBot(1)
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.GetBots()
+	c.Assert(err, Equals, ErrNilClient)
+
 	_, err = cc.EditBot(1, &BotWebhook{})
 	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.DeleteBot(1), Equals, ErrNilClient)
 
 	_, err = cc.RecreateBotToken(1)
 	c.Assert(err, Equals, ErrNilClient)
@@ -251,6 +256,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	err = cc.OpenView(nil)
 	c.Assert(err, Equals, ErrNilClient)
+
+	// PAGINATORS
+
+	c.Assert(cc.PaginateUsers(1).Error(), Equals, ErrNilClient)
+	c.Assert(cc.PaginateMessages(1, 1, SORT_ORDER_DESC).Error(), Equals, ErrNilClient)
 }
 
 func (s *PachcaSuite) TestNewPropertyRequest(c *C) {
@@ -310,6 +320,8 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidBotID)
 	_, err = cc.EditBot(1, nil)
 	c.Assert(err, Equals, ErrNilBotConfiguration)
+
+	c.Assert(cc.DeleteBot(0), Equals, ErrInvalidBotID)
 
 	_, err = cc.RecreateBotToken(0)
 	c.Assert(err, Equals, ErrInvalidBotID)
@@ -496,6 +508,34 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, ErrorMatches, `unknown form type "test"`)
 	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "modal", View: &View{}})
 	c.Assert(err, Equals, ErrViewHasNoBlocks)
+
+	// PAGINATORS
+
+	c.Assert(cc.PaginateMessages(0, 1, SORT_ORDER_DESC).Error(), Equals, ErrInvalidChatID)
+	c.Assert(cc.PaginateMessages(1, 100, SORT_ORDER_DESC).Error().Error(), Equals, `invalid limit (100 > 50)`)
+	c.Assert(cc.PaginateMessages(1, -100, SORT_ORDER_DESC).Error().Error(), Equals, `invalid limit (-100 < 1)`)
+	c.Assert(cc.PaginateUsers(100).Error().Error(), Equals, `invalid limit (100 > 50)`)
+	c.Assert(cc.PaginateUsers(-100).Error().Error(), Equals, `invalid limit (-100 < 1)`)
+
+	p1 := cc.PaginateMessages(1, 1, SORT_ORDER_DESC)
+	p1.Pages(nil)
+	c.Assert(p1.Error(), Equals, ErrNilYieldFunc)
+
+	p2 := cc.PaginateUsers(1)
+	p2.Pages(nil)
+	c.Assert(p2.Error(), Equals, ErrNilYieldFunc)
+}
+
+func (s *PachcaSuite) TestPaginators(c *C) {
+	var u *UserPaginator
+
+	c.Assert(func() { u.Pages(nil) }, NotPanics)
+	c.Assert(func() { u.Error() }, NotPanics)
+
+	var m *MessagePaginator
+
+	c.Assert(func() { m.Pages(nil) }, NotPanics)
+	c.Assert(func() { m.Error() }, NotPanics)
 }
 
 func (s *PachcaSuite) TestPropertiesHelpers(c *C) {
