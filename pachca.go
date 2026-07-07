@@ -1208,6 +1208,46 @@ func (c *Client) GetBot(botID uint) (*BotInfo, error) {
 	return resp.Data, nil
 }
 
+// GetBots returns a list of all the bots that are accessible to the current user
+//
+// https://dev.pachca.com/api/bots/list
+func (c *Client) GetBots(searchQuery ...string) ([]*BotInfo, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	limit := c.getBatchSize()
+	query := req.Query{"limit": limit}
+	result := make([]*BotInfo, 0, limit)
+
+	if len(searchQuery) != 0 {
+		query.Set("query", searchQuery[0])
+	}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data []*BotInfo `json:"data"`
+			Meta *metadata  `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/bots"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't fetch bots: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+
+	return result, nil
+}
+
 // EditBot modifies an existing bot
 //
 // https://dev.pachca.com/api/bots/update
@@ -1238,6 +1278,24 @@ func (c *Client) EditBot(botID uint, webhook *BotWebhook) (*BotInfo, error) {
 	}
 
 	return resp.Data, nil
+}
+
+// DeleteBot deletes an existing bot and invalidates its access token
+func (c *Client) DeleteBot(botID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case botID == 0:
+		return ErrInvalidBotID
+	}
+
+	err := c.sendRequest(req.DELETE, getURL("/bots/%d", botID), nil, nil, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't delete bot %d: %w", botID, err)
+	}
+
+	return nil
 }
 
 // RecreateBotToken generates new access token for bot

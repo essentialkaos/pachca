@@ -4,6 +4,8 @@
 
 - Added method `PaginateMessages`
 - Added method `PaginateUsers`
+- Added method `GetBots`
+- Added method `DeleteBot`
 
 ### [0.27.0](https://kaos.sh/pachca/0.27.0)
 
