@@ -1,5 +1,10 @@
 ## Changelog
 
+### [0.28.0](https://kaos.sh/pachca/0.28.0)
+
+- Added method `PaginateMessages`
+- Added method `PaginateUsers`
+
 ### [0.27.0](https://kaos.sh/pachca/0.27.0)
 
 - Added fields for audio and voice messages

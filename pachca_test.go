@@ -251,6 +251,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	err = cc.OpenView(nil)
 	c.Assert(err, Equals, ErrNilClient)
+
+	// PAGINATORS
+
+	c.Assert(cc.PaginateUsers(1).Error(), Equals, ErrNilClient)
+	c.Assert(cc.PaginateMessages(1, 1, SORT_ORDER_DESC).Error(), Equals, ErrNilClient)
 }
 
 func (s *PachcaSuite) TestNewPropertyRequest(c *C) {
@@ -496,6 +501,27 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, ErrorMatches, `unknown form type "test"`)
 	err = cc.OpenView(&ViewRequest{TriggerID: "test", Type: "modal", View: &View{}})
 	c.Assert(err, Equals, ErrViewHasNoBlocks)
+
+	// PAGINATORS
+
+	c.Assert(cc.PaginateMessages(0, 1, SORT_ORDER_DESC).Error(), Equals, ErrInvalidChatID)
+	c.Assert(cc.PaginateMessages(1, 100, SORT_ORDER_DESC).Error().Error(), Equals, `invalid limit (100 > 50)`)
+	c.Assert(cc.PaginateMessages(1, -100, SORT_ORDER_DESC).Error().Error(), Equals, `invalid limit (-100 < 1)`)
+	c.Assert(cc.PaginateUsers(100).Error().Error(), Equals, `invalid limit (100 > 50)`)
+	c.Assert(cc.PaginateUsers(-100).Error().Error(), Equals, `invalid limit (-100 < 1)`)
+}
+
+func (s *PachcaSuite) TestPaginators(c *C) {
+	var u *UserPaginator
+
+	c.Assert(func() { u.Pages(nil) }, NotPanics)
+	c.Assert(func() { u.Error() }, NotPanics)
+
+	var m *MessagePaginator
+
+	c.Assert(func() { m.Pages(nil) }, NotPanics)
+	c.Assert(func() { m.Error() }, NotPanics)
+
 }
 
 func (s *PachcaSuite) TestPropertiesHelpers(c *C) {

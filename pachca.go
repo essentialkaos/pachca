@@ -392,6 +392,26 @@ type BotInfo struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// MessagePaginator is messages paginator struct
+type MessagePaginator struct {
+	c   *Client
+	err error
+
+	chatID uint
+	limit  int
+	order  string
+}
+
+// UserPaginator is users paginator struct
+type UserPaginator struct {
+	c   *Client
+	err error
+
+	limit int
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // apiDetailedError contains info about detailed API error
 type apiDetailedError struct {
 	Key     string `json:"key"`
@@ -977,6 +997,25 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	}
 
 	return result, nil
+}
+
+// PaginateUsers returns paginator instance to fetch users page by page
+func (c *Client) PaginateUsers(limit int) *UserPaginator {
+	result := &UserPaginator{
+		c:     c,
+		limit: limit,
+	}
+
+	switch {
+	case c == nil || c.engine == nil:
+		result.err = ErrNilClient
+	case limit > 50:
+		result.err = fmt.Errorf("invalid limit (%d > 50)", limit)
+	case limit < 1:
+		result.err = fmt.Errorf("invalid limit (%d < 1)", limit)
+	}
+
+	return result
 }
 
 // SearchUsers searches users
@@ -2150,6 +2189,29 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 	return result, nil
 }
 
+// PaginateMessages returns paginator instance to fetch messages page by page
+func (c *Client) PaginateMessages(chatID uint, limit int, order SortOrder) *MessagePaginator {
+	result := &MessagePaginator{
+		c:      c,
+		chatID: chatID,
+		limit:  limit,
+		order:  string(order),
+	}
+
+	switch {
+	case c == nil || c.engine == nil:
+		result.err = ErrNilClient
+	case chatID == 0:
+		result.err = ErrInvalidChatID
+	case limit > 50:
+		result.err = fmt.Errorf("invalid limit (%d > 50)", limit)
+	case limit < 1:
+		result.err = fmt.Errorf("invalid limit (%d < 1)", limit)
+	}
+
+	return result
+}
+
 // SearchMessages searches messages
 //
 // https://dev.pachca.com/search/list-messages
@@ -2859,6 +2921,96 @@ func (c *Client) OpenView(view *ViewRequest) error {
 	}
 
 	return nil
+}
+
+// PAGINATORS /////////////////////////////////////////////////////////////////////// //
+
+// Pages iterates over pages
+func (p *MessagePaginator) Pages(yield func(m Messages) bool) {
+	if p == nil || p.c == nil || p.chatID == 0 || yield == nil {
+		return
+	}
+
+	query := req.Query{
+		"chat_id": p.chatID,
+		"limit":   p.limit,
+		"order":   p.order,
+	}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *metadata `json:"meta"`
+		}{}
+
+		err := p.c.sendRequest(req.GET, getURL("/messages"), query, nil, resp)
+
+		if err != nil {
+			p.err = err
+			return
+		}
+
+		if !yield(resp.Data) {
+			return
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+}
+
+// Error returns the latest error
+func (p *MessagePaginator) Error() error {
+	if p == nil {
+		return nil
+	}
+
+	return p.err
+}
+
+// Pages iterates over pages
+func (p *UserPaginator) Pages(yield func(u Users) bool) {
+	if p == nil || p.c == nil || yield == nil {
+		return
+	}
+
+	query := req.Query{"limit": p.limit}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Users     `json:"data"`
+			Meta *metadata `json:"meta"`
+		}{}
+
+		err := p.c.sendRequest(req.GET, getURL("/users"), query, nil, resp)
+
+		if err != nil {
+			p.err = err
+			return
+		}
+
+		if !yield(resp.Data) {
+			return
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+}
+
+// Error returns the latest error
+func (p *UserPaginator) Error() error {
+	if p == nil {
+		return nil
+	}
+
+	return p.err
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
