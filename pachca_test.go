@@ -186,6 +186,13 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(cc.ExcludeChatUser(1, 1), Equals, ErrNilClient)
 	c.Assert(cc.SetChatUserRole(1, 1, CHAT_ROLE_ADMIN), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatTag(1, 1), Equals, ErrNilClient)
+	c.Assert(cc.ArchiveChat(1), Equals, ErrNilClient)
+	c.Assert(cc.UnarchiveChat(1), Equals, ErrNilClient)
+
+	_, err = cc.UpdateChatAvatar(1, "test.jpg")
+	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.DeleteChatAvatar(1), Equals, ErrNilClient)
 
 	// MESSAGES
 
@@ -435,6 +442,15 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	c.Assert(cc.ExcludeChatTag(0, 1), Equals, ErrInvalidChatID)
 	c.Assert(cc.ExcludeChatTag(1, 0), Equals, ErrInvalidTagID)
+	c.Assert(cc.ArchiveChat(0), Equals, ErrInvalidChatID)
+	c.Assert(cc.UnarchiveChat(0), Equals, ErrInvalidChatID)
+
+	_, err = cc.UpdateChatAvatar(0, "test.jpg")
+	c.Assert(err, Equals, ErrInvalidChatID)
+	_, err = cc.UpdateChatAvatar(1, "")
+	c.Assert(err, Equals, ErrEmptyAvatarFile)
+
+	c.Assert(cc.DeleteChatAvatar(0), Equals, ErrInvalidChatID)
 
 	// MESSAGES
 
@@ -538,7 +554,7 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, err = cc.UpdateBotAvatar(0, "test.jpg")
 	c.Assert(err.Error(), Equals, "bot ID must be greater than 0")
 	_, err = cc.UpdateBotAvatar(1, "")
-	c.Assert(err.Error(), Equals, "bot avatar file is empty")
+	c.Assert(err.Error(), Equals, "avatar file is empty")
 
 	// FORMS
 

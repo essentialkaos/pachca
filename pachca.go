@@ -677,7 +677,7 @@ var (
 	ErrEmptyFilePath   = errors.New("file path is empty")
 	ErrEmptyPreviews   = errors.New("link previews map is empty")
 	ErrEmptyTriggerID  = errors.New("view trigger ID is empty")
-	ErrEmptyAvatarFile = errors.New("bot avatar file is empty")
+	ErrEmptyAvatarFile = errors.New("avatar file is empty")
 
 	// Invalid value guards
 	ErrInvalidToken      = errors.New("token format is invalid")
@@ -2236,6 +2236,58 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 	return nil
 }
 
+// UpdateChatAvatar updates chat avatar
+//
+// https://dev.pachca.com/api/chats/update-avatar
+func (c *Client) UpdateChatAvatar(chatID uint, avatarFile string) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case chatID == 0:
+		return "", ErrInvalidChatID
+	case avatarFile == "":
+		return "", ErrEmptyAvatarFile
+	}
+
+	respData := &struct {
+		Data map[string]string `json:"data"`
+	}{}
+
+	err := c.uploadFile(req.POST, getURL("/chats/%d/avatar", chatID), avatarFile, respData)
+
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("can't parse chat %d avatar update response: %w", chatID, err)
+	case len(respData.Data) == 0:
+		return "", fmt.Errorf("chat %d avatar update response has no data", chatID)
+	}
+
+	return respData.Data["image_url"], nil
+}
+
+// DeleteChatAvatar removes chat avatar
+//
+// https://dev.pachca.com/api/chats/remove-avatar
+func (c *Client) DeleteChatAvatar(chatID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case chatID == 0:
+		return ErrInvalidChatID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/chats/%d/avatar", chatID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't delete chats %d avatar: %w", chatID, err)
+	}
+
+	return nil
+}
+
 // MESSAGES ///////////////////////////////////////////////////////////////////////// //
 
 // GetMessages returns messages from given chat
@@ -3184,29 +3236,11 @@ func (c *Client) UpdateBotAvatar(botID uint, avatarFile string) (string, error) 
 		return "", ErrEmptyAvatarFile
 	}
 
-	resp, err := c.engine.SendFile(
-		req.Request{
-			Method: req.POST,
-			URL:    getURL("/bots/%d/avatar", botID),
-			Auth:   req.AuthBearer{c.token},
-		}, avatarFile, "image", nil,
-	)
-
-	if err != nil {
-		return "", fmt.Errorf("can't update bot %d avatar: %w", botID, err)
-	}
-
-	defer resp.Discard()
-
-	if resp.StatusCode != 200 {
-		return "", unmarshalError(resp)
-	}
-
 	respData := &struct {
 		Data map[string]string `json:"data"`
 	}{}
 
-	err = resp.JSON(respData)
+	err := c.uploadFile(req.POST, getURL("/bots/%d/avatar", botID), avatarFile, respData)
 
 	switch {
 	case err != nil:
