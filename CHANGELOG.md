@@ -6,6 +6,9 @@
 - Added method `UpdateCompany`
 - Added method `GetCompanyInvite`
 - Added method `ReissueCompanyInvite`
+- Added method `GetImportantMessages`
+- Added method `MarkImportantMessage`
+- Added method `UnmarkImportantMessage`
 - Added info about voice message to `Message` object
 
 ### [0.28.0](https://kaos.sh/pachca/0.28.0)

@@ -2682,6 +2682,100 @@ func (c *Client) DeleteMessageButtons(messageID uint) error {
 	return err
 }
 
+// GetImportantMessages returns all messages marked as important
+//
+// https://dev.pachca.com/api/important-messages/list
+func (c *Client) GetImportantMessages(minResults int) (Messages, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
+	}
+
+	result := make(Messages, 0, minResults)
+
+	query := req.Query{
+		"limit": min(minResults, c.getBatchSize()),
+	}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *metadata `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/important_messages"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't get important messages: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if len(result) >= minResults {
+			break
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+
+	return result, nil
+}
+
+// MarkImportantMessage marks message with given ID as important
+//
+// https://dev.pachca.com/api/important-messages/create
+func (c *Client) MarkImportantMessage(messageID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	}
+
+	payload := &struct {
+		MessageID uint `json:"message_id"`
+	}{
+		MessageID: messageID,
+	}
+
+	err := c.sendRequest(req.POST, getURL("/important_messages"), nil, payload, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't mark message %d as important: %w", messageID, err)
+	}
+
+	return nil
+}
+
+// UnmarkImportantMessage removes important mark from message with given ID
+//
+// https://dev.pachca.com/api/important-messages/delete
+func (c *Client) UnmarkImportantMessage(messageID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/important_messages/%d", messageID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't unmark message %d as important: %w", messageID, err)
+	}
+
+	return nil
+}
+
 // THREADS ////////////////////////////////////////////////////////////////////////// //
 
 // GetThread returns info about thread
