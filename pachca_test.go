@@ -269,6 +269,11 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.UploadFile("test.txt")
 	c.Assert(err, Equals, ErrNilClient)
 
+	c.Assert(cc.GetFile(1, "test", 0644, ""), Equals, ErrNilClient)
+
+	_, err = cc.GetFileData(1, "")
+	c.Assert(err, Equals, ErrNilClient)
+
 	// BOTS
 
 	err = cc.UpdateBot(0, "")
@@ -537,6 +542,15 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	_, err = cc.UploadFile("")
 	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	c.Assert(cc.GetFile(0, "test", 0644, ""), Equals, ErrInvalidFileID)
+	c.Assert(cc.GetFile(1, "", 0644, ""), Equals, ErrEmptyOutputPath)
+	c.Assert(cc.GetFile(1, "test", 0644, "abcd").Error(), Equals, `unsupported file target "abcd"`)
+
+	_, err = cc.GetFileData(0, "")
+	c.Assert(err, Equals, ErrInvalidFileID)
+	_, err = cc.GetFileData(1, "abcd")
+	c.Assert(err.Error(), Equals, `unsupported file target "abcd"`)
 
 	// BOTS
 

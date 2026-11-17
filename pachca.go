@@ -678,6 +678,7 @@ var (
 	ErrEmptyPreviews   = errors.New("link previews map is empty")
 	ErrEmptyTriggerID  = errors.New("view trigger ID is empty")
 	ErrEmptyAvatarFile = errors.New("avatar file is empty")
+	ErrEmptyOutputPath = errors.New("output path is empty")
 
 	// Invalid value guards
 	ErrInvalidToken      = errors.New("token format is invalid")
@@ -691,6 +692,7 @@ var (
 	ErrInvalidEventID    = errors.New("event ID is invalid")
 	ErrInvalidMinResults = errors.New("results limit must be greater than 0")
 	ErrInvalidMaxPages   = errors.New("max pages must be greater than 0")
+	ErrInvalidFileID     = errors.New("file ID must be greater than 0")
 
 	// Other
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
@@ -3008,6 +3010,96 @@ func (c *Client) ReissueCompanyInvite() (*Invite, error) {
 }
 
 // FILES //////////////////////////////////////////////////////////////////////////// //
+
+// GetFile downloads file with given ID
+//
+// https://dev.pachca.com/api/files/get
+func (c *Client) GetFile(fileID uint, output string, mode os.FileMode, targetType string) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case fileID == 0:
+		return ErrInvalidFileID
+	case output == "":
+		return ErrEmptyOutputPath
+	}
+
+	var query req.Query
+
+	switch targetType {
+	case "":
+		// okay
+	case "pdf_preview", "pdf_first_page", "thumb", "image":
+		query = req.Query{"target": targetType}
+	default:
+		return fmt.Errorf("unsupported file target %q", targetType)
+	}
+
+	resp, err := c.engine.Get(req.Request{
+		URL:   getURL("/files/%d", fileID),
+		Query: query,
+		Auth:  req.AuthBearer{c.token},
+	})
+
+	if err != nil {
+		return fmt.Errorf("can't get file %d: %w", fileID, err)
+	}
+
+	defer resp.Discard()
+
+	if resp.StatusCode >= 400 {
+		return unmarshalError(resp)
+	}
+
+	err = resp.Save(output, mode)
+
+	if err != nil {
+		return fmt.Errorf("can't save file %d data: %w", fileID, err)
+	}
+
+	return nil
+}
+
+// GetFile returns data of file with given ID
+//
+// https://dev.pachca.com/api/files/get
+func (c *Client) GetFileData(fileID uint, targetType string) ([]byte, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case fileID == 0:
+		return nil, ErrInvalidFileID
+	}
+
+	var query req.Query
+
+	switch targetType {
+	case "":
+		// okay
+	case "pdf_preview", "pdf_first_page", "thumb", "image":
+		query = req.Query{"target": targetType}
+	default:
+		return nil, fmt.Errorf("unsupported file target %q", targetType)
+	}
+
+	resp, err := c.engine.Get(req.Request{
+		URL:   getURL("/files/%d", fileID),
+		Query: query,
+		Auth:  req.AuthBearer{c.token},
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("can't get file %d: %w", fileID, err)
+	}
+
+	defer resp.Discard()
+
+	if resp.StatusCode >= 400 {
+		return nil, unmarshalError(resp)
+	}
+
+	return resp.Bytes()
+}
 
 // UploadFile uploads new file and returns key of it
 //
