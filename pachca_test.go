@@ -270,8 +270,12 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.GetWebhookEvents(1)
 	c.Assert(err, Equals, ErrNilClient)
 
-	err = cc.DeleteWebhookEvent("00000000000000000000000000")
+	c.Assert(cc.DeleteWebhookEvent("00000000000000000000000000"), Equals, ErrNilClient)
+
+	_, err = cc.UpdateBotAvatar(1, "test.jpg")
 	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.DeleteBotAvatar(1), Equals, ErrNilClient)
 
 	// FORMS
 
@@ -524,12 +528,17 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidBotID)
 	err = cc.UpdateBot(1, "")
 	c.Assert(err, Equals, ErrEmptyWebhookURL)
+
 	_, err = cc.GetWebhookEvents(0)
 	c.Assert(err, Equals, ErrInvalidMaxPages)
-	err = cc.DeleteWebhookEvent("")
-	c.Assert(err, Equals, ErrInvalidEventID)
-	err = cc.DeleteWebhookEvent("0000")
-	c.Assert(err, Equals, ErrInvalidEventID)
+
+	c.Assert(cc.DeleteWebhookEvent(""), Equals, ErrInvalidEventID)
+	c.Assert(cc.DeleteWebhookEvent("0000"), Equals, ErrInvalidEventID)
+
+	_, err = cc.UpdateBotAvatar(0, "test.jpg")
+	c.Assert(err.Error(), Equals, "bot ID must be greater than 0")
+	_, err = cc.UpdateBotAvatar(1, "")
+	c.Assert(err.Error(), Equals, "bot avatar file is empty")
 
 	// FORMS
 

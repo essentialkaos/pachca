@@ -667,16 +667,17 @@ var (
 	ErrNilYieldFunc        = errors.New("nil yield function provided")
 
 	// Empty value guards
-	ErrEmptyToken     = errors.New("token is empty")
-	ErrEmptyTag       = errors.New("group tag is empty")
-	ErrEmptyMessage   = errors.New("message text is empty")
-	ErrEmptyUserEmail = errors.New("user email is empty")
-	ErrEmptyChatName  = errors.New("chat name is empty")
-	ErrEmptyUsersIDS  = errors.New("users IDs list is empty")
-	ErrEmptyTagsIDS   = errors.New("tags IDs list is empty")
-	ErrEmptyFilePath  = errors.New("file path is empty")
-	ErrEmptyPreviews  = errors.New("link previews map is empty")
-	ErrEmptyTriggerID = errors.New("view trigger ID is empty")
+	ErrEmptyToken      = errors.New("token is empty")
+	ErrEmptyTag        = errors.New("group tag is empty")
+	ErrEmptyMessage    = errors.New("message text is empty")
+	ErrEmptyUserEmail  = errors.New("user email is empty")
+	ErrEmptyChatName   = errors.New("chat name is empty")
+	ErrEmptyUsersIDS   = errors.New("users IDs list is empty")
+	ErrEmptyTagsIDS    = errors.New("tags IDs list is empty")
+	ErrEmptyFilePath   = errors.New("file path is empty")
+	ErrEmptyPreviews   = errors.New("link previews map is empty")
+	ErrEmptyTriggerID  = errors.New("view trigger ID is empty")
+	ErrEmptyAvatarFile = errors.New("bot avatar file is empty")
 
 	// Invalid value guards
 	ErrInvalidToken      = errors.New("token format is invalid")
@@ -3165,6 +3166,76 @@ func (c *Client) DeleteWebhookEvent(eventID string) error {
 
 	if err != nil {
 		return fmt.Errorf("can't delete webhook event with ID %s: %w", eventID, err)
+	}
+
+	return nil
+}
+
+// UpdateBotAvatar updates bot avatar
+//
+// https://dev.pachca.com/api/bots/update-avatar
+func (c *Client) UpdateBotAvatar(botID uint, avatarFile string) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case botID == 0:
+		return "", ErrInvalidBotID
+	case avatarFile == "":
+		return "", ErrEmptyAvatarFile
+	}
+
+	resp, err := c.engine.SendFile(
+		req.Request{
+			Method: req.POST,
+			URL:    getURL("/bots/%d/avatar", botID),
+			Auth:   req.AuthBearer{c.token},
+		}, avatarFile, "image", nil,
+	)
+
+	if err != nil {
+		return "", fmt.Errorf("can't update bot %d avatar: %w", botID, err)
+	}
+
+	defer resp.Discard()
+
+	if resp.StatusCode != 200 {
+		return "", unmarshalError(resp)
+	}
+
+	respData := &struct {
+		Data map[string]string `json:"data"`
+	}{}
+
+	err = resp.JSON(respData)
+
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("can't parse bot %d avatar update response: %w", botID, err)
+	case len(respData.Data) == 0:
+		return "", fmt.Errorf("bot %d avatar update response has no data", botID)
+	}
+
+	return respData.Data["image_url"], nil
+}
+
+// DeleteBotAvatar removes bot avatar
+//
+// https://dev.pachca.com/api/bots/remove-avatar
+func (c *Client) DeleteBotAvatar(botID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case botID == 0:
+		return ErrInvalidBotID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/bots/%d/avatar", botID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't delete bot %d avatar: %w", botID, err)
 	}
 
 	return nil
