@@ -82,6 +82,7 @@ const (
 	FILE_TYPE_IMAGE FileType = "image"
 	FILE_TYPE_AUDIO FileType = "audio"
 	FILE_TYPE_VOICE FileType = "voice"
+	FILE_TYPE_VIDEO FileType = "video"
 )
 
 const (
@@ -274,21 +275,22 @@ type Thread struct {
 
 // Message contains info about message
 type Message struct {
-	ID              uint        `json:"id"`
-	EntityID        uint        `json:"entity_id"`
-	ChatID          uint        `json:"chat_id"`
-	RootChatID      uint        `json:"root_chat_id"`
-	ParentMessageID uint        `json:"parent_message_id"`
-	UserID          uint        `json:"user_id"`
-	EntityType      EntityType  `json:"entity_type"`
-	Content         string      `json:"content"`
-	CreatedAt       Date        `json:"created_at"`
-	ChangedAt       Date        `json:"changed_at"`
-	DeletedAt       Date        `json:"deleted_at"`
-	Thread          *Thread     `json:"thread"`
-	Files           Files       `json:"files"`
-	Buttons         Buttons     `json:"buttons"`
-	Forwarding      *Forwarding `json:"forwarding"`
+	ID              uint          `json:"id"`
+	EntityID        uint          `json:"entity_id"`
+	ChatID          uint          `json:"chat_id"`
+	RootChatID      uint          `json:"root_chat_id"`
+	ParentMessageID uint          `json:"parent_message_id"`
+	UserID          uint          `json:"user_id"`
+	EntityType      EntityType    `json:"entity_type"`
+	Content         string        `json:"content"`
+	CreatedAt       Date          `json:"created_at"`
+	ChangedAt       Date          `json:"changed_at"`
+	DeletedAt       Date          `json:"deleted_at"`
+	Thread          *Thread       `json:"thread"`
+	Files           Files         `json:"files"`
+	VoiceContent    *VoiceContent `json:"voice_content"`
+	Buttons         Buttons       `json:"buttons"`
+	Forwarding      *Forwarding   `json:"forwarding"`
 }
 
 // Messages is a slice of messages
@@ -316,7 +318,14 @@ type File struct {
 	Width      int      `json:"width,omitzero"`
 	Height     int      `json:"height,omitzero"`
 	DurationMS int      `json:"duration_ms,omitzero"`
-	Waveform   string   `json:"waveform,omitempty"`
+}
+
+// VoiceContent contains info about audio message
+type VoiceContent struct {
+	DurationMS       int    `json:"duration_ms,omitzero"`
+	Waveform         string `json:"waveform"`
+	Transcript       string `json:"transcript"`
+	TranscriptStatus string `json:"transcript_status,omitempty"`
 }
 
 // Files is a slice of attachments
