@@ -8,6 +8,7 @@ package pachca
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -234,6 +235,20 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(err, Equals, ErrNilClient)
 
 	_, _, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
+	c.Assert(err, Equals, ErrNilClient)
+
+	// COMPANY
+
+	_, err = cc.GetCompany()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.GetCompanyInvite()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.ReissueCompanyInvite()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.UpdateCompany(nil)
 	c.Assert(err, Equals, ErrNilClient)
 
 	// FILES
@@ -477,6 +492,14 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidMessageID)
 	_, _, err = cc.AddThreadMessage(1, nil)
 	c.Assert(err, Equals, ErrNilMessageRequest)
+
+	// COMPANY
+
+	_, err = cc.UpdateCompany(nil)
+	c.Assert(err, Equals, ErrNilCompanyRequest)
+
+	_, err = cc.UpdateCompany(&CompanyRequest{Name: strings.Repeat("x", 300)})
+	c.Assert(err.Error(), Equals, "company name is longer than 255 symbols (300)")
 
 	// FILES
 

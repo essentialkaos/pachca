@@ -1,5 +1,12 @@
 ## Changelog
 
+### [0.29.0](https://kaos.sh/pachca/0.29.0)
+
+- Added method `GetCompany`
+- Added method `UpdateCompany`
+- Added method `GetCompanyInvite`
+- Added method `ReissueCompanyInvite`
+
 ### [0.28.0](https://kaos.sh/pachca/0.28.0)
 
 - Added method `PaginateMessages`

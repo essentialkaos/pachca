@@ -390,6 +390,24 @@ type BotInfo struct {
 	AccessToken string      `json:"access_token"`
 }
 
+// Company contains company info
+type Company struct {
+	ID                     uint   `json:"id"`
+	Name                   string `json:"name"`
+	OwnerID                uint   `json:"owner_id"`
+	ShowPersonalData       bool   `json:"show_personal_data"`
+	UseGlobalThreads       bool   `json:"use_global_threads"`
+	IntegrationsManagement string `json:"integrations_management"`
+	APIManagement          string `json:"api_management"`
+	Plan                   string `json:"plan"`
+}
+
+// Invite contains info about invite
+type Invite struct {
+	URL       string `json:"url"`
+	ExpiresAt Date   `json:"expires_at"`
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // MessagePaginator is messages paginator struct
@@ -513,6 +531,13 @@ type ReactionRequest struct {
 	Name string `json:"name,omitempty"`
 }
 
+// CompanyRequest is payload for company settings update
+type CompanyRequest struct {
+	Name             string `json:"name,omitempty"`
+	ShowPersonalData bool   `json:"show_personal_data"`
+	UseGlobalThreads bool   `json:"use_global_threads"`
+}
+
 // ViewRequest is a payload for open a view
 type ViewRequest struct {
 	Type       ViewType `json:"type"`
@@ -626,6 +651,7 @@ var (
 	ErrNilMessageRequest   = errors.New("message request is nil")
 	ErrNilPropertyRequest  = errors.New("property request is nil")
 	ErrNilViewRequest      = errors.New("view request is nil")
+	ErrNilCompanyRequest   = errors.New("company request is nil")
 	ErrNilView             = errors.New("view data is nil")
 	ErrNilStatus           = errors.New("status is nil")
 	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
@@ -2732,6 +2758,97 @@ func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Thr
 // AddThreadMessageText helper to create thread and add new message with given text to it
 func (c *Client) AddThreadMessageText(messageID uint, text string) (*Thread, *Message, error) {
 	return c.AddThreadMessage(messageID, &MessageRequest{Content: text})
+}
+
+// COMPANY ////////////////////////////////////////////////////////////////////////// //
+
+// GetCompany returns info about company
+//
+// https://dev.pachca.com/api/company/get
+func (c *Client) GetCompany() (*Company, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Company `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/company"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't fetch company info: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// UpdateCompany updates company info and settings
+//
+// https://dev.pachca.com/api/company/update
+func (c *Client) UpdateCompany(settings *CompanyRequest) (*Company, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case settings == nil:
+		return nil, ErrNilCompanyRequest
+	case len(settings.Name) > 255:
+		return nil, fmt.Errorf("company name is longer than 255 symbols (%d)", len(settings.Name))
+	}
+
+	resp := &struct {
+		Data *Company `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.PUT, getURL("/company"), nil, settings, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't update company settings: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// GetCompanyInvite returns company invite info
+//
+// https://dev.pachca.com/api/company/get-invite-link
+func (c *Client) GetCompanyInvite() (*Invite, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Invite `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/company/invite_link"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't fetch invite info: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// RenewCompanyInvite updates and returns new company invite info
+//
+// https://dev.pachca.com/api/company/reissue-invite-link
+func (c *Client) ReissueCompanyInvite() (*Invite, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Invite `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.POST, getURL("/company/invite_link"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't update invite info: %w", err)
+	}
+
+	return resp.Data, nil
 }
 
 // FILES //////////////////////////////////////////////////////////////////////////// //
