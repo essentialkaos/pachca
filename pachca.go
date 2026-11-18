@@ -82,6 +82,7 @@ const (
 	FILE_TYPE_IMAGE FileType = "image"
 	FILE_TYPE_AUDIO FileType = "audio"
 	FILE_TYPE_VOICE FileType = "voice"
+	FILE_TYPE_VIDEO FileType = "video"
 )
 
 const (
@@ -274,21 +275,22 @@ type Thread struct {
 
 // Message contains info about message
 type Message struct {
-	ID              uint        `json:"id"`
-	EntityID        uint        `json:"entity_id"`
-	ChatID          uint        `json:"chat_id"`
-	RootChatID      uint        `json:"root_chat_id"`
-	ParentMessageID uint        `json:"parent_message_id"`
-	UserID          uint        `json:"user_id"`
-	EntityType      EntityType  `json:"entity_type"`
-	Content         string      `json:"content"`
-	CreatedAt       Date        `json:"created_at"`
-	ChangedAt       Date        `json:"changed_at"`
-	DeletedAt       Date        `json:"deleted_at"`
-	Thread          *Thread     `json:"thread"`
-	Files           Files       `json:"files"`
-	Buttons         Buttons     `json:"buttons"`
-	Forwarding      *Forwarding `json:"forwarding"`
+	ID              uint          `json:"id"`
+	EntityID        uint          `json:"entity_id"`
+	ChatID          uint          `json:"chat_id"`
+	RootChatID      uint          `json:"root_chat_id"`
+	ParentMessageID uint          `json:"parent_message_id"`
+	UserID          uint          `json:"user_id"`
+	EntityType      EntityType    `json:"entity_type"`
+	Content         string        `json:"content"`
+	CreatedAt       Date          `json:"created_at"`
+	ChangedAt       Date          `json:"changed_at"`
+	DeletedAt       Date          `json:"deleted_at"`
+	Thread          *Thread       `json:"thread"`
+	Files           Files         `json:"files"`
+	VoiceContent    *VoiceContent `json:"voice_content"`
+	Buttons         Buttons       `json:"buttons"`
+	Forwarding      *Forwarding   `json:"forwarding"`
 }
 
 // Messages is a slice of messages
@@ -316,7 +318,14 @@ type File struct {
 	Width      int      `json:"width,omitzero"`
 	Height     int      `json:"height,omitzero"`
 	DurationMS int      `json:"duration_ms,omitzero"`
-	Waveform   string   `json:"waveform,omitempty"`
+}
+
+// VoiceContent contains info about audio message
+type VoiceContent struct {
+	DurationMS       int    `json:"duration_ms,omitzero"`
+	Waveform         string `json:"waveform"`
+	Transcript       string `json:"transcript"`
+	TranscriptStatus string `json:"transcript_status,omitempty"`
 }
 
 // Files is a slice of attachments
@@ -388,6 +397,24 @@ type BotInfo struct {
 	ID          uint        `json:"id"`
 	Webhook     *BotWebhook `json:"webhook"`
 	AccessToken string      `json:"access_token"`
+}
+
+// Company contains company info
+type Company struct {
+	ID                     uint   `json:"id"`
+	Name                   string `json:"name"`
+	OwnerID                uint   `json:"owner_id"`
+	ShowPersonalData       bool   `json:"show_personal_data"`
+	UseGlobalThreads       bool   `json:"use_global_threads"`
+	IntegrationsManagement string `json:"integrations_management"`
+	APIManagement          string `json:"api_management"`
+	Plan                   string `json:"plan"`
+}
+
+// Invite contains info about invite
+type Invite struct {
+	URL       string `json:"url"`
+	ExpiresAt Date   `json:"expires_at"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -513,6 +540,13 @@ type ReactionRequest struct {
 	Name string `json:"name,omitempty"`
 }
 
+// CompanyRequest is payload for company settings update
+type CompanyRequest struct {
+	Name             string `json:"name,omitempty"`
+	ShowPersonalData *bool  `json:"show_personal_data,omitempty"`
+	UseGlobalThreads *bool  `json:"use_global_threads,omitempty"`
+}
+
 // ViewRequest is a payload for open a view
 type ViewRequest struct {
 	Type       ViewType `json:"type"`
@@ -626,22 +660,25 @@ var (
 	ErrNilMessageRequest   = errors.New("message request is nil")
 	ErrNilPropertyRequest  = errors.New("property request is nil")
 	ErrNilViewRequest      = errors.New("view request is nil")
+	ErrNilCompanyRequest   = errors.New("company request is nil")
 	ErrNilView             = errors.New("view data is nil")
 	ErrNilStatus           = errors.New("status is nil")
 	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
 	ErrNilYieldFunc        = errors.New("nil yield function provided")
 
 	// Empty value guards
-	ErrEmptyToken     = errors.New("token is empty")
-	ErrEmptyTag       = errors.New("group tag is empty")
-	ErrEmptyMessage   = errors.New("message text is empty")
-	ErrEmptyUserEmail = errors.New("user email is empty")
-	ErrEmptyChatName  = errors.New("chat name is empty")
-	ErrEmptyUsersIDS  = errors.New("users IDs list is empty")
-	ErrEmptyTagsIDS   = errors.New("tags IDs list is empty")
-	ErrEmptyFilePath  = errors.New("file path is empty")
-	ErrEmptyPreviews  = errors.New("link previews map is empty")
-	ErrEmptyTriggerID = errors.New("view trigger ID is empty")
+	ErrEmptyToken      = errors.New("token is empty")
+	ErrEmptyTag        = errors.New("group tag is empty")
+	ErrEmptyMessage    = errors.New("message text is empty")
+	ErrEmptyUserEmail  = errors.New("user email is empty")
+	ErrEmptyChatName   = errors.New("chat name is empty")
+	ErrEmptyUsersIDS   = errors.New("users IDs list is empty")
+	ErrEmptyTagsIDS    = errors.New("tags IDs list is empty")
+	ErrEmptyFilePath   = errors.New("file path is empty")
+	ErrEmptyPreviews   = errors.New("link previews map is empty")
+	ErrEmptyTriggerID  = errors.New("view trigger ID is empty")
+	ErrEmptyAvatarFile = errors.New("avatar file is empty")
+	ErrEmptyOutputPath = errors.New("output path is empty")
 
 	// Invalid value guards
 	ErrInvalidToken      = errors.New("token format is invalid")
@@ -655,6 +692,7 @@ var (
 	ErrInvalidEventID    = errors.New("event ID is invalid")
 	ErrInvalidMinResults = errors.New("results limit must be greater than 0")
 	ErrInvalidMaxPages   = errors.New("max pages must be greater than 0")
+	ErrInvalidFileID     = errors.New("file ID must be greater than 0")
 
 	// Other
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
@@ -2200,6 +2238,58 @@ func (c *Client) UnarchiveChat(chatID uint) error {
 	return nil
 }
 
+// UpdateChatAvatar updates chat avatar
+//
+// https://dev.pachca.com/api/chats/update-avatar
+func (c *Client) UpdateChatAvatar(chatID uint, avatarFile string) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case chatID == 0:
+		return "", ErrInvalidChatID
+	case avatarFile == "":
+		return "", ErrEmptyAvatarFile
+	}
+
+	respData := &struct {
+		Data map[string]string `json:"data"`
+	}{}
+
+	err := c.uploadFile(req.POST, getURL("/chats/%d/avatar", chatID), avatarFile, respData)
+
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("can't parse chat %d avatar update response: %w", chatID, err)
+	case len(respData.Data) == 0:
+		return "", fmt.Errorf("chat %d avatar update response has no data", chatID)
+	}
+
+	return respData.Data["image_url"], nil
+}
+
+// DeleteChatAvatar removes chat avatar
+//
+// https://dev.pachca.com/api/chats/remove-avatar
+func (c *Client) DeleteChatAvatar(chatID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case chatID == 0:
+		return ErrInvalidChatID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/chats/%d/avatar", chatID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't delete chats %d avatar: %w", chatID, err)
+	}
+
+	return nil
+}
+
 // MESSAGES ///////////////////////////////////////////////////////////////////////// //
 
 // GetMessages returns messages from given chat
@@ -2215,11 +2305,12 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 		return nil, ErrInvalidMinResults
 	}
 
-	result := make(Messages, 0, minResults)
+	batchSize := c.getBatchSize()
+	result := make(Messages, 0, batchSize)
 
 	query := req.Query{
 		"chat_id": chatID,
-		"limit":   min(minResults, c.getBatchSize()),
+		"limit":   min(minResults, batchSize),
 	}
 
 	for range MAX_PAGES {
@@ -2647,6 +2738,101 @@ func (c *Client) DeleteMessageButtons(messageID uint) error {
 	return err
 }
 
+// GetImportantMessages returns all messages marked as important
+//
+// https://dev.pachca.com/api/important-messages/list
+func (c *Client) GetImportantMessages(minResults int) (Messages, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case minResults < 1:
+		return nil, ErrInvalidMinResults
+	}
+
+	batchSize := c.getBatchSize()
+	result := make(Messages, 0, batchSize)
+
+	query := req.Query{
+		"limit": min(minResults, batchSize),
+	}
+
+	for range MAX_PAGES {
+		resp := &struct {
+			Data Messages  `json:"data"`
+			Meta *metadata `json:"meta"`
+		}{}
+
+		err := c.sendRequest(req.GET, getURL("/important_messages"), query, nil, resp)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't get important messages: %w", err)
+		}
+
+		result = append(result, resp.Data...)
+
+		if len(result) >= minResults {
+			break
+		}
+
+		if resp.Meta != nil && resp.Meta.Paginate != nil && resp.Meta.Paginate.HasNext {
+			query.Set("cursor", resp.Meta.Paginate.NextPage)
+		} else {
+			break
+		}
+	}
+
+	return result, nil
+}
+
+// MarkImportantMessage marks message with given ID as important
+//
+// https://dev.pachca.com/api/important-messages/create
+func (c *Client) MarkImportantMessage(messageID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	}
+
+	payload := &struct {
+		MessageID uint `json:"message_id"`
+	}{
+		MessageID: messageID,
+	}
+
+	err := c.sendRequest(req.POST, getURL("/important_messages"), nil, payload, nil)
+
+	if err != nil {
+		return fmt.Errorf("can't mark message %d as important: %w", messageID, err)
+	}
+
+	return nil
+}
+
+// UnmarkImportantMessage removes important mark from message with given ID
+//
+// https://dev.pachca.com/api/important-messages/delete
+func (c *Client) UnmarkImportantMessage(messageID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case messageID == 0:
+		return ErrInvalidMessageID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/important_messages/%d", messageID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't unmark message %d as important: %w", messageID, err)
+	}
+
+	return nil
+}
+
 // THREADS ////////////////////////////////////////////////////////////////////////// //
 
 // GetThread returns info about thread
@@ -2700,6 +2886,27 @@ func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	return resp.Data, nil
 }
 
+// NewDetachedThread creates new detached thread
+//
+// https://dev.pachca.com/api/threads/create
+func (c *Client) NewDetachedThread() (*Thread, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Thread `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.POST, getURL("/threads"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't create new detached thread: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
 // AddThreadMessage helper to create thread and add new message to it
 func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Thread, *Message, error) {
 	switch {
@@ -2734,7 +2941,188 @@ func (c *Client) AddThreadMessageText(messageID uint, text string) (*Thread, *Me
 	return c.AddThreadMessage(messageID, &MessageRequest{Content: text})
 }
 
+// COMPANY ////////////////////////////////////////////////////////////////////////// //
+
+// GetCompany returns info about company
+//
+// https://dev.pachca.com/api/company/get
+func (c *Client) GetCompany() (*Company, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Company `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/company"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't fetch company info: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// UpdateCompany updates company info and settings
+//
+// https://dev.pachca.com/api/company/update
+func (c *Client) UpdateCompany(settings *CompanyRequest) (*Company, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case settings == nil:
+		return nil, ErrNilCompanyRequest
+	case strutil.Len(settings.Name) > 255:
+		return nil, fmt.Errorf("company name is longer than 255 symbols (%d)", len(settings.Name))
+	}
+
+	resp := &struct {
+		Data *Company `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.PUT, getURL("/company"), nil, settings, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't update company settings: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// GetCompanyInvite returns company invite info
+//
+// https://dev.pachca.com/api/company/get-invite-link
+func (c *Client) GetCompanyInvite() (*Invite, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Invite `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.GET, getURL("/company/invite_link"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't fetch invite info: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+// RenewCompanyInvite updates and returns new company invite info
+//
+// https://dev.pachca.com/api/company/reissue-invite-link
+func (c *Client) ReissueCompanyInvite() (*Invite, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Invite `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.POST, getURL("/company/invite_link"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't update invite info: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
 // FILES //////////////////////////////////////////////////////////////////////////// //
+
+// GetFile downloads file with given ID
+//
+// https://dev.pachca.com/api/files/get
+func (c *Client) GetFile(fileID uint, output string, mode os.FileMode, targetType string) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case fileID == 0:
+		return ErrInvalidFileID
+	case output == "":
+		return ErrEmptyOutputPath
+	}
+
+	var query req.Query
+
+	switch targetType {
+	case "":
+		// okay
+	case "pdf_preview", "pdf_first_page", "thumb", "image":
+		query = req.Query{"target": targetType}
+	default:
+		return fmt.Errorf("unsupported file target %q", targetType)
+	}
+
+	resp, err := c.engine.Get(req.Request{
+		URL:   getURL("/files/%d", fileID),
+		Query: query,
+		Auth:  req.AuthBearer{c.token},
+	})
+
+	if err != nil {
+		return fmt.Errorf("can't get file %d: %w", fileID, err)
+	}
+
+	defer resp.Discard()
+
+	if resp.StatusCode >= 400 {
+		return unmarshalError(resp)
+	}
+
+	err = resp.Save(output, mode)
+
+	if err != nil {
+		return fmt.Errorf("can't save file %d data: %w", fileID, err)
+	}
+
+	return nil
+}
+
+// GetFile returns data of file with given ID
+//
+// https://dev.pachca.com/api/files/get
+func (c *Client) GetFileData(fileID uint, targetType string) ([]byte, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return nil, ErrNilClient
+	case fileID == 0:
+		return nil, ErrInvalidFileID
+	}
+
+	var query req.Query
+
+	switch targetType {
+	case "":
+		// okay
+	case "pdf_preview", "pdf_first_page", "thumb", "image":
+		query = req.Query{"target": targetType}
+	default:
+		return nil, fmt.Errorf("unsupported file target %q", targetType)
+	}
+
+	resp, err := c.engine.Get(req.Request{
+		URL:   getURL("/files/%d", fileID),
+		Query: query,
+		Auth:  req.AuthBearer{c.token},
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("can't get file %d: %w", fileID, err)
+	}
+
+	defer resp.Discard()
+
+	if resp.StatusCode >= 400 {
+		return nil, unmarshalError(resp)
+	}
+
+	return resp.Bytes()
+}
 
 // UploadFile uploads new file and returns key of it
 //
@@ -2945,6 +3333,58 @@ func (c *Client) DeleteWebhookEvent(eventID string) error {
 
 	if err != nil {
 		return fmt.Errorf("can't delete webhook event with ID %s: %w", eventID, err)
+	}
+
+	return nil
+}
+
+// UpdateBotAvatar updates bot avatar
+//
+// https://dev.pachca.com/api/bots/update-avatar
+func (c *Client) UpdateBotAvatar(botID uint, avatarFile string) (string, error) {
+	switch {
+	case c == nil || c.engine == nil:
+		return "", ErrNilClient
+	case botID == 0:
+		return "", ErrInvalidBotID
+	case avatarFile == "":
+		return "", ErrEmptyAvatarFile
+	}
+
+	respData := &struct {
+		Data map[string]string `json:"data"`
+	}{}
+
+	err := c.uploadFile(req.POST, getURL("/bots/%d/avatar", botID), avatarFile, respData)
+
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("can't parse bot %d avatar update response: %w", botID, err)
+	case len(respData.Data) == 0:
+		return "", fmt.Errorf("bot %d avatar update response has no data", botID)
+	}
+
+	return respData.Data["image_url"], nil
+}
+
+// DeleteBotAvatar removes bot avatar
+//
+// https://dev.pachca.com/api/bots/remove-avatar
+func (c *Client) DeleteBotAvatar(botID uint) error {
+	switch {
+	case c == nil || c.engine == nil:
+		return ErrNilClient
+	case botID == 0:
+		return ErrInvalidBotID
+	}
+
+	err := c.sendRequest(
+		req.DELETE, getURL("/bots/%d/avatar", botID),
+		nil, nil, nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("can't delete bot %d avatar: %w", botID, err)
 	}
 
 	return nil

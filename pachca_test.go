@@ -8,6 +8,7 @@ package pachca
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -185,6 +186,13 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	c.Assert(cc.ExcludeChatUser(1, 1), Equals, ErrNilClient)
 	c.Assert(cc.SetChatUserRole(1, 1, CHAT_ROLE_ADMIN), Equals, ErrNilClient)
 	c.Assert(cc.ExcludeChatTag(1, 1), Equals, ErrNilClient)
+	c.Assert(cc.ArchiveChat(1), Equals, ErrNilClient)
+	c.Assert(cc.UnarchiveChat(1), Equals, ErrNilClient)
+
+	_, err = cc.UpdateChatAvatar(1, "test.jpg")
+	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.DeleteChatAvatar(1), Equals, ErrNilClient)
 
 	// MESSAGES
 
@@ -225,6 +233,12 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 
 	c.Assert(cc.AddLinkPreview(1, nil), Equals, ErrNilClient)
 
+	_, err = cc.GetImportantMessages(1)
+	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.MarkImportantMessage(1), Equals, ErrNilClient)
+	c.Assert(cc.UnmarkImportantMessage(1), Equals, ErrNilClient)
+
 	// THREADS
 
 	_, err = cc.GetThread(1)
@@ -236,9 +250,31 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, _, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.NewDetachedThread()
+	c.Assert(err, Equals, ErrNilClient)
+
+	// COMPANY
+
+	_, err = cc.GetCompany()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.GetCompanyInvite()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.ReissueCompanyInvite()
+	c.Assert(err, Equals, ErrNilClient)
+
+	_, err = cc.UpdateCompany(nil)
+	c.Assert(err, Equals, ErrNilClient)
+
 	// FILES
 
 	_, err = cc.UploadFile("test.txt")
+	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.GetFile(1, "test", 0644, ""), Equals, ErrNilClient)
+
+	_, err = cc.GetFileData(1, "")
 	c.Assert(err, Equals, ErrNilClient)
 
 	// BOTS
@@ -249,8 +285,12 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, err = cc.GetWebhookEvents(1)
 	c.Assert(err, Equals, ErrNilClient)
 
-	err = cc.DeleteWebhookEvent("00000000000000000000000000")
+	c.Assert(cc.DeleteWebhookEvent("00000000000000000000000000"), Equals, ErrNilClient)
+
+	_, err = cc.UpdateBotAvatar(1, "test.jpg")
 	c.Assert(err, Equals, ErrNilClient)
+
+	c.Assert(cc.DeleteBotAvatar(1), Equals, ErrNilClient)
 
 	// FORMS
 
@@ -410,6 +450,15 @@ func (s *PachcaSuite) TestErrors(c *C) {
 
 	c.Assert(cc.ExcludeChatTag(0, 1), Equals, ErrInvalidChatID)
 	c.Assert(cc.ExcludeChatTag(1, 0), Equals, ErrInvalidTagID)
+	c.Assert(cc.ArchiveChat(0), Equals, ErrInvalidChatID)
+	c.Assert(cc.UnarchiveChat(0), Equals, ErrInvalidChatID)
+
+	_, err = cc.UpdateChatAvatar(0, "test.jpg")
+	c.Assert(err, Equals, ErrInvalidChatID)
+	_, err = cc.UpdateChatAvatar(1, "")
+	c.Assert(err, Equals, ErrEmptyAvatarFile)
+
+	c.Assert(cc.DeleteChatAvatar(0), Equals, ErrInvalidChatID)
 
 	// MESSAGES
 
@@ -465,6 +514,12 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(cc.AddLinkPreview(0, nil), Equals, ErrInvalidMessageID)
 	c.Assert(cc.AddLinkPreview(1, nil), Equals, ErrEmptyPreviews)
 
+	_, err = cc.GetImportantMessages(0)
+	c.Assert(err, Equals, ErrInvalidMinResults)
+
+	c.Assert(cc.MarkImportantMessage(0), Equals, ErrInvalidMessageID)
+	c.Assert(cc.UnmarkImportantMessage(0), Equals, ErrInvalidMessageID)
+
 	// THREADS
 
 	_, err = cc.GetThread(0)
@@ -478,10 +533,27 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	_, _, err = cc.AddThreadMessage(1, nil)
 	c.Assert(err, Equals, ErrNilMessageRequest)
 
+	// COMPANY
+
+	_, err = cc.UpdateCompany(nil)
+	c.Assert(err, Equals, ErrNilCompanyRequest)
+
+	_, err = cc.UpdateCompany(&CompanyRequest{Name: strings.Repeat("x", 300)})
+	c.Assert(err.Error(), Equals, "company name is longer than 255 symbols (300)")
+
 	// FILES
 
 	_, err = cc.UploadFile("")
 	c.Assert(err, Equals, ErrEmptyFilePath)
+
+	c.Assert(cc.GetFile(0, "test", 0644, ""), Equals, ErrInvalidFileID)
+	c.Assert(cc.GetFile(1, "", 0644, ""), Equals, ErrEmptyOutputPath)
+	c.Assert(cc.GetFile(1, "test", 0644, "abcd").Error(), Equals, `unsupported file target "abcd"`)
+
+	_, err = cc.GetFileData(0, "")
+	c.Assert(err, Equals, ErrInvalidFileID)
+	_, err = cc.GetFileData(1, "abcd")
+	c.Assert(err.Error(), Equals, `unsupported file target "abcd"`)
 
 	// BOTS
 
@@ -489,12 +561,17 @@ func (s *PachcaSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidBotID)
 	err = cc.UpdateBot(1, "")
 	c.Assert(err, Equals, ErrEmptyWebhookURL)
+
 	_, err = cc.GetWebhookEvents(0)
 	c.Assert(err, Equals, ErrInvalidMaxPages)
-	err = cc.DeleteWebhookEvent("")
-	c.Assert(err, Equals, ErrInvalidEventID)
-	err = cc.DeleteWebhookEvent("0000")
-	c.Assert(err, Equals, ErrInvalidEventID)
+
+	c.Assert(cc.DeleteWebhookEvent(""), Equals, ErrInvalidEventID)
+	c.Assert(cc.DeleteWebhookEvent("0000"), Equals, ErrInvalidEventID)
+
+	_, err = cc.UpdateBotAvatar(0, "test.jpg")
+	c.Assert(err.Error(), Equals, "bot ID must be greater than 0")
+	_, err = cc.UpdateBotAvatar(1, "")
+	c.Assert(err.Error(), Equals, "avatar file is empty")
 
 	// FORMS
 

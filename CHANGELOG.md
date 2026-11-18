@@ -1,5 +1,23 @@
 ## Changelog
 
+### [0.29.0](https://kaos.sh/pachca/0.29.0)
+
+- Added method `GetCompany`
+- Added method `UpdateCompany`
+- Added method `GetCompanyInvite`
+- Added method `ReissueCompanyInvite`
+- Added method `GetImportantMessages`
+- Added method `MarkImportantMessage`
+- Added method `UnmarkImportantMessage`
+- Added method `UpdateBotAvatar`
+- Added method `DeleteBotAvatar`
+- Added method `UpdateChatAvatar`
+- Added method `DeleteChatAvatar`
+- Added method `GetFile`
+- Added method `GetFileData`
+- Added method `NewDetachedThread`
+- Added info about voice message to `Message` object
+
 ### [0.28.0](https://kaos.sh/pachca/0.28.0)
 
 - Added method `PaginateMessages`
