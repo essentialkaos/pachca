@@ -19,34 +19,33 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Date contains info from Date block of modal window
+// Date holds the calendar date submitted through a modal form
 type Date struct {
 	time.Time
 }
 
-// Time contains info from Time block of modal window
+// Time holds the hour and minute submitted through a modal form
 type Time struct {
 	Hour   int
 	Minute int
 }
 
-// File contains info from File block of modal window
+// File holds metadata for a file submitted through a modal form
 type File struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 	Size int64  `json:"size"`
 }
 
-// Files is a slice of files
+// Files holds the files submitted through a file input block
 type Files []*File
 
-// Options contains slice with selected options from Checkbox block
-// of modal window
+// Options holds the selected values from a checkbox block
 type Options []string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnmarshalJSON parses JSON date
+// UnmarshalJSON accepts dates in YYYY-MM-DD or DD.MM.YYYY format and resets the date on null
 func (d *Date) UnmarshalJSON(b []byte) error {
 	data := string(b)
 
@@ -66,7 +65,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// UnmarshalJSON parses JSON date
+// UnmarshalJSON decodes a 24-hour time string and leaves the receiver unchanged on null
 func (t *Time) UnmarshalJSON(b []byte) error {
 	data := string(b)
 
@@ -107,7 +106,7 @@ func (t *Time) UnmarshalJSON(b []byte) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// String returns string representation of time
+// String formats the time as HH:MM and returns 00:00 for a nil receiver
 func (t *Time) String() string {
 	if t == nil {
 		return "00:00"
@@ -118,14 +117,14 @@ func (t *Time) String() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Has returns true if slice contains given option
+// Has reports whether the given option is selected
 func (o Options) Has(option string) bool {
 	return slices.Contains(o, option)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Get returns file with given index
+// Get returns the file at the given zero-based index or nil if it is out of range
 func (f Files) Get(index int) *File {
 	if index >= len(f) || index < 0 {
 		return nil
