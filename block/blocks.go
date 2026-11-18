@@ -14,13 +14,15 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Block represents an element in a Pachca form
 type Block interface {
+	// Init sets the block type before serialization
 	Init()
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Header is a header block
+// Header displays a heading in a form
 //
 // https://dev.pachca.com/guides/forms#zagolovok-header
 type Header struct {
@@ -28,7 +30,7 @@ type Header struct {
 	Text string `json:"text"`
 }
 
-// PlainText is a plain text block
+// PlainText displays unformatted text in a form
 //
 // https://dev.pachca.com/guides/forms#obychnyy-tekst-plaintext
 type PlainText struct {
@@ -36,7 +38,7 @@ type PlainText struct {
 	Text string `json:"text"`
 }
 
-// Markdown is a text block with markdown formatting
+// Markdown displays Markdown-formatted text in a form
 //
 // https://dev.pachca.com/guides/forms#formatirovannyy-tekst-markdown
 type Markdown struct {
@@ -44,14 +46,14 @@ type Markdown struct {
 	Text string `json:"text"`
 }
 
-// Divider is a divider block
+// Divider visually separates sections of a form
 //
 // https://dev.pachca.com/guides/forms#razdelitel-divider
 type Divider struct {
 	Type string `json:"type"`
 }
 
-// Input is text input block
+// Input accepts single-line or multiline text
 //
 // https://dev.pachca.com/guides/forms#tekstovoe-pole-input
 type Input struct {
@@ -67,7 +69,7 @@ type Input struct {
 	IsRequired   bool   `json:"required"`
 }
 
-// Select is select list block
+// Select lets the user choose an option from a dropdown
 //
 // https://dev.pachca.com/guides/forms#vypadayuschiy-spisok-select
 type Select struct {
@@ -79,7 +81,7 @@ type Select struct {
 	IsRequired bool    `json:"required"`
 }
 
-// Radio is radio buttons block
+// Radio lets the user choose one option from a group of radio buttons
 //
 // https://dev.pachca.com/guides/forms#radioknopki-radio
 type Radio struct {
@@ -91,7 +93,7 @@ type Radio struct {
 	IsRequired bool    `json:"required"`
 }
 
-// Checkbox is checkboxes block
+// Checkbox lets the user choose multiple options from a group of checkboxes
 //
 // https://dev.pachca.com/guides/forms#chekboksy-checkbox
 type Checkbox struct {
@@ -103,7 +105,7 @@ type Checkbox struct {
 	IsRequired bool    `json:"required"`
 }
 
-// Date is date selection block
+// Date lets the user pick a calendar date
 //
 // https://dev.pachca.com/guides/forms#vybor-daty-date
 type Date struct {
@@ -115,7 +117,7 @@ type Date struct {
 	IsRequired   bool   `json:"required"`
 }
 
-// Time is time selection block
+// Time lets the user pick a time of day
 //
 // https://dev.pachca.com/guides/forms#vybor-vremeni-time
 type Time struct {
@@ -127,7 +129,7 @@ type Time struct {
 	IsRequired   bool   `json:"required"`
 }
 
-// Files is file attachment block
+// Files lets the user attach files to a form
 //
 // https://dev.pachca.com/guides/forms#zagruzka-faylov-fileinput
 type Files struct {
@@ -140,10 +142,10 @@ type Files struct {
 	IsRequired bool     `json:"required"`
 }
 
-// Options is a slice with block options
+// Options holds the available choices for a selection block
 type Options []*Option
 
-// Option is block option
+// Option defines a choice and whether it is selected by default
 type Option struct {
 	Text        string `json:"text"`
 	Value       string `json:"value"`
@@ -153,64 +155,64 @@ type Option struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Init sets block type
+// Init sets the JSON block type for Header
 func (b *Header) Init() {
 	b.Type = "header"
 }
 
-// Init sets block type
+// Init sets the JSON block type for PlainText
 func (b *PlainText) Init() {
 	b.Type = "plain_text"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Markdown
 func (b *Markdown) Init() {
 	b.Type = "markdown"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Divider
 func (b *Divider) Init() {
 	b.Type = "divider"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Input
 func (b *Input) Init() {
 	b.Type = "input"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Select
 func (b *Select) Init() {
 	b.Type = "select"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Radio
 func (b *Radio) Init() {
 	b.Type = "radio"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Checkbox
 func (b *Checkbox) Init() {
 	b.Type = "checkbox"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Date
 func (b *Date) Init() {
 	b.Type = "date"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Time
 func (b *Time) Init() {
 	b.Type = "time"
 }
 
-// Init sets block type
+// Init sets the JSON block type for Files
 func (b *Files) Init() {
 	b.Type = "file_input"
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// AddOption adds a new option to select list
+// AddOption appends a choice to the dropdown and returns the dropdown
 func (b *Select) AddOption(text, value string, selected bool) *Select {
 	if b == nil {
 		return b
@@ -225,7 +227,7 @@ func (b *Select) AddOption(text, value string, selected bool) *Select {
 	return b
 }
 
-// AddOptionIf conditionally adds a new option to select list
+// AddOptionIf appends a choice to the dropdown if cond is true and returns the dropdown
 func (b *Select) AddOptionIf(cond bool, text, value string, selected bool) *Select {
 	if !cond {
 		return b
@@ -234,7 +236,7 @@ func (b *Select) AddOptionIf(cond bool, text, value string, selected bool) *Sele
 	return b.AddOption(text, value, selected)
 }
 
-// AddOption adds a new option to radio group
+// AddOption appends a choice to the radio group and returns the radio group
 func (b *Radio) AddOption(text, value, desc string, selected bool) *Radio {
 	if b == nil {
 		return b
@@ -250,7 +252,7 @@ func (b *Radio) AddOption(text, value, desc string, selected bool) *Radio {
 	return b
 }
 
-// AddOptionIf conditionally adds a new option to radio group
+// AddOptionIf appends a choice to the radio group if cond is true and returns the radio group
 func (b *Radio) AddOptionIf(cond bool, text, value, desc string, selected bool) *Radio {
 	if !cond {
 		return b
@@ -259,7 +261,7 @@ func (b *Radio) AddOptionIf(cond bool, text, value, desc string, selected bool) 
 	return b.AddOption(text, value, desc, selected)
 }
 
-// AddOption adds a new option to checkbox group
+// AddOption appends a choice to the checkbox group and returns the checkbox group
 func (b *Checkbox) AddOption(text, value, desc string, selected bool) *Checkbox {
 	if b == nil {
 		return b
@@ -275,7 +277,7 @@ func (b *Checkbox) AddOption(text, value, desc string, selected bool) *Checkbox 
 	return b
 }
 
-// AddOptionIf conditionally adds a new option to checkbox group
+// AddOptionIf appends a choice to the checkbox group if cond is true and returns the checkbox group
 func (b *Checkbox) AddOptionIf(cond bool, text, value, desc string, selected bool) *Checkbox {
 	if !cond {
 		return b
@@ -284,7 +286,7 @@ func (b *Checkbox) AddOptionIf(cond bool, text, value, desc string, selected boo
 	return b.AddOption(text, value, desc, selected)
 }
 
-// Set sets initial date
+// Set sets the initial date from the year, month, and day and returns the date picker
 func (b *Date) Set(year, month, day int) *Date {
 	if b == nil {
 		return b
@@ -295,7 +297,7 @@ func (b *Date) Set(year, month, day int) *Date {
 	return b
 }
 
-// SetIf conditionally sets initial date
+// SetIf sets the initial date from the year, month, and day if cond is true and returns the date picker
 func (b *Date) SetIf(cond bool, year, month, day int) *Date {
 	if !cond {
 		return b
@@ -304,7 +306,7 @@ func (b *Date) SetIf(cond bool, year, month, day int) *Date {
 	return b.Set(year, month, day)
 }
 
-// SetWithDate sets initial date using time.Time
+// SetWithDate sets the initial date from a time.Time value and returns the date picker
 func (b *Date) SetWithDate(d time.Time) *Date {
 	if b == nil {
 		return b
@@ -315,7 +317,7 @@ func (b *Date) SetWithDate(d time.Time) *Date {
 	return b
 }
 
-// SetWithDateIf conditionally sets initial date using time.Time
+// SetWithDateIf sets the initial date from a time.Time value if cond is true and returns the date picker
 func (b *Date) SetWithDateIf(cond bool, d time.Time) *Date {
 	if !cond {
 		return b
@@ -324,7 +326,7 @@ func (b *Date) SetWithDateIf(cond bool, d time.Time) *Date {
 	return b.SetWithDate(d)
 }
 
-// Set sets initial time
+// Set sets the initial time from the hour and minute and returns the time picker
 func (b *Time) Set(hour, minute int) *Time {
 	if b == nil {
 		return b
@@ -335,7 +337,7 @@ func (b *Time) Set(hour, minute int) *Time {
 	return b
 }
 
-// SetIf conditionally sets initial time
+// SetIf sets the initial time from the hour and minute if cond is true and returns the time picker
 func (b *Time) SetIf(cond bool, hour, minute int) *Time {
 	if !cond {
 		return b
@@ -344,7 +346,7 @@ func (b *Time) SetIf(cond bool, hour, minute int) *Time {
 	return b.Set(hour, minute)
 }
 
-// SetWithDate sets initial time using time.Time
+// SetWithDate sets the initial time from a time.Time value and returns the time picker
 func (b *Time) SetWithDate(d time.Time) *Time {
 	if b == nil {
 		return b
@@ -355,7 +357,7 @@ func (b *Time) SetWithDate(d time.Time) *Time {
 	return b
 }
 
-// SetWithDateIf conditionally sets initial time using time.Time
+// SetWithDateIf sets the initial time from a time.Time value if cond is true and returns the time picker
 func (b *Time) SetWithDateIf(cond bool, d time.Time) *Time {
 	if !cond {
 		return b
