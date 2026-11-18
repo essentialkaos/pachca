@@ -250,6 +250,9 @@ func (s *PachcaSuite) TestNilClient(c *C) {
 	_, _, err = cc.AddThreadMessage(1, &MessageRequest{EntityID: 1})
 	c.Assert(err, Equals, ErrNilClient)
 
+	_, err = cc.NewDetachedThread()
+	c.Assert(err, Equals, ErrNilClient)
+
 	// COMPANY
 
 	_, err = cc.GetCompany()

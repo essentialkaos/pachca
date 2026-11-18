@@ -2884,6 +2884,27 @@ func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	return resp.Data, nil
 }
 
+// NewDetachedThread creates new detached thread
+//
+// https://dev.pachca.com/api/threads/create
+func (c *Client) NewDetachedThread() (*Thread, error) {
+	if c == nil || c.engine == nil {
+		return nil, ErrNilClient
+	}
+
+	resp := &struct {
+		Data *Thread `json:"data"`
+	}{}
+
+	err := c.sendRequest(req.POST, getURL("/threads"), nil, nil, resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't create new detached thread: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
 // AddThreadMessage helper to create thread and add new message to it
 func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Thread, *Message, error) {
 	switch {
