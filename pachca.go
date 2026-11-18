@@ -31,96 +31,151 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// API_URL is URL of Pachca API
+// API_URL is the base URL for the Pachca API
 const API_URL = "https://api.pachca.com/api/shared/v1"
 
-// APP_URL is application URL used to generate links
+// APP_URL is the base URL used to build links to the Pachca app
 const APP_URL = "https://app.pachca.com"
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
+	// SORT_FIELD_ID sorts results by ID
 	SORT_FIELD_ID           = "id"
+
+	// SORT_FIELD_LAST_MESSAGE sorts chats by the time of their latest message
 	SORT_FIELD_LAST_MESSAGE = "last_message_at"
 )
 
 const (
+	// SORT_ORDER_ASC sorts results in ascending order
 	SORT_ORDER_ASC  SortOrder = "asc"
+
+	// SORT_ORDER_DESC sorts results in descending order
 	SORT_ORDER_DESC SortOrder = "desc"
 )
 
 const (
+	// PROP_TYPE_DATE identifies a date custom property
 	PROP_TYPE_DATE   PropertyType = "date"
+
+	// PROP_TYPE_LINK identifies a link custom property
 	PROP_TYPE_LINK   PropertyType = "link"
+
+	// PROP_TYPE_NUMBER identifies a number custom property
 	PROP_TYPE_NUMBER PropertyType = "number"
+
+	// PROP_TYPE_TEXT identifies a text custom property
 	PROP_TYPE_TEXT   PropertyType = "text"
 )
 
 const (
+	// INVITE_SENT indicates that an invitation was sent but not accepted
 	INVITE_SENT      InviteStatus = "sent"
+
+	// INVITE_CONFIRMED indicates that an invitation was accepted
 	INVITE_CONFIRMED InviteStatus = "confirmed"
 )
 
 const (
+	// ROLE_ADMIN identifies the admin user role
 	ROLE_ADMIN       UserRole = "admin"
+
+	// ROLE_REGULAR identifies the regular user role
 	ROLE_REGULAR     UserRole = "user"
+
+	// ROLE_MULTI_GUEST identifies the multi-guest user role
 	ROLE_MULTI_GUEST UserRole = "multi_guest"
+
+	// ROLE_GUEST identifies the guest user role
 	ROLE_GUEST       UserRole = "guest"
 )
 
 const (
+	// CHAT_ROLE_ADMIN identifies the chat admin role
 	CHAT_ROLE_ADMIN  ChatRole = "admin"
+
+	// CHAT_ROLE_OWNER identifies the chat owner role
 	CHAT_ROLE_OWNER  ChatRole = "owner"
+
+	// CHAT_ROLE_EDITOR identifies the chat editor role
 	CHAT_ROLE_EDITOR ChatRole = "editor"
+
+	// CHAT_ROLE_MEMBER identifies the chat member role
 	CHAT_ROLE_MEMBER ChatRole = "member"
 
+	// CHAT_ROLE_ANY matches chat members of any role
 	CHAT_ROLE_ANY ChatRole = "all"
 )
 
 const (
+	// FILE_TYPE_FILE identifies generic file attachments
 	FILE_TYPE_FILE  FileType = "file"
+
+	// FILE_TYPE_IMAGE identifies image attachments
 	FILE_TYPE_IMAGE FileType = "image"
+
+	// FILE_TYPE_AUDIO identifies audio attachments
 	FILE_TYPE_AUDIO FileType = "audio"
+
+	// FILE_TYPE_VOICE identifies voice message attachments
 	FILE_TYPE_VOICE FileType = "voice"
+
+	// FILE_TYPE_VIDEO identifies video attachments
 	FILE_TYPE_VIDEO FileType = "video"
 )
 
 const (
+	// ENTITY_TYPE_DISCUSSION targets a chat or channel
 	ENTITY_TYPE_DISCUSSION EntityType = "discussion"
+
+	// ENTITY_TYPE_THREAD targets a thread
 	ENTITY_TYPE_THREAD     EntityType = "thread"
+
+	// ENTITY_TYPE_USER targets a user
 	ENTITY_TYPE_USER       EntityType = "user"
 )
 
 const (
+	// MESSAGE_SORT_BY_CREATED_AT sorts messages by creation time
 	MESSAGE_SORT_BY_CREATED_AT MessageSort = "created_at"
+
+	// MESSAGE_SORT_BY_RELEVANCE sorts messages by relevance
 	MESSAGE_SORT_BY_RELEVANCE  MessageSort = "relevance"
 )
 
 const (
+	// USER_SORT_BY_SCORE sorts users by search relevance score
 	USER_SORT_BY_SCORE UserSort = "by_score"
+
+	// USER_SORT_BY_ALPHA sorts users alphabetically
 	USER_SORT_BY_ALPHA UserSort = "alphabetical"
 )
 
 const (
+	// BOT_TEMPLATE_LIQUID selects the Liquid template engine for bot webhooks
 	BOT_TEMPLATE_LIQUID   string = "liquid"
+
+	// BOT_TEMPLATE_MUSTACHE selects the Mustache template engine for bot webhooks
 	BOT_TEMPLATE_MUSTACHE string = "mustache"
 )
 
 const (
+	// VIEW_MODAL identifies a modal view
 	VIEW_MODAL ViewType = "modal"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MAX_PAGES is the maximum number of pages using for listing items
+// MAX_PAGES caps the number of pages fetched by listing operations
 const MAX_PAGES = 1_000
 
-// MAX_PER_PAGE is the maximum number of entities per page
+// MAX_PER_PAGE is the maximum number of items per page
 const MAX_PER_PAGE = 50
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Date is JSON date
+// Date wraps time.Time for Pachca JSON timestamps
 type Date struct {
 	time.Time
 }
@@ -159,7 +214,7 @@ type MessageSort string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// TokenInfo contains OAuth token info
+// TokenInfo describes an OAuth access token and its scopes
 type TokenInfo struct {
 	ID         uint     `json:"id"`
 	Token      string   `json:"token"`
@@ -175,7 +230,7 @@ type TokenInfo struct {
 // Chats is slice of chats
 type Chats []*Chat
 
-// Chat contains info about channel
+// Chat describes a Pachca chat, its membership, and its visibility
 type Chat struct {
 	Members       []uint `json:"member_ids"`
 	GroupTags     []uint `json:"group_tag_ids"`
@@ -193,7 +248,7 @@ type Chat struct {
 // Users is a slice of users
 type Users []*User
 
-// User contains info about user
+// User describes a Pachca user or bot account
 type User struct {
 	ID             uint         `json:"id"`
 	CreatedAt      Date         `json:"created_at"`
@@ -218,7 +273,7 @@ type User struct {
 	IsSSO          bool         `json:"sso"`
 }
 
-// Status is user status
+// Status holds a user's status and optional away message
 type Status struct {
 	Emoji       string       `json:"emoji"`
 	Title       string       `json:"title"`
@@ -227,7 +282,7 @@ type Status struct {
 	AwayMessage *AwayMessage `json:"away_message"`
 }
 
-// AwayMessage contains away message data
+// AwayMessage holds the text shown when a user is away
 type AwayMessage struct {
 	Text string `json:"text"`
 }
@@ -235,7 +290,7 @@ type AwayMessage struct {
 // Properties is a slice of properties
 type Properties []*Property
 
-// Property is custom property
+// Property holds a custom property's ID, name, type, and value
 type Property struct {
 	ID    uint         `json:"id"`
 	Type  PropertyType `json:"data_type"`
@@ -243,7 +298,7 @@ type Property struct {
 	Value string       `json:"value"`
 }
 
-// Tag contains info about tag
+// Tag describes a group tag and its user count
 type Tag struct {
 	ID         uint   `json:"id"`
 	Name       string `json:"name"`
@@ -253,7 +308,7 @@ type Tag struct {
 // Tags is a slice of tags
 type Tags []*Tag
 
-// Reaction contains reaction info
+// Reaction records a user's emoji reaction to a message
 type Reaction struct {
 	UserID    uint   `json:"user_id"`
 	CreatedAt Date   `json:"created_at"`
@@ -264,7 +319,7 @@ type Reaction struct {
 // Reactions is a slice of reactions
 type Reactions []*Reaction
 
-// Thread contains info about thread
+// Thread describes a thread and its associated chat and parent message
 type Thread struct {
 	ID            uint `json:"id"`
 	ChatID        uint `json:"chat_id"`
@@ -273,7 +328,7 @@ type Thread struct {
 	UpdatedAt     Date `json:"updated_at"`
 }
 
-// Message contains info about message
+// Message holds a Pachca message and its associated content and metadata
 type Message struct {
 	ID              uint          `json:"id"`
 	EntityID        uint          `json:"entity_id"`
@@ -296,7 +351,7 @@ type Message struct {
 // Messages is a slice of messages
 type Messages []*Message
 
-// Forwarding contains info about message forwarding
+// Forwarding identifies the original message and its author and chat
 type Forwarding struct {
 	OriginalMessageID          uint `json:"original_message_id"`
 	OriginalChatID             uint `json:"original_chat_id"`
@@ -307,7 +362,7 @@ type Forwarding struct {
 	OriginalCreatedAt          Date `json:"original_created_at"`
 }
 
-// File contains info about message attachment
+// File describes an uploaded file or message attachment
 type File struct {
 	ID         uint     `json:"id,omitempty"`
 	Key        string   `json:"key"`
@@ -320,7 +375,7 @@ type File struct {
 	DurationMS int      `json:"duration_ms,omitzero"`
 }
 
-// VoiceContent contains info about audio message
+// VoiceContent holds the duration, waveform, and transcript of a voice message
 type VoiceContent struct {
 	DurationMS       int    `json:"duration_ms,omitzero"`
 	Waveform         string `json:"waveform"`
@@ -331,7 +386,7 @@ type VoiceContent struct {
 // Files is a slice of attachments
 type Files []*File
 
-// Button contains info about message button
+// Button defines a message button with a URL or callback data
 type Button struct {
 	Text string `json:"text"`
 	URL  string `json:"url,omitempty"`
@@ -344,7 +399,7 @@ type Buttons []ButtonLine
 // ButtonLine is a single row of buttons
 type ButtonLine []*Button
 
-// Upload contains upload info used for uploading files
+// Upload holds the presigned S3 form fields and URL for uploading a file
 type Upload struct {
 	ContentDisposition string `json:"Content-Disposition"`
 	ACL                string `json:"acl"`
@@ -357,7 +412,7 @@ type Upload struct {
 	DirectURL          string `json:"direct_url"`
 }
 
-// View contains form view
+// View defines a form's title, buttons, and content blocks
 type View struct {
 	Title      string        `json:"title"`
 	CloseText  string        `json:"close_text,omitempty"`
@@ -365,7 +420,7 @@ type View struct {
 	Blocks     []block.Block `json:"blocks"`
 }
 
-// WebhookEvent contains webhook event data
+// WebhookEvent holds a webhook history entry and its raw JSON payload
 type WebhookEvent struct {
 	ID        string          `json:"id"`
 	EventType string          `json:"event_type"`
@@ -373,7 +428,7 @@ type WebhookEvent struct {
 	Payload   json.RawMessage `json:"payload"`
 }
 
-// BotWebhook contains bot webhook configuration
+// BotWebhook configures a bot's webhook, triggers, templates, and scopes
 //
 // https://dev.pachca.com/api/bots/create#param-webhook
 type BotWebhook struct {
@@ -392,14 +447,14 @@ type BotWebhook struct {
 	IgnoreSelfMessages   bool     `json:"ignore_self_messages"`
 }
 
-// BotInfo contains info about bot
+// BotInfo holds a bot's ID, webhook configuration, and access token
 type BotInfo struct {
 	ID          uint        `json:"id"`
 	Webhook     *BotWebhook `json:"webhook"`
 	AccessToken string      `json:"access_token"`
 }
 
-// Company contains company info
+// Company describes a Pachca company, its settings, and its plan
 type Company struct {
 	ID                     uint   `json:"id"`
 	Name                   string `json:"name"`
@@ -411,7 +466,7 @@ type Company struct {
 	Plan                   string `json:"plan"`
 }
 
-// Invite contains info about invite
+// Invite holds a company invitation URL and its expiration time
 type Invite struct {
 	URL       string `json:"url"`
 	ExpiresAt Date   `json:"expires_at"`
@@ -419,7 +474,7 @@ type Invite struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MessagePaginator is messages paginator struct
+// MessagePaginator iterates over pages of messages in a chat
 type MessagePaginator struct {
 	c   *Client
 	err error
@@ -429,7 +484,7 @@ type MessagePaginator struct {
 	order  string
 }
 
-// UserPaginator is users paginator struct
+// UserPaginator iterates over pages of users
 type UserPaginator struct {
 	c   *Client
 	err error
@@ -477,7 +532,7 @@ type uploadInfo struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ChatFilter is configuration for filtering chats
+// ChatFilter specifies filters and sorting for listing chats
 type ChatFilter struct {
 	Sort              map[string]SortOrder
 	LastMessageAfter  time.Time
@@ -485,7 +540,7 @@ type ChatFilter struct {
 	Public            bool
 }
 
-// UserRequest is a struct with information needed to create or modify a user
+// UserRequest provides the fields for creating or updating a user
 type UserRequest struct {
 	Email           string           `json:"email,omitempty"`
 	FirstName       string           `json:"first_name,omitempty"`
@@ -502,7 +557,7 @@ type UserRequest struct {
 	SkipEmailNotify bool             `json:"skip_email_notify,omitempty"`
 }
 
-// PropertyRequest is a struct with property info
+// PropertyRequest sets a custom property value by ID
 type PropertyRequest struct {
 	ID    uint   `json:"id"`
 	Value string `json:"value"`
@@ -511,7 +566,7 @@ type PropertyRequest struct {
 // PropertyRequests is a slice with properties requests
 type PropertyRequests []*PropertyRequest
 
-// ChatRequest is a struct with information needed to create or modify a chat
+// ChatRequest provides the fields for creating or updating a chat
 type ChatRequest struct {
 	Name       string `json:"name,omitempty"`
 	Members    []uint `json:"member_ids,omitempty"`
@@ -521,7 +576,7 @@ type ChatRequest struct {
 	IsPersonal bool   `json:"personal,omitempty"`
 }
 
-// MessageRequest is a struct with information needed to create or modify a message
+// MessageRequest provides the fields for sending or editing a message
 type MessageRequest struct {
 	EntityType         EntityType `json:"entity_type,omitempty"`
 	EntityID           uint       `json:"entity_id,omitempty"`
@@ -534,20 +589,20 @@ type MessageRequest struct {
 	SkipInviteMentions bool       `json:"skip_invite_mentions,omitempty"`
 }
 
-// ReactionRequest is a payload for message reaction
+// ReactionRequest specifies an emoji code and an optional custom emoji name
 type ReactionRequest struct {
 	Code string `json:"code"`
 	Name string `json:"name,omitempty"`
 }
 
-// CompanyRequest is payload for company settings update
+// CompanyRequest provides the fields for updating company settings
 type CompanyRequest struct {
 	Name             string `json:"name,omitempty"`
 	ShowPersonalData *bool  `json:"show_personal_data,omitempty"`
 	UseGlobalThreads *bool  `json:"use_global_threads,omitempty"`
 }
 
-// ViewRequest is a payload for open a view
+// ViewRequest specifies the view to open and the trigger that opened it
 type ViewRequest struct {
 	Type       ViewType `json:"type"`
 	TriggerID  string   `json:"trigger_id"`
@@ -556,7 +611,7 @@ type ViewRequest struct {
 	View       *View    `json:"view"`
 }
 
-// LinkPreview contains link preview data
+// LinkPreview defines the title, description, and image for a link preview
 type LinkPreview struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -567,7 +622,7 @@ type LinkPreview struct {
 // LinkPreviews is map (url → preview data) with link previews
 type LinkPreviews map[string]*LinkPreview
 
-// ChatSearchRequest contains data for chats search
+// ChatSearchRequest specifies the query, filters, and sort order for a chat search
 type ChatSearchRequest struct {
 	Query       string
 	Order       SortOrder
@@ -578,7 +633,7 @@ type ChatSearchRequest struct {
 	Personal    bool
 }
 
-// UserSearchRequest contains data for users search
+// UserSearchRequest specifies the query, filters, and sorting for a user search
 type UserSearchRequest struct {
 	Query       string
 	Sort        UserSort
@@ -588,7 +643,7 @@ type UserSearchRequest struct {
 	Roles       []UserRole
 }
 
-// MessageSearchRequest contains data for messages search
+// MessageSearchRequest specifies the query, filters, and sorting for a message search
 type MessageSearchRequest struct {
 	Query       string
 	Order       SortOrder
@@ -605,7 +660,7 @@ type MessageSearchRequest struct {
 // ViewErrors is a map with view errors
 type ViewErrors map[string]string
 
-// S3Error represents S3 error
+// S3Error holds an S3 error message and the full error text
 type S3Error struct {
 	Message string
 	Full    string
@@ -613,7 +668,7 @@ type S3Error struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnmarshalJSON parses JSON date
+// UnmarshalJSON decodes a UTC timestamp or resets the date to zero if the input is null
 func (d *Date) UnmarshalJSON(b []byte) error {
 	data := string(b)
 
@@ -633,7 +688,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// MarshalJSON converts date into JSON format
+// MarshalJSON encodes the date as a UTC timestamp or JSON null if it is zero
 func (d Date) MarshalJSON() ([]byte, error) {
 	if d.Time.IsZero() {
 		return []byte("null"), nil
@@ -654,59 +709,134 @@ var s3ErrorExtractRegex = regexp.MustCompile(`\<Message\>(.*)\<\/Message\>`)
 
 var (
 	// Nil guards
+	// ErrNilClient indicates that the client is nil
 	ErrNilClient           = errors.New("client is nil")
+
+	// ErrNilUserRequest indicates that the user request is nil
 	ErrNilUserRequest      = errors.New("user request is nil")
+
+	// ErrNilChatRequest indicates that the chat request is nil
 	ErrNilChatRequest      = errors.New("chat request is nil")
+
+	// ErrNilMessageRequest indicates that the message request is nil
 	ErrNilMessageRequest   = errors.New("message request is nil")
+
+	// ErrNilPropertyRequest indicates that the property request is nil
 	ErrNilPropertyRequest  = errors.New("property request is nil")
+
+	// ErrNilViewRequest indicates that the view request is nil
 	ErrNilViewRequest      = errors.New("view request is nil")
+
+	// ErrNilCompanyRequest indicates that the company request is nil
 	ErrNilCompanyRequest   = errors.New("company request is nil")
+
+	// ErrNilView indicates that the view data is nil
 	ErrNilView             = errors.New("view data is nil")
+
+	// ErrNilStatus indicates that the status is nil
 	ErrNilStatus           = errors.New("status is nil")
+
+	// ErrNilBotConfiguration indicates that the bot webhook configuration is nil
 	ErrNilBotConfiguration = errors.New("bot webhook configuration is nil")
+
+	// ErrNilYieldFunc indicates that the yield function is nil
 	ErrNilYieldFunc        = errors.New("nil yield function provided")
 
 	// Empty value guards
+	// ErrEmptyToken indicates that the token is empty
 	ErrEmptyToken      = errors.New("token is empty")
+
+	// ErrEmptyTag indicates that the group tag is empty
 	ErrEmptyTag        = errors.New("group tag is empty")
+
+	// ErrEmptyMessage indicates that the message text is empty
 	ErrEmptyMessage    = errors.New("message text is empty")
+
+	// ErrEmptyUserEmail indicates that the user email is empty
 	ErrEmptyUserEmail  = errors.New("user email is empty")
+
+	// ErrEmptyChatName indicates that the chat name is empty
 	ErrEmptyChatName   = errors.New("chat name is empty")
+
+	// ErrEmptyUsersIDS indicates that the list of user IDs is empty
 	ErrEmptyUsersIDS   = errors.New("users IDs list is empty")
+
+	// ErrEmptyTagsIDS indicates that the list of group tag IDs is empty
 	ErrEmptyTagsIDS    = errors.New("tags IDs list is empty")
+
+	// ErrEmptyFilePath indicates that the file path is empty
 	ErrEmptyFilePath   = errors.New("file path is empty")
+
+	// ErrEmptyPreviews indicates that the link previews map is empty
 	ErrEmptyPreviews   = errors.New("link previews map is empty")
+
+	// ErrEmptyTriggerID indicates that the view trigger ID is empty
 	ErrEmptyTriggerID  = errors.New("view trigger ID is empty")
+
+	// ErrEmptyAvatarFile indicates that the avatar file is empty
 	ErrEmptyAvatarFile = errors.New("avatar file is empty")
+
+	// ErrEmptyOutputPath indicates that the output path is empty
 	ErrEmptyOutputPath = errors.New("output path is empty")
 
 	// Invalid value guards
+	// ErrInvalidToken indicates that the token format is invalid
 	ErrInvalidToken      = errors.New("token format is invalid")
+
+	// ErrInvalidMessageID indicates that the message ID is zero
 	ErrInvalidMessageID  = errors.New("message ID must be greater than 0")
+
+	// ErrInvalidChatID indicates that the chat ID is zero
 	ErrInvalidChatID     = errors.New("chat ID must be greater than 0")
+
+	// ErrInvalidUserID indicates that the user ID is zero
 	ErrInvalidUserID     = errors.New("user ID must be greater than 0")
+
+	// ErrInvalidThreadID indicates that the thread ID is zero
 	ErrInvalidThreadID   = errors.New("thread ID must be greater than 0")
+
+	// ErrInvalidTagID indicates that the group tag ID is zero
 	ErrInvalidTagID      = errors.New("group tag ID must be greater than 0")
+
+	// ErrInvalidEntityID indicates that the entity ID is zero
 	ErrInvalidEntityID   = errors.New("entity ID must be greater than 0")
+
+	// ErrInvalidBotID indicates that the bot ID is zero
 	ErrInvalidBotID      = errors.New("bot ID must be greater than 0")
+
+	// ErrInvalidEventID indicates that the event ID is invalid
 	ErrInvalidEventID    = errors.New("event ID is invalid")
+
+	// ErrInvalidMinResults indicates that the requested minimum result count is less than one
 	ErrInvalidMinResults = errors.New("results limit must be greater than 0")
+
+	// ErrInvalidMaxPages indicates that the requested page limit is less than one
 	ErrInvalidMaxPages   = errors.New("max pages must be greater than 0")
+
+	// ErrInvalidFileID indicates that the file ID is zero
 	ErrInvalidFileID     = errors.New("file ID must be greater than 0")
 
 	// Other
+	// ErrBlankReaction indicates that the reaction emoji is blank
 	ErrBlankReaction   = errors.New("reaction emoji must not be blank")
+
+	// ErrViewHasNoBlocks indicates that the view has no blocks
 	ErrViewHasNoBlocks = errors.New("view has no blocks")
+
+	// ErrEmptyWebhookURL indicates that the webhook URL is empty
 	ErrEmptyWebhookURL = errors.New("webhook URL is empty")
+
+	// ErrEmptyResponse indicates that the API returned an empty response
 	ErrEmptyResponse   = errors.New("empty response from API endpoint")
 
 	// Rate-limit
+	// ErrRateLimited indicates that the rate limit exceeded
 	ErrRateLimited = errors.New("rate limit exceeded")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Client is Pachca API client
+// Client sends authenticated requests to the Pachca API
 type Client struct {
 	BatchSize   int   // BatchSize is a number of items for paginated requests
 	MaxFileSize int64 // Maximum file size to upload
@@ -717,7 +847,7 @@ type Client struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// NewClient creates new client with given token
+// NewClient creates a Pachca API client with the given access token
 func NewClient(token string) (*Client, error) {
 	err := ValidateToken(token)
 
@@ -737,7 +867,7 @@ func NewClient(token string) (*Client, error) {
 	}, nil
 }
 
-// NewPropertyRequest creates new custom property
+// NewPropertyRequest creates a request to set a custom property by ID
 func NewPropertyRequest(id uint, value any) *PropertyRequest {
 	var v string
 
@@ -761,7 +891,7 @@ func NewPropertyRequest(id uint, value any) *PropertyRequest {
 	return &PropertyRequest{ID: id, Value: v}
 }
 
-// ValidateToken validates API access token
+// ValidateToken checks the access token format without contacting the API
 func ValidateToken(token string) error {
 	switch {
 	case token == "":
@@ -775,7 +905,7 @@ func ValidateToken(token string) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// SetUserAgent sets user-agent info
+// SetUserAgent sets the application name and version in the HTTP user agent
 func (c *Client) SetUserAgent(app, ver string) {
 	if c == nil || c.engine == nil {
 		return
@@ -784,7 +914,7 @@ func (c *Client) SetUserAgent(app, ver string) {
 	c.engine.SetUserAgent(app, ver, "EK|Pachca.go/0")
 }
 
-// Engine returns pointer to request engine used for all HTTP requests to API
+// Engine returns the HTTP request engine used by the client
 func (c *Client) Engine() *req.Engine {
 	if c == nil || c.engine == nil {
 		return nil
@@ -795,7 +925,7 @@ func (c *Client) Engine() *req.Engine {
 
 // TOKENS /////////////////////////////////////////////////////////////////////////// //
 
-// GetTokenInfo returns info about used token
+// GetTokenInfo returns information about the client's access token
 //
 // https://dev.pachca.com/profile/get-info
 func (c *Client) GetTokenInfo() (*TokenInfo, error) {
@@ -849,7 +979,7 @@ func (c *Client) GetProperties() (Properties, error) {
 
 // REACTIONS //////////////////////////////////////////////////////////////////////// //
 
-// GetReactions returns slice with reactions added to given message
+// GetReactions lists reactions on a message
 //
 // https://dev.pachca.com/reactions/list-reactions
 func (c *Client) GetReactions(messageID uint) (Reactions, error) {
@@ -891,8 +1021,8 @@ func (c *Client) GetReactions(messageID uint) (Reactions, error) {
 	return result, nil
 }
 
-// AddReaction adds given emoji reaction to the message. To add custom reaction
-// add it name after amoji using ":" as separator. For example "😲:omg".
+// AddReaction adds an emoji reaction to a message. For a custom reaction, append its name
+// after a colon, as in `😲:omg`.
 //
 // https://dev.pachca.com/reactions/add-reactions
 func (c *Client) AddReaction(messageID uint, reaction string) error {
@@ -920,7 +1050,7 @@ func (c *Client) AddReaction(messageID uint, reaction string) error {
 	return nil
 }
 
-// DeleteReaction removes given emoji reaction from the message
+// DeleteReaction removes specified emoji reaction from the message
 //
 // https://dev.pachca.com/reactions/remove-reactions
 func (c *Client) DeleteReaction(messageID uint, reaction string) error {
@@ -950,7 +1080,7 @@ func (c *Client) DeleteReaction(messageID uint, reaction string) error {
 
 // USERS //////////////////////////////////////////////////////////////////////////// //
 
-// CurrentUser returns info about current user
+// CurrentUser returns the authenticated user
 //
 // https://dev.pachca.com/profile/profile
 func (c *Client) CurrentUser() (*User, error) {
@@ -971,7 +1101,7 @@ func (c *Client) CurrentUser() (*User, error) {
 	return resp.Data, nil
 }
 
-// GetUser returns info about specific user
+// GetUser returns a user by ID
 //
 // https://dev.pachca.com/users/get
 func (c *Client) GetUser(userID uint) (*User, error) {
@@ -998,7 +1128,7 @@ func (c *Client) GetUser(userID uint) (*User, error) {
 	return resp.Data, nil
 }
 
-// GetUsers returns info about all users
+// GetUsers lists users, optionally filtered by a search query
 //
 // https://dev.pachca.com/users/list
 func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
@@ -1038,7 +1168,7 @@ func (c *Client) GetUsers(searchQuery ...string) (Users, error) {
 	return result, nil
 }
 
-// PaginateUsers returns paginator instance to fetch users page by page
+// PaginateUsers returns an iterator over pages of users
 func (c *Client) PaginateUsers(limit int) *UserPaginator {
 	result := &UserPaginator{
 		c:     c,
@@ -1057,7 +1187,7 @@ func (c *Client) PaginateUsers(limit int) *UserPaginator {
 	return result
 }
 
-// SearchUsers searches users
+// SearchUsers fetches matching users until minResults is reached or pagination stops
 //
 // https://dev.pachca.com/search/list-users
 func (c *Client) SearchUsers(searchRequest UserSearchRequest, minResults int) (Users, error) {
@@ -1223,7 +1353,7 @@ func (c *Client) AddBot(webhook *BotWebhook) (*BotInfo, error) {
 	return resp.Data, nil
 }
 
-// GetBot returns info about specific bot
+// GetBot returns a bot by ID
 //
 // https://dev.pachca.com/api/bots/get
 func (c *Client) GetBot(botID uint) (*BotInfo, error) {
@@ -1247,7 +1377,8 @@ func (c *Client) GetBot(botID uint) (*BotInfo, error) {
 	return resp.Data, nil
 }
 
-// GetBots returns a list of all the bots that are accessible to the current user
+// GetBots lists bots accessible to the authenticated user, optionally filtered by a search
+// query
 //
 // https://dev.pachca.com/api/bots/list
 func (c *Client) GetBots(searchQuery ...string) ([]*BotInfo, error) {
@@ -1339,7 +1470,7 @@ func (c *Client) DeleteBot(botID uint) error {
 	return nil
 }
 
-// RecreateBotToken generates new access token for bot
+// RecreateBotToken generates a new access token for the specified bot
 //
 // https://dev.pachca.com/api/bots/recreate-token
 func (c *Client) RecreateBotToken(botID uint) (string, error) {
@@ -1369,8 +1500,8 @@ func (c *Client) RecreateBotToken(botID uint) (string, error) {
 	return resp.Data.AccessToken, nil
 }
 
-// RotateBotToken generates new access token for current bot and immediately
-// invalidates previous one
+// RotateBotToken replaces the authenticated bot's access token and invalidates the
+// previous token
 //
 // https://dev.pachca.com/api/bots/recreate-token-self
 func (c *Client) RotateBotToken() (string, error) {
@@ -1399,7 +1530,7 @@ func (c *Client) RotateBotToken() (string, error) {
 
 // AVATARS ////////////////////////////////////////////////////////////////////////// //
 
-// UpdateAvatar updates current user avatar to given file
+// UpdateAvatar replaces the authenticated user's avatar with the given file
 //
 // https://dev.pachca.com/api/profile/update-avatar
 func (c *Client) UpdateAvatar(file string) (string, error) {
@@ -1429,7 +1560,7 @@ func (c *Client) UpdateAvatar(file string) (string, error) {
 	return "", nil
 }
 
-// DeleteAvatar deletes current user avatar
+// DeleteAvatar removes the authenticated user's avatar
 //
 // https://dev.pachca.com/api/profile/delete-avatar
 func (c *Client) DeleteAvatar() error {
@@ -1447,7 +1578,7 @@ func (c *Client) DeleteAvatar() error {
 	return nil
 }
 
-// UpdateUserAvatar updates specified user avatar to given file
+// UpdateUserAvatar replaces the specified user's avatar with the given file
 //
 // https://dev.pachca.com/api/users/update-avatar
 func (c *Client) UpdateUserAvatar(userID uint, file string) (string, error) {
@@ -1479,7 +1610,7 @@ func (c *Client) UpdateUserAvatar(userID uint, file string) (string, error) {
 	return "", nil
 }
 
-// DeleteUserAvatar deletes specified user avatar
+// DeleteUserAvatar removes the specified user's avatar
 //
 // https://dev.pachca.com/api/users/remove-avatar
 func (c *Client) DeleteUserAvatar(userID uint) error {
@@ -1501,7 +1632,7 @@ func (c *Client) DeleteUserAvatar(userID uint) error {
 
 // STATUS /////////////////////////////////////////////////////////////////////////// //
 
-// GetStatus returns status of user with given ID
+// GetStatus returns the specified user's status
 //
 // https://dev.pachca.com/users/get-status
 func (c *Client) GetStatus(userID uint) (*Status, error) {
@@ -1525,7 +1656,7 @@ func (c *Client) GetStatus(userID uint) (*Status, error) {
 	return resp.Data, nil
 }
 
-// UpdateStatus updates status of user with given ID
+// UpdateStatus updates the specified user's status
 //
 // https://dev.pachca.com/users/update-status
 func (c *Client) UpdateStatus(userID uint, status *Status) (*Status, error) {
@@ -1577,7 +1708,7 @@ func (c *Client) UpdateStatus(userID uint, status *Status) (*Status, error) {
 	return resp.Data, nil
 }
 
-// DeleteStatus removes status of user with given ID
+// DeleteStatus clears the specified user's status
 //
 // https://dev.pachca.com/users/remove-status
 func (c *Client) DeleteStatus(userID uint) error {
@@ -1599,7 +1730,7 @@ func (c *Client) DeleteStatus(userID uint) error {
 
 // GROUP TAGS /////////////////////////////////////////////////////////////////////// //
 
-// GetTags returns all group tags
+// GetTags lists group tags, optionally filtered by name
 //
 // https://dev.pachca.com/group-tags/list
 func (c *Client) GetTags(names ...string) (Tags, error) {
@@ -1636,7 +1767,7 @@ func (c *Client) GetTags(names ...string) (Tags, error) {
 	return result, nil
 }
 
-// GetTag returns info about group tag with given ID
+// GetTag returns a group tag by ID
 //
 // https://dev.pachca.com/group-tags/get
 func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
@@ -1663,7 +1794,7 @@ func (c *Client) GetTag(groupTagID uint) (*Tag, error) {
 	return resp.Data, nil
 }
 
-// GetTagUsers returns slice with users with given tag
+// GetTagUsers lists users with the specified group tag
 //
 // https://dev.pachca.com/group-tags/list-users
 func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
@@ -1705,7 +1836,7 @@ func (c *Client) GetTagUsers(groupTagID uint) (Users, error) {
 	return result, nil
 }
 
-// AddTag creates new group tag
+// AddTag creates a new group tag
 //
 // https://dev.pachca.com/group-tags/create
 func (c *Client) AddTag(groupTagName string) (*Tag, error) {
@@ -1735,7 +1866,7 @@ func (c *Client) AddTag(groupTagName string) (*Tag, error) {
 	return resp.Data, nil
 }
 
-// EditTag changes name of given group tag
+// EditTag renames a group tag
 //
 // http://dev.pachca.com/group-tags/update
 func (c *Client) EditTag(groupTagID uint, groupTagName string) (*Tag, error) {
@@ -1795,7 +1926,7 @@ func (c *Client) DeleteTag(groupTagID uint) error {
 
 // CHATS //////////////////////////////////////////////////////////////////////////// //
 
-// GetChats returns all chats and conversations
+// GetChats lists chats, optionally filtered by a ChatFilter
 //
 // https://dev.pachca.com/chats/list
 func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
@@ -1840,7 +1971,7 @@ func (c *Client) GetChats(filter ...ChatFilter) (Chats, error) {
 	return result, nil
 }
 
-// SearchChats searches chats
+// SearchChats fetches matching chats until minResults is reached or pagination stops
 //
 // https://dev.pachca.com/search/list-chats
 func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (Chats, error) {
@@ -1890,7 +2021,7 @@ func (c *Client) SearchChats(searchRequest ChatSearchRequest, minResults int) (C
 	return result, nil
 }
 
-// GetChat returns info about specific channel
+// GetChat returns a chat by ID
 //
 // https://dev.pachca.com/chats/get
 func (c *Client) GetChat(chatID uint) (*Chat, error) {
@@ -1914,7 +2045,7 @@ func (c *Client) GetChat(chatID uint) (*Chat, error) {
 	return resp.Data, nil
 }
 
-// AddChat creates new chat
+// AddChat creates a new chat
 //
 // https://dev.pachca.com/chats/create
 func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
@@ -1946,7 +2077,7 @@ func (c *Client) AddChat(chat *ChatRequest) (*Chat, error) {
 	return resp.Data, nil
 }
 
-// EditChat modifies chat
+// EditChat updates an existing chat
 //
 // https://dev.pachca.com/chats/update
 func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
@@ -1978,7 +2109,7 @@ func (c *Client) EditChat(chatID uint, chat *ChatRequest) (*Chat, error) {
 	return resp.Data, nil
 }
 
-// GetChatUsers returns all users of given chat
+// GetChatUsers lists chat members, optionally filtered by role
 //
 // https://dev.pachca.com/members/list-members
 func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
@@ -2030,7 +2161,7 @@ func (c *Client) GetChatUsers(chatID uint, memberRole ChatRole) (Users, error) {
 	return result, nil
 }
 
-// AddChatUsers adds users with given IDs to the chat, channel or thread
+// AddChatUsers adds users with specified IDs to the chat, channel or thread
 //
 // https://dev.pachca.com/members/add-members
 func (c *Client) AddChatUsers(chatID uint, membersIDs []uint, silent bool) error {
@@ -2098,7 +2229,7 @@ func (c *Client) AddChatTags(chatID uint, tagIDs []uint) error {
 	return nil
 }
 
-// SetChatUserRole sets user role in given chat
+// SetChatUserRole sets a user's role in the specified chat
 //
 // https://dev.pachca.com/members/update-members
 func (c *Client) SetChatUserRole(chatID, userID uint, role ChatRole) error {
@@ -2292,7 +2423,7 @@ func (c *Client) DeleteChatAvatar(chatID uint) error {
 
 // MESSAGES ///////////////////////////////////////////////////////////////////////// //
 
-// GetMessages returns messages from given chat
+// GetMessages fetches chat messages until minResults is reached or pagination stops
 //
 // https://dev.pachca.com/messages/list
 func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
@@ -2341,7 +2472,7 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 	return result, nil
 }
 
-// PaginateMessages returns paginator instance to fetch messages page by page
+// PaginateMessages returns an iterator over pages of messages in a chat
 func (c *Client) PaginateMessages(chatID uint, limit int, order SortOrder) *MessagePaginator {
 	result := &MessagePaginator{
 		c:      c,
@@ -2364,7 +2495,7 @@ func (c *Client) PaginateMessages(chatID uint, limit int, order SortOrder) *Mess
 	return result
 }
 
-// SearchMessages searches messages
+// SearchMessages fetches matching messages until minResults is reached or pagination stops
 //
 // https://dev.pachca.com/search/list-messages
 func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults int) (Messages, error) {
@@ -2414,7 +2545,7 @@ func (c *Client) SearchMessages(searchRequest MessageSearchRequest, minResults i
 	return result, nil
 }
 
-// GetMessage returns info about message
+// GetMessage returns a message by ID
 //
 // https://dev.pachca.com/messages/get
 func (c *Client) GetMessage(messageID uint) (*Message, error) {
@@ -2438,7 +2569,7 @@ func (c *Client) GetMessage(messageID uint) (*Message, error) {
 	return resp.Data, nil
 }
 
-// GetMessageReads returns a slice with IDs of users who have read the message
+// GetMessageReads returns the IDs of users who have read the message
 //
 // https://dev.pachca.com/read-member/list-read-member-ids
 func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
@@ -2479,7 +2610,7 @@ func (c *Client) GetMessageReads(messageID uint) ([]uint, error) {
 	return result, nil
 }
 
-// AddMessage creates new message to user or chat
+// AddMessage sends a message and optionally enables link previews
 //
 // https://dev.pachca.com/messages/create
 func (c *Client) AddMessage(message *MessageRequest, withPreview ...bool) (*Message, error) {
@@ -2516,7 +2647,7 @@ func (c *Client) AddMessage(message *MessageRequest, withPreview ...bool) (*Mess
 	return resp.Data, nil
 }
 
-// EditMessage modifies message
+// EditMessage updates an existing message
 //
 // https://dev.pachca.com/messages/update
 func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message, error) {
@@ -2548,7 +2679,7 @@ func (c *Client) EditMessage(messageID uint, message *MessageRequest) (*Message,
 	return resp.Data, nil
 }
 
-// DeleteMessage deletes message with given ID
+// DeleteMessage deletes message with specified ID
 //
 // https://dev.pachca.com/messages/delete
 func (c *Client) DeleteMessage(messageID uint) error {
@@ -2611,7 +2742,7 @@ func (c *Client) UnpinMessage(messageID uint) error {
 	return nil
 }
 
-// AddLinkPreview adds link previews to message with given ID
+// AddLinkPreview adds link previews to message with specified ID
 //
 // https://dev.pachca.com/link-previews/add-link-previews
 func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
@@ -2643,7 +2774,7 @@ func (c *Client) AddLinkPreview(messageID uint, previews LinkPreviews) error {
 	return nil
 }
 
-// SendMessageToUser helper to send message to user with given ID
+// SendMessageToUser sends a text message to the specified user
 func (c *Client) SendMessageToUser(userID uint, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2661,7 +2792,7 @@ func (c *Client) SendMessageToUser(userID uint, text string) (*Message, error) {
 	})
 }
 
-// SendMessageToChat helper to send message to chat with given ID
+// SendMessageToChat sends a text message to the specified chat
 func (c *Client) SendMessageToChat(chatID uint, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2679,7 +2810,7 @@ func (c *Client) SendMessageToChat(chatID uint, text string) (*Message, error) {
 	})
 }
 
-// SendMessageToThread helper to send message to thread with given ID
+// SendMessageToThread sends a text message to the specified thread
 func (c *Client) SendMessageToThread(threadID uint, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2697,7 +2828,7 @@ func (c *Client) SendMessageToThread(threadID uint, text string) (*Message, erro
 	})
 }
 
-// UpdateMessage helper to change message text
+// UpdateMessage updates the text of an existing message
 func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2711,7 +2842,7 @@ func (c *Client) UpdateMessage(messageID uint, text string) (*Message, error) {
 	return c.EditMessage(messageID, &MessageRequest{Content: text})
 }
 
-// DeleteMessageButtons is a helper for deleting buttons from a message
+// DeleteMessageButtons removes all buttons from a message
 func (c *Client) DeleteMessageButtons(messageID uint) error {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2738,7 +2869,8 @@ func (c *Client) DeleteMessageButtons(messageID uint) error {
 	return err
 }
 
-// GetImportantMessages returns all messages marked as important
+// GetImportantMessages fetches messages marked as important until minResults is reached or
+// pagination stops
 //
 // https://dev.pachca.com/api/important-messages/list
 func (c *Client) GetImportantMessages(minResults int) (Messages, error) {
@@ -2784,7 +2916,7 @@ func (c *Client) GetImportantMessages(minResults int) (Messages, error) {
 	return result, nil
 }
 
-// MarkImportantMessage marks message with given ID as important
+// MarkImportantMessage marks message with specified ID as important
 //
 // https://dev.pachca.com/api/important-messages/create
 func (c *Client) MarkImportantMessage(messageID uint) error {
@@ -2810,7 +2942,7 @@ func (c *Client) MarkImportantMessage(messageID uint) error {
 	return nil
 }
 
-// UnmarkImportantMessage removes important mark from message with given ID
+// UnmarkImportantMessage clears the important flag on a message
 //
 // https://dev.pachca.com/api/important-messages/delete
 func (c *Client) UnmarkImportantMessage(messageID uint) error {
@@ -2835,7 +2967,7 @@ func (c *Client) UnmarkImportantMessage(messageID uint) error {
 
 // THREADS ////////////////////////////////////////////////////////////////////////// //
 
-// GetThread returns info about thread
+// GetThread returns a thread by ID
 //
 // https://dev.pachca.com/thread/get
 func (c *Client) GetThread(threadID uint) (*Thread, error) {
@@ -2859,7 +2991,7 @@ func (c *Client) GetThread(threadID uint) (*Thread, error) {
 	return resp.Data, nil
 }
 
-// NewThread creates a new tread
+// NewThread creates a thread attached to the specified message
 //
 // https://dev.pachca.com/thread/add-thread
 func (c *Client) NewThread(messageID uint) (*Thread, error) {
@@ -2886,7 +3018,7 @@ func (c *Client) NewThread(messageID uint) (*Thread, error) {
 	return resp.Data, nil
 }
 
-// NewDetachedThread creates new detached thread
+// NewDetachedThread creates a thread without a parent message
 //
 // https://dev.pachca.com/api/threads/create
 func (c *Client) NewDetachedThread() (*Thread, error) {
@@ -2907,7 +3039,7 @@ func (c *Client) NewDetachedThread() (*Thread, error) {
 	return resp.Data, nil
 }
 
-// AddThreadMessage helper to create thread and add new message to it
+// AddThreadMessage creates a thread for the specified message and posts a reply in it
 func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Thread, *Message, error) {
 	switch {
 	case c == nil || c.engine == nil:
@@ -2936,14 +3068,15 @@ func (c *Client) AddThreadMessage(messageID uint, message *MessageRequest) (*Thr
 	return thread, msg, err
 }
 
-// AddThreadMessageText helper to create thread and add new message with given text to it
+// AddThreadMessageText creates a thread for the specified message and posts a text reply
+// in it
 func (c *Client) AddThreadMessageText(messageID uint, text string) (*Thread, *Message, error) {
 	return c.AddThreadMessage(messageID, &MessageRequest{Content: text})
 }
 
 // COMPANY ////////////////////////////////////////////////////////////////////////// //
 
-// GetCompany returns info about company
+// GetCompany returns information about the company
 //
 // https://dev.pachca.com/api/company/get
 func (c *Client) GetCompany() (*Company, error) {
@@ -2990,7 +3123,7 @@ func (c *Client) UpdateCompany(settings *CompanyRequest) (*Company, error) {
 	return resp.Data, nil
 }
 
-// GetCompanyInvite returns company invite info
+// GetCompanyInvite returns the current company invitation link details
 //
 // https://dev.pachca.com/api/company/get-invite-link
 func (c *Client) GetCompanyInvite() (*Invite, error) {
@@ -3011,7 +3144,7 @@ func (c *Client) GetCompanyInvite() (*Invite, error) {
 	return resp.Data, nil
 }
 
-// RenewCompanyInvite updates and returns new company invite info
+// ReissueCompanyInvite generates a new company invitation link and returns its details
 //
 // https://dev.pachca.com/api/company/reissue-invite-link
 func (c *Client) ReissueCompanyInvite() (*Invite, error) {
@@ -3034,7 +3167,7 @@ func (c *Client) ReissueCompanyInvite() (*Invite, error) {
 
 // FILES //////////////////////////////////////////////////////////////////////////// //
 
-// GetFile downloads file with given ID
+// GetFile downloads a file by ID to the specified output path
 //
 // https://dev.pachca.com/api/files/get
 func (c *Client) GetFile(fileID uint, output string, mode os.FileMode, targetType string) error {
@@ -3083,7 +3216,7 @@ func (c *Client) GetFile(fileID uint, output string, mode os.FileMode, targetTyp
 	return nil
 }
 
-// GetFile returns data of file with given ID
+// GetFileData downloads a file by ID and returns its contents
 //
 // https://dev.pachca.com/api/files/get
 func (c *Client) GetFileData(fileID uint, targetType string) ([]byte, error) {
@@ -3124,7 +3257,7 @@ func (c *Client) GetFileData(fileID uint, targetType string) ([]byte, error) {
 	return resp.Bytes()
 }
 
-// UploadFile uploads new file and returns key of it
+// UploadFile uploads a local file and returns its metadata
 //
 // https://dev.pachca.com/common/direct-url
 func (c *Client) UploadFile(file string) (*File, error) {
@@ -3235,7 +3368,7 @@ func (c *Client) UploadFile(file string) (*File, error) {
 
 // BOTS ///////////////////////////////////////////////////////////////////////////// //
 
-// UpdateBot updates bot webhook URL
+// UpdateBot updates a bot's webhook URL
 //
 // https://dev.pachca.com/bots/update
 func (c *Client) UpdateBot(botID uint, webhookURL string) error {
@@ -3267,17 +3400,8 @@ func (c *Client) UpdateBot(botID uint, webhookURL string) error {
 	return nil
 }
 
-// GetWebhookEvents returns webhook events. Each event's Payload field contains
-// raw JSON that must be decoded using webhook.DecodeJSON to extract the specific
-// webhook type (Message, Reaction, etc.).
-//
-// Example:
-//
-//	events, _ := client.GetWebhookEvents(10)
-//	for _, ev := range events {
-//	    wh, _ := webhook.DecodeJSON(ev.Payload)
-//	    // Handle webhook based on type
-//	}
+// GetWebhookEvents fetches webhook events up to the requested page limit. Use
+// webhook.DecodeJSON to decode each event's raw Payload.
 //
 // https://dev.pachca.com/bots/list-events
 func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
@@ -3315,7 +3439,7 @@ func (c *Client) GetWebhookEvents(maxPages int) ([]*WebhookEvent, error) {
 	return result, nil
 }
 
-// DeleteWebhookEvent deletes webhook event with given ID
+// DeleteWebhookEvent deletes webhook event with specified ID
 //
 // https://dev.pachca.com/bots/remove-event
 func (c *Client) DeleteWebhookEvent(eventID string) error {
@@ -3392,7 +3516,7 @@ func (c *Client) DeleteBotAvatar(botID uint) error {
 
 // FORMS //////////////////////////////////////////////////////////////////////////// //
 
-// OpenView opens view with form
+// OpenView opens a view using the supplied request
 //
 // https://dev.pachca.com/views/create-open
 func (c *Client) OpenView(view *ViewRequest) error {
@@ -3426,9 +3550,8 @@ func (c *Client) OpenView(view *ViewRequest) error {
 
 // PAGINATORS /////////////////////////////////////////////////////////////////////// //
 
-// Pages is a range-over-func iterator that yields one page of messages at a time.
-// Iteration stops when all pages are consumed or the yield function returns false.
-// Any fetch error is stored and retrievable via Error.
+// Pages yields one page of messages at a time until exhausted or stopped. Call Error after
+// iteration to check for a fetch error.
 func (p *MessagePaginator) Pages(yield func(m Messages) bool) {
 	switch {
 	case p == nil || p.c == nil || p.chatID == 0:
@@ -3469,7 +3592,7 @@ func (p *MessagePaginator) Pages(yield func(m Messages) bool) {
 	}
 }
 
-// Error returns the latest error
+// Error returns the most recent pagination error
 func (p *MessagePaginator) Error() error {
 	if p == nil {
 		return nil
@@ -3478,9 +3601,8 @@ func (p *MessagePaginator) Error() error {
 	return p.err
 }
 
-// Pages is a range-over-func iterator that yields one page of users at a time.
-// Iteration stops when all pages are consumed or the yield function returns false.
-// Any fetch error is stored and retrievable via Error.
+// Pages yields one page of users at a time until exhausted or stopped. Call Error after
+// iteration to check for a fetch error.
 func (p *UserPaginator) Pages(yield func(u Users) bool) {
 	switch {
 	case p == nil || p.c == nil:
@@ -3517,7 +3639,7 @@ func (p *UserPaginator) Pages(yield func(u Users) bool) {
 	}
 }
 
-// Error returns the latest error
+// Error returns the most recent pagination error
 func (p *UserPaginator) Error() error {
 	if p == nil {
 		return nil
@@ -3528,12 +3650,12 @@ func (p *UserPaginator) Error() error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// HasScope returns true if token has given scope
+// HasScope reports whether the token includes the specified scope
 func (t *TokenInfo) HasScope(scope string) bool {
 	return t != nil && slices.Contains(t.Scopes, scope)
 }
 
-// Get returns custom property with given ID
+// Get returns custom property with specified ID
 func (p Properties) Get(id uint) *Property {
 	for _, pp := range p {
 		if pp.ID == id {
@@ -3544,17 +3666,17 @@ func (p Properties) Get(id uint) *Property {
 	return nil
 }
 
-// Has returns true if properties contains property with given name
+// Has reports whether a property with the given name exists
 func (p Properties) Has(name string) bool {
 	return len(p) > 0 && p.Find(name) != nil
 }
 
-// HasAny returns true if properties contains property with one of given names
+// HasAny reports whether a property matches any of the given names
 func (p Properties) HasAny(name ...string) bool {
 	return len(p) > 0 && p.FindAny(name...) != nil
 }
 
-// Find returns custom property with given name
+// Find returns custom property with specified name
 func (p Properties) Find(name string) *Property {
 	name = strings.ToLower(name)
 
@@ -3567,7 +3689,7 @@ func (p Properties) Find(name string) *Property {
 	return nil
 }
 
-// FindAny returns first found property with one of given names
+// FindAny returns the first matching property or nil if none matches
 func (p Properties) FindAny(name ...string) *Property {
 	for _, n := range name {
 		pp := p.Find(n)
@@ -3580,7 +3702,7 @@ func (p Properties) FindAny(name ...string) *Property {
 	return nil
 }
 
-// Names returns slice with properties names
+// Names returns the property names
 func (p Properties) Names() []string {
 	var result []string
 
@@ -3591,32 +3713,32 @@ func (p Properties) Names() []string {
 	return result
 }
 
-// IsSet returns true if property has a value
+// IsSet reports whether the property has a value
 func (p *Property) IsSet() bool {
 	return p != nil && p.Value != ""
 }
 
-// IsText returns true if property has text type
+// IsText reports whether the property is a text property
 func (p *Property) IsText() bool {
 	return p != nil && p.Type == PROP_TYPE_TEXT
 }
 
-// IsLink returns true if property has URL type
+// IsLink reports whether the property is a link property
 func (p *Property) IsLink() bool {
 	return p != nil && p.Type == PROP_TYPE_LINK
 }
 
-// IsDate returns true if property has date type
+// IsDate reports whether the property is a date property
 func (p *Property) IsDate() bool {
 	return p != nil && p.Type == PROP_TYPE_DATE
 }
 
-// IsNumber returns true if property has number type
+// IsNumber reports whether the property is a numeric property
 func (p *Property) IsNumber() bool {
 	return p != nil && p.Type == PROP_TYPE_NUMBER
 }
 
-// String returns property value
+// String returns the property's raw string value
 func (p *Property) String() string {
 	if p == nil {
 		return ""
@@ -3625,7 +3747,7 @@ func (p *Property) String() string {
 	return p.Value
 }
 
-// ToDate tries to convert property value to date
+// ToDate parses the property value as a date
 func (p *Property) ToDate() (time.Time, error) {
 	switch {
 	case p == nil:
@@ -3639,13 +3761,13 @@ func (p *Property) ToDate() (time.Time, error) {
 	return parseDate(p.Value)
 }
 
-// Date returns property value as date
+// Date returns the property value as a date, or the zero time on failure
 func (p *Property) Date() time.Time {
 	d, _ := p.ToDate()
 	return d
 }
 
-// ToInt tries to convert property value to int
+// ToInt parses the property value as an integer
 func (p *Property) ToInt() (int, error) {
 	switch {
 	case p == nil:
@@ -3659,13 +3781,13 @@ func (p *Property) ToInt() (int, error) {
 	return strconv.Atoi(p.Value)
 }
 
-// Int returns property value as int
+// Int returns the property value as an integer, or zero on failure
 func (p *Property) Int() int {
 	i, _ := p.ToInt()
 	return i
 }
 
-// FullName returns user full name
+// FullName returns the user's full name
 func (u *User) FullName() string {
 	switch {
 	case u == nil, u.FirstName == "" && u.LastName == "":
@@ -3679,52 +3801,52 @@ func (u *User) FullName() string {
 	return u.FirstName + " " + u.LastName
 }
 
-// HasAvatar returns true if user has custom avatar
+// HasAvatar reports whether the user has a custom avatar
 func (u *User) HasAvatar() bool {
 	return u != nil && u.ImageURL != ""
 }
 
-// HasTag returns true if user has given tag
+// HasTag reports whether the user has the specified tag
 func (u *User) HasTag(tag string) bool {
 	return u != nil && slices.Contains(u.Tags, tag)
 }
 
-// IsActive returns true if user is active
+// IsActive reports whether the user is active
 func (u *User) IsActive() bool {
 	return u != nil && !u.IsSuspended && u.InviteStatus == INVITE_CONFIRMED
 }
 
-// IsInvited returns true if user is invited
+// IsInvited reports whether the user is invited
 func (u *User) IsInvited() bool {
 	return u != nil && !u.IsSuspended && u.InviteStatus == INVITE_SENT
 }
 
-// IsGuest returns true if user is guest or multi-guest
+// IsGuest reports whether the user is a guest or multi-guest
 func (u *User) IsGuest() bool {
 	return u != nil && (u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_GUEST)
 }
 
-// IsMultiGuest returns true if user is multi-guest
+// IsMultiGuest reports whether the user is a multi-guest
 func (u *User) IsMultiGuest() bool {
 	return u != nil && u.Role == ROLE_MULTI_GUEST
 }
 
-// IsPaid returns true if user is paid (not bot or guest)
+// IsPaid reports whether the user is neither a bot nor a guest
 func (u *User) IsPaid() bool {
 	return u != nil && (u.Role == ROLE_MULTI_GUEST || u.Role == ROLE_REGULAR || u.Role == ROLE_ADMIN)
 }
 
-// IsAdmin returns true if user is admin
+// IsAdmin reports whether the user is an administrator
 func (u *User) IsAdmin() bool {
 	return u != nil && u.Role == ROLE_ADMIN
 }
 
-// IsRegular returns true if user just regular user
+// IsRegular reports whether the user is a regular user
 func (u *User) IsRegular() bool {
 	return u != nil && u.Role == ROLE_REGULAR
 }
 
-// Mention returns user mention for messages
+// Mention returns the markup for mentioning the user in a message
 func (u *User) Mention() string {
 	if u == nil {
 		return ""
@@ -3733,7 +3855,7 @@ func (u *User) Mention() string {
 	return fmt.Sprintf("<@%d>", u.ID)
 }
 
-// Get returns user with given ID or nil
+// Get returns user with specified ID or nil
 func (u Users) Get(id uint) *User {
 	for _, uu := range u {
 		if uu.ID == id {
@@ -3744,7 +3866,7 @@ func (u Users) Get(id uint) *User {
 	return nil
 }
 
-// InChat only returns users that are present in the given chat
+// InChat only returns users that are present in the specified chat
 func (u Users) InChat(chat *Chat) Users {
 	if chat == nil {
 		return nil
@@ -3763,7 +3885,7 @@ func (u Users) InChat(chat *Chat) Users {
 	return result
 }
 
-// Find returns user with given nickname or email
+// Find returns user with specified nickname or email
 func (u Users) Find(nicknameOrEmail string) *User {
 	nicknameOrEmail = strings.ToLower(nicknameOrEmail)
 
@@ -3777,14 +3899,14 @@ func (u Users) Find(nicknameOrEmail string) *User {
 	return nil
 }
 
-// Active returns slice with active users
+// Active returns only active users
 func (u Users) Active() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsActive()
 	})
 }
 
-// Suspended returns slice with inactive users
+// Suspended returns only suspended users
 func (u Users) Suspended() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsSuspended
@@ -3798,70 +3920,70 @@ func (u Users) Invited() Users {
 	})
 }
 
-// Bots returns slice with bots
+// Bots returns only bots
 func (u Users) Bots() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsBot
 	})
 }
 
-// People returns slice with non-bot users
+// People returns only non-bot users
 func (u Users) People() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return !uu.IsBot
 	})
 }
 
-// Admins returns slice with admins
+// Admins returns only admins
 func (u Users) Admins() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsAdmin()
 	})
 }
 
-// Regular returns slice with regular users
+// Regular returns only regular users
 func (u Users) Regular() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsRegular()
 	})
 }
 
-// Guests returns slice with guests or multi-guests
+// Guests returns only guests or multi-guests
 func (u Users) Guests() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsGuest()
 	})
 }
 
-// MultiGuests returns slice with multi-guests
+// MultiGuests returns only multi-guests
 func (u Users) MultiGuests() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsMultiGuest()
 	})
 }
 
-// Paid returns slice with paid users
+// Paid returns only paid users
 func (u Users) Paid() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.IsPaid()
 	})
 }
 
-// WithoutGuests returns slice with users without guests
+// WithoutGuests returns users who are neither guests nor multi-guests
 func (u Users) WithoutGuests() Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return !uu.IsGuest()
 	})
 }
 
-// WithTag returns users with given tag
+// WithTag returns users with specified tag
 func (u Users) WithTag(tag string) Users {
 	return sliceutil.Filter(u, func(uu *User, _ int) bool {
 		return uu.HasTag(tag)
 	})
 }
 
-// Get returns chat with given ID
+// Get returns chat with specified ID
 func (c Chats) Get(id uint) *Chat {
 	for _, cc := range c {
 		if cc.ID == id {
@@ -3872,7 +3994,7 @@ func (c Chats) Get(id uint) *Chat {
 	return nil
 }
 
-// Find returns chat with given name
+// Find returns chat with specified name
 func (c Chats) Find(name string) *Chat {
 	name = strings.ToLower(name)
 
@@ -3885,35 +4007,35 @@ func (c Chats) Find(name string) *Chat {
 	return nil
 }
 
-// Public returns slice with public chats
+// Public returns only public chats
 func (c Chats) Public() Chats {
 	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
 		return cc.IsPublic
 	})
 }
 
-// Channels returns slice with channels
+// Channels returns only channels
 func (c Chats) Channels() Chats {
 	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
 		return cc.IsChannel
 	})
 }
 
-// Personal returns p2p chats
+// Personal returns only one-to-one chats
 func (c Chats) Personal() Chats {
 	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
 		return cc.Name == ""
 	})
 }
 
-// Communal returns communal chats (non-p2p)
+// Communal returns only non-personal chats
 func (c Chats) Communal() Chats {
 	return sliceutil.Filter(c, func(cc *Chat, _ int) bool {
 		return cc.Name != ""
 	})
 }
 
-// Get returns tag with given ID
+// Get returns tag with specified ID
 func (t Tags) Get(id uint) *Tag {
 	for _, tt := range t {
 		if tt.ID == id {
@@ -3924,7 +4046,7 @@ func (t Tags) Get(id uint) *Tag {
 	return nil
 }
 
-// Find returns tag with given name
+// Find returns tag with specified name
 func (t Tags) Find(name string) *Tag {
 	name = strings.ToLower(name)
 
@@ -3948,7 +4070,7 @@ func (t Tags) Names() []string {
 	return result
 }
 
-// InChat only returns tags that are present in the given chat
+// InChat only returns tags that are present in the specified chat
 func (t Tags) InChat(chat *Chat) Tags {
 	if chat == nil {
 		return nil
@@ -3967,7 +4089,7 @@ func (t Tags) InChat(chat *Chat) Tags {
 	return result
 }
 
-// URL returns chat URL
+// URL returns the Pachca URL for the chat
 func (c *Chat) URL() string {
 	if c == nil {
 		return ""
@@ -3976,7 +4098,7 @@ func (c *Chat) URL() string {
 	return fmt.Sprintf("%s/chats/%d", APP_URL, c.ID)
 }
 
-// URL returns URL of user profile
+// URL returns the Pachca URL for the user profile
 func (u *User) URL() string {
 	if u == nil {
 		return ""
@@ -3985,7 +4107,7 @@ func (u *User) URL() string {
 	return fmt.Sprintf("%s/chats?user_id=%d", APP_URL, u.ID)
 }
 
-// URL returns message URL
+// URL returns the Pachca URL for the message
 func (m *Message) URL() string {
 	if m == nil {
 		return ""
@@ -3997,7 +4119,7 @@ func (m *Message) URL() string {
 	)
 }
 
-// URL returns thread URL
+// URL returns the Pachca URL for the thread
 func (t *Thread) URL() string {
 	if t == nil {
 		return ""
@@ -4009,7 +4131,7 @@ func (t *Thread) URL() string {
 	)
 }
 
-// AwayMessageText returns away message text (if set)
+// AwayMessageText returns the away message text, or an empty string if none is set
 func (s *Status) AwayMessageText() string {
 	if s != nil && s.AwayMessage != nil {
 		return s.AwayMessage.Text
@@ -4020,7 +4142,7 @@ func (s *Status) AwayMessageText() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// AddBlocks adds new blocks to the view
+// AddBlocks appends blocks and returns the view
 func (v *View) AddBlocks(blocks ...block.Block) *View {
 	if v == nil || len(blocks) == 0 {
 		return v
@@ -4036,7 +4158,7 @@ func (v *View) AddBlocks(blocks ...block.Block) *View {
 	return v
 }
 
-// AddBlocksIf conditionally adds new blocks to the view
+// AddBlocksIf appends blocks if cond is true and returns the view
 func (v *View) AddBlocksIf(cond bool, blocks ...block.Block) *View {
 	if !cond {
 		return v
@@ -4059,7 +4181,7 @@ func (b Buttons) isZero() bool {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Error returns error message
+// Error returns the S3 error message
 func (e *S3Error) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -4070,7 +4192,7 @@ func (e *S3Error) Error() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ToQuery converts filter struct to request query
+// ToQuery converts the chat filter to query parameters
 func (f ChatFilter) ToQuery() req.Query {
 	query := req.Query{}
 
@@ -4091,7 +4213,7 @@ func (f ChatFilter) ToQuery() req.Query {
 	return query
 }
 
-// Validate validates chats search request
+// Validate checks the chat search request
 func (r ChatSearchRequest) Validate() error {
 	switch r.Order {
 	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
@@ -4110,7 +4232,7 @@ func (r ChatSearchRequest) Validate() error {
 	return nil
 }
 
-// ToQuery converts chats search request to request query
+// ToQuery converts the chat search request to query parameters
 func (r ChatSearchRequest) ToQuery() req.Query {
 	query := req.Query{}
 
@@ -4133,7 +4255,7 @@ func (r ChatSearchRequest) ToQuery() req.Query {
 	return query
 }
 
-// Validate validates users search request
+// Validate checks the user search request
 func (r UserSearchRequest) Validate() error {
 	switch r.Order {
 	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
@@ -4152,7 +4274,7 @@ func (r UserSearchRequest) Validate() error {
 	return nil
 }
 
-// ToQuery converts users search request to request query
+// ToQuery converts the user search request to query parameters
 func (r UserSearchRequest) ToQuery() req.Query {
 	query := req.Query{}
 
@@ -4174,7 +4296,7 @@ func (r UserSearchRequest) ToQuery() req.Query {
 	return query
 }
 
-// Validate validates messages search request
+// Validate checks the message search request
 func (r MessageSearchRequest) Validate() error {
 	switch r.Order {
 	case "", SORT_ORDER_ASC, SORT_ORDER_DESC:
@@ -4193,7 +4315,7 @@ func (r MessageSearchRequest) Validate() error {
 	return nil
 }
 
-// ToQuery converts messages search request to request query
+// ToQuery converts the message search request to query parameters
 func (r MessageSearchRequest) ToQuery() req.Query {
 	query := req.Query{}
 
