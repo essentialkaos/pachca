@@ -168,13 +168,13 @@ func (s *WebhookSuite) TestErrors(c *C) {
 	c.Assert(err, Equals, ErrInvalidSig)
 
 	_, err = DecodeBytes([]byte("{"))
-	c.Assert(err, ErrorMatches, `Can't parse webhook JSON: unexpected end of JSON input`)
+	c.Assert(err, ErrorMatches, `can't parse webhook JSON: unexpected end of JSON input`)
 	_, err = DecodeBytes([]byte(`{"event":"new","type":"unknown","webhook_timestamp":1755117405}`))
-	c.Assert(err, ErrorMatches, `Unsupported webhook type "unknown"`)
+	c.Assert(err, ErrorMatches, `unsupported webhook type "unknown"`)
 
 	MaxAge = time.Second
 	_, err = DecodeBytes([]byte(`{"event":"new","type":"message","webhook_timestamp":1755117405}`))
-	c.Assert(err, ErrorMatches, `Webhook is too old .*`)
+	c.Assert(err, ErrorMatches, `webhook is too old .*`)
 	MaxAge = 100000 * time.Hour
 
 	var v *View

@@ -27,63 +27,91 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	EVENT_NEW    WebhookEvent = "new"
+	// EVENT_NEW identifies a creation event
+	EVENT_NEW WebhookEvent = "new"
+
+	// EVENT_UPDATE identifies an update event
 	EVENT_UPDATE WebhookEvent = "update"
+
+	// EVENT_DELETE identifies a deletion event
 	EVENT_DELETE WebhookEvent = "delete"
 
-	EVENT_ADD    WebhookEvent = "add"
+	// EVENT_ADD identifies an addition event
+	EVENT_ADD WebhookEvent = "add"
+
+	// EVENT_REMOVE identifies a removal event
 	EVENT_REMOVE WebhookEvent = "remove"
 
-	EVENT_INVITE   WebhookEvent = "invite"
-	EVENT_CONFIRM  WebhookEvent = "confirm"
-	EVENT_SUSPEND  WebhookEvent = "suspend"
+	// EVENT_INVITE identifies a workspace invitation
+	EVENT_INVITE WebhookEvent = "invite"
+
+	// EVENT_CONFIRM identifies a workspace invitation confirmation
+	EVENT_CONFIRM WebhookEvent = "confirm"
+
+	// EVENT_SUSPEND identifies a workspace member suspension
+	EVENT_SUSPEND WebhookEvent = "suspend"
+
+	// EVENT_ACTIVATE identifies a workspace member activation
 	EVENT_ACTIVATE WebhookEvent = "activate"
 
+	// EVENT_LINK_SHARED identifies a link-sharing event
 	EVENT_LINK_SHARED WebhookEvent = "link_shared"
 
+	// EVENT_SUBMIT identifies a form submission
 	EVENT_SUBMIT WebhookEvent = "submit"
 )
 
 const (
-	TYPE_MESSAGE     WebhookType = "message"
-	TYPE_REACTION    WebhookType = "reaction"
-	TYPE_BUTTON      WebhookType = "button"
+	// TYPE_MESSAGE identifies a message webhook
+	TYPE_MESSAGE WebhookType = "message"
+
+	// TYPE_REACTION identifies a reaction webhook
+	TYPE_REACTION WebhookType = "reaction"
+
+	// TYPE_BUTTON identifies a button click webhook
+	TYPE_BUTTON WebhookType = "button"
+
+	// TYPE_CHAT_MEMBER identifies a chat membership webhook
 	TYPE_CHAT_MEMBER WebhookType = "chat_member"
-	TYPE_ORG_MEMBER  WebhookType = "company_member"
-	TYPE_VIEW        WebhookType = "view"
+
+	// TYPE_ORG_MEMBER identifies a workspace membership webhook
+	TYPE_ORG_MEMBER WebhookType = "company_member"
+
+	// TYPE_VIEW identifies a form submission webhook
+	TYPE_VIEW WebhookType = "view"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Webhook is basic webhook interface
+// Webhook is the common interface for decoded Pachca webhooks
 type Webhook interface {
-	// Is returns true if the webhook has given type
+	// Is reports whether the webhook has the given type
 	Is(typ WebhookType) bool
 
-	// Age returns age of the webhook
+	// Age returns the time elapsed since the webhook timestamp
 	Age() time.Duration
 
-	// GetType returns type of the webhook
+	// GetType returns the webhook type
 	GetType() WebhookType
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// WebhookEvent is type for webhook events
+// WebhookEvent identifies the action reported by a webhook
 type WebhookEvent string
 
-// WebhookType is type for webhook types
+// WebhookType identifies the kind of webhook payload
 type WebhookType string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Basic is basic webhook object
+// Basic holds the webhook type and Unix timestamp shared by all payloads
 type Basic struct {
 	Type      WebhookType `json:"type"`
 	Timestamp int64       `json:"webhook_timestamp"`
 }
 
-// WebhookMessage contains payload of new message webhook
+// Message holds the payload of a message webhook
 //
 // https://dev.pachca.com/guides/webhook#novye-soobscheniya
 type Message struct {
@@ -101,7 +129,7 @@ type Message struct {
 	Links           []*UnfurlLink     `json:"links"`
 }
 
-// Reaction contains payload of reaction webhook
+// Reaction holds the payload of a message reaction webhook
 //
 // https://dev.pachca.com/guides/webhook#reaktsii
 type Reaction struct {
@@ -113,7 +141,7 @@ type Reaction struct {
 	CreatedAt pachca.Date  `json:"created_at"`
 }
 
-// Button contains payload of button webhook
+// Button holds the payload of a message button click
 //
 // https://dev.pachca.com/guides/webhook#nazhatie-knopok
 type Button struct {
@@ -125,7 +153,7 @@ type Button struct {
 	TriggerID string `json:"trigger_id"`
 }
 
-// ChatMember contains payload of chat members changes webhook
+// ChatMember holds the payload of a chat or thread membership change
 //
 // https://dev.pachca.com/guides/webhook#izmenenie-sostava-uchastnikov-chatov
 type ChatMember struct {
@@ -137,7 +165,7 @@ type ChatMember struct {
 	UserIDs   []uint       `json:"user_ids"`
 }
 
-// OrgMember contains payload of organization members changes webhook
+// OrgMember holds the payload of a workspace membership change
 //
 // https://dev.pachca.com/guides/webhook#izmenenie-sostava-uchastnikov-prostranstva
 type OrgMember struct {
@@ -147,7 +175,7 @@ type OrgMember struct {
 	CreatedAt pachca.Date  `json:"created_at"`
 }
 
-// View contains payload from view form
+// View holds the payload of a form submission, including its raw JSON data
 //
 // https://dev.pachca.com/guides/webhook#zapolnenie-formy
 type View struct {
@@ -162,13 +190,13 @@ type View struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// WebhookThread contains info about message thread
+// Thread identifies a thread's parent message and chat
 type Thread struct {
 	MessageID     uint `json:"message_id"`
 	MessageChatID uint `json:"message_chat_id"`
 }
 
-// UnfurlLink contains info about link in message to unfurl
+// UnfurlLink identifies a shared URL and its domain for link previews
 type UnfurlLink struct {
 	URL    string `json:"url"`
 	Domain string `json:"domain"`
@@ -177,22 +205,31 @@ type UnfurlLink struct {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilRequest  = errors.New("Request is nil")
-	ErrNilWebhook  = errors.New("Webhook is nil")
-	ErrEmptyData   = errors.New("Webhook has no data")
-	ErrInvalidSig  = errors.New("Webhook has invalid signature")
-	ErrNoSignature = errors.New("Webhook has no signature")
+	// ErrNilRequest indicates that the HTTP request or its body is nil
+	ErrNilRequest = errors.New("request is nil")
+
+	// ErrNilWebhook indicates that the webhook receiver is nil
+	ErrNilWebhook = errors.New("webhook is nil")
+
+	// ErrEmptyData indicates that the webhook contains no form data
+	ErrEmptyData = errors.New("webhook has no data")
+
+	// ErrInvalidSig indicates that the webhook signature did not match
+	ErrInvalidSig = errors.New("webhook has invalid signature")
+
+	// ErrNoSignature indicates that the request has no Pachca-Signature header
+	ErrNoSignature = errors.New("webhook has no signature")
 )
 
-// MaxSize is the maximum size of the webhook payload
+// MaxSize limits the number of request body bytes Read and ReadSigned consume
 var MaxSize int64 = 1024 * 1024
 
-// MaxAge is the maximum age of webhook
+// MaxAge is the maximum webhook age accepted by DecodeBytes, Read, and ReadSigned
 var MaxAge = time.Minute
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Read reads webhook data from HTTP request
+// Read reads and decodes a webhook from an HTTP request without verifying its signature
 func Read(r *http.Request) (Webhook, error) {
 	if r == nil || r.Body == nil {
 		return nil, ErrNilRequest
@@ -202,13 +239,14 @@ func Read(r *http.Request) (Webhook, error) {
 	data, err := io.ReadAll(rr)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't read webhook data: %w", err)
+		return nil, fmt.Errorf("can't read webhook data: %w", err)
 	}
 
 	return DecodeBytes(data)
 }
 
-// ReadSigned reads webhook data from HTTP request and validates signature
+// ReadSigned verifies the request's Pachca-Signature header using HMAC-SHA256 before
+// decoding the webhook
 func ReadSigned(r *http.Request, secret string) (Webhook, error) {
 	switch {
 	case r == nil || r.Body == nil:
@@ -221,14 +259,14 @@ func ReadSigned(r *http.Request, secret string) (Webhook, error) {
 	data, err := io.ReadAll(rr)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't read webhook data: %w", err)
+		return nil, fmt.Errorf("can't read webhook data: %w", err)
 	}
 
 	mac := hmac.New(sha256.New, []byte(secret))
 	_, err = mac.Write(data)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't calculate webhook HMAC hash: %w", err)
+		return nil, fmt.Errorf("can't calculate webhook HMAC hash: %w", err)
 	}
 
 	if !hashutil.Sum(mac).EqualString(r.Header.Get("Pachca-Signature")) {
@@ -238,7 +276,7 @@ func ReadSigned(r *http.Request, secret string) (Webhook, error) {
 	return DecodeBytes(data)
 }
 
-// DecodeBytes unmarshals bytes with webhook JSON data
+// DecodeBytes decodes a JSON webhook and rejects it if it is older than MaxAge
 func DecodeBytes(data []byte) (Webhook, error) {
 	w, err := decodeWebhookData(data)
 
@@ -247,25 +285,25 @@ func DecodeBytes(data []byte) (Webhook, error) {
 	}
 
 	if w.Age() > MaxAge {
-		return nil, fmt.Errorf("Webhook is too old (%s > %s)", w.Age(), MaxAge)
+		return nil, fmt.Errorf("webhook is too old (%s > %s)", w.Age(), MaxAge)
 	}
 
 	return w, nil
 }
 
-// DecodeJSON unmarshals raw JSON message with webhook JSON data
+// DecodeJSON decodes a raw JSON webhook without checking its age
 func DecodeJSON(data json.RawMessage) (Webhook, error) {
 	return decodeWebhookData([]byte(data))
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Is returns true if the webhook has given type
+// Is reports whether the webhook has the given type
 func (w *Basic) Is(typ WebhookType) bool {
 	return w != nil && w.Type == typ
 }
 
-// Age returns age of the webhook
+// Age returns the time elapsed since the webhook timestamp
 func (w *Basic) Age() time.Duration {
 	if w == nil {
 		return 0
@@ -274,7 +312,7 @@ func (w *Basic) Age() time.Duration {
 	return time.Since(time.Unix(w.Timestamp, 0))
 }
 
-// GetType returns type of the webhook
+// GetType returns the webhook type
 func (w *Basic) GetType() WebhookType {
 	if w == nil {
 		return ""
@@ -283,14 +321,15 @@ func (w *Basic) GetType() WebhookType {
 	return w.Type
 }
 
-// String returns string representation of the webhook (type)
+// String returns the webhook type as a string
 func (w *Basic) String() string {
 	return string(w.GetType())
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Command parses webhook content as a command
+// Command returns the slash command and its arguments, or an empty command and
+// nil arguments if none is present
 func (wh *Message) Command() (string, []string) {
 	if wh == nil || wh.Content == "" {
 		return "", nil
@@ -313,7 +352,7 @@ func (wh *Message) Command() (string, []string) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnmarshalData unmarshals webhook data
+// UnmarshalData decodes the form submission's JSON data into v
 func (w *View) UnmarshalData(v any) error {
 	switch {
 	case w == nil:
@@ -333,7 +372,7 @@ func decodeWebhookData(data []byte) (Webhook, error) {
 	err := json.Unmarshal(data, w)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't parse webhook JSON: %w", err)
+		return nil, fmt.Errorf("can't parse webhook JSON: %w", err)
 	}
 
 	var ww Webhook
@@ -352,7 +391,7 @@ func decodeWebhookData(data []byte) (Webhook, error) {
 	case TYPE_VIEW:
 		ww = &View{}
 	default:
-		return nil, fmt.Errorf("Unsupported webhook type %q", w.Type)
+		return nil, fmt.Errorf("unsupported webhook type %q", w.Type)
 	}
 
 	json.Unmarshal(data, ww)

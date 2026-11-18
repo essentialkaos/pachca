@@ -252,7 +252,8 @@ func (b *Radio) AddOption(text, value, desc string, selected bool) *Radio {
 	return b
 }
 
-// AddOptionIf appends a choice to the radio group if cond is true and returns the radio group
+// AddOptionIf appends a choice to the radio group if cond is true and returns
+// the radio group
 func (b *Radio) AddOptionIf(cond bool, text, value, desc string, selected bool) *Radio {
 	if !cond {
 		return b
@@ -277,7 +278,8 @@ func (b *Checkbox) AddOption(text, value, desc string, selected bool) *Checkbox 
 	return b
 }
 
-// AddOptionIf appends a choice to the checkbox group if cond is true and returns the checkbox group
+// AddOptionIf appends a choice to the checkbox group if cond is true and returns
+// the checkbox group
 func (b *Checkbox) AddOptionIf(cond bool, text, value, desc string, selected bool) *Checkbox {
 	if !cond {
 		return b
@@ -297,7 +299,8 @@ func (b *Date) Set(year, month, day int) *Date {
 	return b
 }
 
-// SetIf sets the initial date from the year, month, and day if cond is true and returns the date picker
+// SetIf sets the initial date from the year, month, and day if cond is true
+// and returns the date picker
 func (b *Date) SetIf(cond bool, year, month, day int) *Date {
 	if !cond {
 		return b
@@ -317,7 +320,8 @@ func (b *Date) SetWithDate(d time.Time) *Date {
 	return b
 }
 
-// SetWithDateIf sets the initial date from a time.Time value if cond is true and returns the date picker
+// SetWithDateIf sets the initial date from a time.Time value if cond is true
+// and returns the date picker
 func (b *Date) SetWithDateIf(cond bool, d time.Time) *Date {
 	if !cond {
 		return b
@@ -337,7 +341,8 @@ func (b *Time) Set(hour, minute int) *Time {
 	return b
 }
 
-// SetIf sets the initial time from the hour and minute if cond is true and returns the time picker
+// SetIf sets the initial time from the hour and minute if cond is true and returns
+// the time picker
 func (b *Time) SetIf(cond bool, hour, minute int) *Time {
 	if !cond {
 		return b
@@ -357,7 +362,8 @@ func (b *Time) SetWithDate(d time.Time) *Time {
 	return b
 }
 
-// SetWithDateIf sets the initial time from a time.Time value if cond is true and returns the time picker
+// SetWithDateIf sets the initial time from a time.Time value if cond is true
+// and returns the time picker
 func (b *Time) SetWithDateIf(cond bool, d time.Time) *Time {
 	if !cond {
 		return b

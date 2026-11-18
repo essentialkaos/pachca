@@ -45,7 +45,8 @@ type Options []string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnmarshalJSON accepts dates in YYYY-MM-DD or DD.MM.YYYY format and resets the date on null
+// UnmarshalJSON accepts dates in YYYY-MM-DD or DD.MM.YYYY format and resets
+// the date on null
 func (d *Date) UnmarshalJSON(b []byte) error {
 	data := string(b)
 
@@ -65,7 +66,8 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// UnmarshalJSON decodes a 24-hour time string and leaves the receiver unchanged on null
+// UnmarshalJSON decodes a 24-hour time string and leaves the receiver unchanged
+// on null
 func (t *Time) UnmarshalJSON(b []byte) error {
 	data := string(b)
 
@@ -76,27 +78,27 @@ func (t *Time) UnmarshalJSON(b []byte) error {
 	hour, min, ok := strings.Cut(strings.Trim(data, `"`), ":")
 
 	if !ok {
-		return fmt.Errorf("Invalid time format")
+		return fmt.Errorf("invalid time format")
 	}
 
 	h, err := strconv.Atoi(hour)
 
 	if err != nil {
-		return fmt.Errorf("Can't parse time hour value: %w", err)
+		return fmt.Errorf("can't parse time hour value: %w", err)
 	}
 
 	if h < 0 || h > 23 {
-		return fmt.Errorf("Invalid hour value \"%d\"", h)
+		return fmt.Errorf("invalid hour value \"%d\"", h)
 	}
 
 	m, err := strconv.Atoi(min)
 
 	if err != nil {
-		return fmt.Errorf("Can't parse time minute value: %w", err)
+		return fmt.Errorf("can't parse time minute value: %w", err)
 	}
 
 	if m < 0 || m > 59 {
-		return fmt.Errorf("Invalid minute value \"%d\"", m)
+		return fmt.Errorf("invalid minute value \"%d\"", m)
 	}
 
 	t.Hour, t.Minute = h, m
