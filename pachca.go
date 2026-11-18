@@ -543,8 +543,8 @@ type ReactionRequest struct {
 // CompanyRequest is payload for company settings update
 type CompanyRequest struct {
 	Name             string `json:"name,omitempty"`
-	ShowPersonalData bool   `json:"show_personal_data"`
-	UseGlobalThreads bool   `json:"use_global_threads"`
+	ShowPersonalData *bool  `json:"show_personal_data,omitempty"`
+	UseGlobalThreads *bool  `json:"use_global_threads,omitempty"`
 }
 
 // ViewRequest is a payload for open a view
@@ -2305,11 +2305,12 @@ func (c *Client) GetMessages(chatID uint, minResults int) (Messages, error) {
 		return nil, ErrInvalidMinResults
 	}
 
-	result := make(Messages, 0, minResults)
+	batchSize := c.getBatchSize()
+	result := make(Messages, 0, batchSize)
 
 	query := req.Query{
 		"chat_id": chatID,
-		"limit":   min(minResults, c.getBatchSize()),
+		"limit":   min(minResults, batchSize),
 	}
 
 	for range MAX_PAGES {
@@ -2748,10 +2749,11 @@ func (c *Client) GetImportantMessages(minResults int) (Messages, error) {
 		return nil, ErrInvalidMinResults
 	}
 
-	result := make(Messages, 0, minResults)
+	batchSize := c.getBatchSize()
+	result := make(Messages, 0, batchSize)
 
 	query := req.Query{
-		"limit": min(minResults, c.getBatchSize()),
+		"limit": min(minResults, batchSize),
 	}
 
 	for range MAX_PAGES {
@@ -2971,7 +2973,7 @@ func (c *Client) UpdateCompany(settings *CompanyRequest) (*Company, error) {
 		return nil, ErrNilClient
 	case settings == nil:
 		return nil, ErrNilCompanyRequest
-	case len(settings.Name) > 255:
+	case strutil.Len(settings.Name) > 255:
 		return nil, fmt.Errorf("company name is longer than 255 symbols (%d)", len(settings.Name))
 	}
 
